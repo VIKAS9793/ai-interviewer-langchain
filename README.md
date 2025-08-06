@@ -76,18 +76,58 @@ Embeddings:  SentenceTransformers (Semantic Search)
 ```
 
 ### System Architecture
+
+```mermaid
+graph TD
+    A[Gradio UI] -->|User Input/Output| B[Flow Controller]
+    B -->|State Management| C[AI Interviewer]
+    C -->|Generate Questions| D[Question Bank]
+    D -->|Retrieve Questions| C
+    C -->|Evaluate Answers| E[Evaluator]
+    E -->|Scores & Feedback| B
+    B -->|Update Interface| A
+    
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style B fill:#bbf,stroke:#333,stroke-width:2px
+    style C fill:#9f9,stroke:#333,stroke-width:2px
+    style D fill:#f96,stroke:#333,stroke-width:2px
+    style E fill:#6cf,stroke:#333,stroke-width:2px
 ```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Gradio UI     │────│  Flow Controller │────│   AI Interviewer│
-│   (main.py)     │    │ (LangGraph State │    │  (LLM Engine)   │
-└─────────────────┘    │     Machine)     │    └─────────────────┘
-                       └──────────────────┘              │
-                                │                        │
-                       ┌──────────────────┐    ┌─────────────────┐
-                       │  Question Bank   │    │   Evaluator     │
-                       │  (ChromaDB)      │    │ (Multi-Dimension│
-                       └──────────────────┘    │   Scoring)      │
-                                              └─────────────────┘
+
+### Interview Flow
+
+```mermaid
+stateDiagram-v2
+    [*] --> Start
+    Start --> SelectTopic
+    SelectTopic --> FirstQuestion
+    
+    state "Interview Process" as interview {
+        FirstQuestion --> EvaluateAnswer
+        EvaluateAnswer --> Decision
+        
+        state Decision {
+            [*] --> CheckScore
+            CheckScore -->|Score ≥ 7| HarderQuestion
+            CheckScore -->|4 ≤ Score < 7| SimilarQuestion
+            CheckScore -->|Score < 4| EasierQuestion
+        }
+        
+        HarderQuestion --> EvaluateAnswer
+        SimilarQuestion --> EvaluateAnswer
+        EasierQuestion --> EvaluateAnswer
+        
+        state "Question Count" as count {
+            [*] --> Q1
+            Q1 --> Q2
+            Q2 --> Q3
+            Q3 --> Q4
+            Q4 --> Q5
+        }
+    }
+    
+    Decision -->|5 Questions Asked| GenerateReport
+    GenerateReport --> [*]
 ```
 
 ### LangGraph Flow States
