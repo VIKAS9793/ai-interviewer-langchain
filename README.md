@@ -30,6 +30,21 @@ A sophisticated AI interviewer that conducts professional technical interviews u
 - ✅ **Gradio Web Interface** - Professional chat-style UI
 - ✅ **Advanced Analytics** - Performance tracking and insights
 
+## 🎥 Video Walkthrough
+
+Watch the AI Interviewer in action! This comprehensive demo shows the complete interview flow, from question generation to final evaluation.
+
+[![AI Interviewer Demo](https://img.youtube.com/vi/0M7M1Pn31vQ/0.jpg)](https://youtu.be/0M7M1Pn31vQ)
+
+*Click the image above to watch the full video on YouTube*
+
+### What's Covered in the Demo:
+- Starting a new interview session
+- Dynamic question generation
+- Real-time answer evaluation
+- Performance feedback and scoring
+- System navigation and features
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -96,6 +111,57 @@ graph TD
     style D fill:#fff3e0,stroke:#ef6c00,stroke-width:3px,color:#000
     style E fill:#e0f2f1,stroke:#00695c,stroke-width:3px,color:#000
 ```
+
+## ⚡ Performance Considerations
+
+### Current Performance Metrics
+- **Response Time**: 3-5 minutes per assessment
+- **Hardware Requirements**: Minimum 8GB RAM, 4GB VRAM
+- **Model Size**: ~2GB (quantized llama3.2:3b)
+
+### Technical Factors Affecting Performance
+
+#### 1. Local Processing Constraints
+- **CPU/GPU Limitations**: Consumer hardware lacks specialized AI accelerators
+- **Memory Bandwidth**: Limited bandwidth affects model loading and inference speed
+- **Thermal Throttling**: Prolonged processing can lead to performance degradation
+
+#### 2. Model Architecture
+- **Model Size**: Larger models provide better accuracy but require more resources
+- **Quantization**: Current 4-bit quantization balances size and performance
+- **Context Window**: Larger contexts increase processing time quadratically
+
+#### 3. System Architecture
+- **Synchronous Processing**: Each request is processed sequentially
+- **Vector Search**: ChromaDB lookups add overhead
+- **State Management**: LangGraph state machine introduces additional computation
+
+### Cloud Deployment Benefits
+
+#### Performance Improvements
+| Factor | Local | Cloud | Improvement |
+|--------|-------|-------|-------------|
+| Processing | Consumer CPU/GPU | Server-grade GPUs (A100/H100) | 5-10x faster |
+| Memory | Limited by hardware | Virtually unlimited | 4-8x more capacity |
+| Parallelism | Limited | Container orchestration | 10x+ concurrency |
+| Model Size | ~2GB (quantized) | Up to 70B+ parameters | Better accuracy |
+
+#### Implementation Roadmap
+1. **Infrastructure**
+   - Containerization with Docker
+   - Kubernetes orchestration
+   - Auto-scaling based on load
+
+2. **Optimizations**
+   - Model quantization (8-bit/4-bit)
+   - Response caching
+   - Asynchronous processing
+   - Batch processing of assessments
+
+3. **Monitoring**
+   - Performance metrics collection
+   - Resource utilization tracking
+   - Auto-scaling triggers
 
 ### Interview Flow
 
