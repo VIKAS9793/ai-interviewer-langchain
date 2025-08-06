@@ -33,6 +33,7 @@ A sophisticated AI interviewer that conducts professional technical interviews u
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 ```bash
 # Install Ollama
 curl -fsSL https://ollama.ai/install.sh | sh
@@ -45,6 +46,7 @@ ollama serve
 ```
 
 ### Installation
+
 ```bash
 # Clone and setup
 git clone <your-repo-url>
@@ -66,6 +68,7 @@ python main.py
 ## 🏗️ Architecture & Design
 
 ### Tech Stack
+
 ```
 Frontend:    Gradio 4.37.2 (Web Interface)
 Backend:     Python 3.11+ 
@@ -87,11 +90,11 @@ graph TD
     E -->|Scores & Feedback| B
     B -->|Update Interface| A
     
-    style A fill:#f9f,stroke:#333,stroke-width:2px
-    style B fill:#bbf,stroke:#333,stroke-width:2px
-    style C fill:#9f9,stroke:#333,stroke-width:2px
-    style D fill:#f96,stroke:#333,stroke-width:2px
-    style E fill:#6cf,stroke:#333,stroke-width:2px
+    style A fill:#e1f5fe,stroke:#0277bd,stroke-width:3px,color:#000
+    style B fill:#f3e5f5,stroke:#7b1fa2,stroke-width:3px,color:#000
+    style C fill:#e8f5e8,stroke:#2e7d32,stroke-width:3px,color:#000
+    style D fill:#fff3e0,stroke:#ef6c00,stroke-width:3px,color:#000
+    style E fill:#e0f2f1,stroke:#00695c,stroke-width:3px,color:#000
 ```
 
 ### Interview Flow
@@ -131,6 +134,7 @@ stateDiagram-v2
 ```
 
 ### LangGraph Flow States
+
 ```
 START → ask_question → evaluate_answer → decide_next → [continue|complete]
   │                                                          │
@@ -139,12 +143,14 @@ START → ask_question → evaluate_answer → decide_next → [continue|complet
 
 ## 🧠 Intelligent Features
 
-### 1. **Adaptive Question Generation**
+### 1. Adaptive Question Generation
+
 - **Dynamic Difficulty**: Questions adapt based on candidate performance
 - **Context-Aware**: Each question builds on conversation history
 - **Topic Specialization**: 5 technical domains with expert-level questions
 
-### 2. **Multi-Dimensional Evaluation**
+### 2. Multi-Dimensional Evaluation
+
 ```python
 evaluation_criteria = {
     "technical_accuracy": "Correctness and precision",
@@ -156,12 +162,14 @@ evaluation_criteria = {
 }
 ```
 
-### 3. **Professional Interview Flow**
+### 3. Professional Interview Flow
+
 - **Smart Branching**: High score → harder questions, low score → supportive follow-ups
 - **Progress Tracking**: Real-time question progress
 - **Session Management**: Complete conversation history and state
 
-### 4. **Vector-Enhanced Question Bank**
+### 4. Vector-Enhanced Question Bank
+
 - **Semantic Search**: ChromaDB finds contextually relevant questions
 - **Curated Questions**: Professional-grade questions per topic
 - **Expandable**: Easy to add custom questions and topics
@@ -169,6 +177,7 @@ evaluation_criteria = {
 ## 📊 Interview Topics
 
 ### Available Specializations
+
 1. **JavaScript/Frontend Development** - React, DOM, async patterns
 2. **Python/Backend Development** - Django, APIs, database optimization  
 3. **Machine Learning/AI** - Algorithms, model evaluation, deployment
@@ -176,6 +185,7 @@ evaluation_criteria = {
 5. **Data Structures & Algorithms** - Complexity, optimization, problem-solving
 
 ### Sample Interview Flow
+
 ```
 Question 1 (Easy):    "Explain the difference between let, const, and var"
 Answer Evaluation:    Score: 8/10 → Candidate shows strong fundamentals
@@ -188,17 +198,20 @@ Question 3 (Medium):  "Can you explain closures with an example?"
 ## 🎖️ Professional Features
 
 ### Advanced Evaluation System
+
 - **Multi-Dimensional Scoring** with weighted criteria
 - **Improvement Suggestions** with feedback
 - **Performance Tracking** of question progression
 
 ### Enterprise-Grade Architecture
+
 - **Error Handling**: Graceful fallbacks for all failure modes
 - **Local Processing**: No external API dependencies
 - **Scalable Design**: Easy to extend with new topics/features
 - **Comprehensive Logging**: For debugging and monitoring
 
 ### User Experience Excellence
+
 - **Professional UI**: Clean, intuitive Gradio interface
 - **Real-Time Feedback**: Immediate scoring and progress updates
 - **Comprehensive Reports**: Detailed final assessment with growth recommendations
@@ -207,6 +220,7 @@ Question 3 (Medium):  "Can you explain closures with an example?"
 ## 🔧 Development & Customization
 
 ### Adding New Topics
+
 ```python
 # In question_bank.py
 new_topic_questions = [
@@ -220,6 +234,7 @@ new_topic_questions = [
 ```
 
 ### Customizing Evaluation Criteria
+
 ```python
 # In evaluator.py - modify scoring weights
 evaluation_weights = {
@@ -231,6 +246,7 @@ evaluation_weights = {
 ```
 
 ### Extending LangGraph Flow
+
 ```python
 # In flow_controller.py - add new states
 workflow.add_node("custom_state", custom_function)
@@ -240,6 +256,7 @@ workflow.add_edge("evaluate_answer", "custom_state")
 ## 📈 System Capabilities
 
 ### Key Features
+
 - **Local Processing**: Runs entirely on your machine
 - **Modular Design**: Easy to extend with new features
 - **Adaptive Interviewing**: Questions adjust based on responses
@@ -249,6 +266,7 @@ workflow.add_edge("evaluate_answer", "custom_state")
 ### Common Issues
 
 **Ollama Connection Failed**
+
 ```bash
 # Check Ollama is running
 ollama list
@@ -261,6 +279,7 @@ ollama pull llama3.2:3b
 ```
 
 **ChromaDB Initialization Error**
+
 ```bash
 # Clear ChromaDB cache
 rm -rf ./chroma_db
@@ -270,6 +289,7 @@ python main.py
 ```
 
 **Gradio Interface Not Loading**
+
 ```bash
 # Check port availability
 netstat -an | grep 7860
@@ -281,6 +301,7 @@ python main.py --server-port 7861
 ## 🎯 Success Metrics
 
 ### Core Requirements ✅
+
 - ✅ **5 Dynamic Questions** generated by LLM
 - ✅ **Smart Branching** based on answer quality
 - ✅ **Performance Summary** with detailed feedback  
@@ -290,6 +311,7 @@ python main.py --server-port 7861
 - ✅ **Professional Prompts** with consistent personality
 
 ### Bonus Achievements ✅
+
 - ✅ **Vector Store** semantic question retrieval
 - ✅ **Multi-Dimensional** answer scoring
 - ✅ **Web Interface** with professional UX
@@ -299,12 +321,14 @@ python main.py --server-port 7861
 ## 🚀 Next Steps
 
 ### Immediate Enhancements
+
 - [ ] Add voice interview capability
 - [ ] Implement code execution sandbox
 - [ ] Add interview recording/playback
 - [ ] Multi-language support
 
 ### Advanced Features
+
 - [ ] AI-powered interview coaching
 - [ ] Integration with HR systems
 - [ ] Advanced analytics dashboard
@@ -313,15 +337,18 @@ python main.py --server-port 7861
 ## 🎯 Deliverables
 
 ### GitHub Repository
+
 - **Code Structure**: Well-organized with clear separation of concerns
 - **Documentation**: Comprehensive docstrings and type hints throughout
 - **Version Control**: Clean commit history with semantic messages
 
 ### Live Demo
+
 - **Web Interface**: Accessible at `http://localhost:7860` when running locally
 - **Local Execution**: No external dependencies required beyond specified prerequisites
 
 ### Setup Instructions
+
 1. **Prerequisites**:
    - Python 3.11+
    - Ollama with llama3.2:3b model
@@ -357,6 +384,7 @@ python main.py --server-port 7861
    ```
 
 ### Technologies Used
+
 - **Core**: Python 3.11+
 - **LLM**: Ollama with llama3.2:3b
 - **State Management**: LangGraph 0.1.19
@@ -367,6 +395,7 @@ python main.py --server-port 7861
 - **Testing**: Pytest
 
 ### Design Decisions & Branching Flow
+
 1. **State Management**:
    - LangGraph for robust state machine implementation
    - Clear separation between UI, business logic, and data layers
@@ -387,6 +416,7 @@ python main.py --server-port 7861
    - Comprehensive error handling
 
 ### Optional Features Implemented
+
 - **Web Interface**: Intuitive Gradio-based UI
 - **Vector Database**: Semantic question retrieval with ChromaDB
 - **Multi-dimensional Evaluation**: Comprehensive scoring system
