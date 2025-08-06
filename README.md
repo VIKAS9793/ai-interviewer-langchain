@@ -1,6 +1,6 @@
 # 🤖 AI Technical Interviewer
 
-**Professional technical interview simulation powered by local AI - 100% Requirements Compliant**
+**Professional technical interview simulation powered by local AI**
 
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![LangGraph](https://img.shields.io/badge/LangGraph-0.1.19-green.svg)](https://github.com/langchain-ai/langgraph)
@@ -10,7 +10,7 @@
 
 ## 🎯 Executive Summary
 
-A sophisticated AI interviewer that conducts professional technical interviews using **LangGraph state machines**, **Ollama's llama3.2:3b**, and **ChromaDB vector storage**. Built in a 5-hour sprint with 100% compliance to pre-work requirements.
+A sophisticated AI interviewer that conducts professional technical interviews using **LangGraph state machines**, **Ollama's llama3.2:3b**, and **ChromaDB vector storage**.
 
 ### ✅ Requirements Compliance
 
@@ -30,7 +30,7 @@ A sophisticated AI interviewer that conducts professional technical interviews u
 - ✅ **Gradio Web Interface** - Professional chat-style UI
 - ✅ **Advanced Analytics** - Performance tracking and insights
 
-## 🚀 Quick Start (5 Minutes)
+## 🚀 Quick Start
 
 ### Prerequisites
 ```bash
@@ -118,12 +118,12 @@ evaluation_criteria = {
 
 ### 3. **Professional Interview Flow**
 - **Smart Branching**: High score → harder questions, low score → supportive follow-ups
-- **Progress Tracking**: Real-time question progress (1/5, 2/5, etc.)
+- **Progress Tracking**: Real-time question progress
 - **Session Management**: Complete conversation history and state
 
 ### 4. **Vector-Enhanced Question Bank**
 - **Semantic Search**: ChromaDB finds contextually relevant questions
-- **50+ Curated Questions**: Professional-grade questions per topic
+- **Curated Questions**: Professional-grade questions per topic
 - **Expandable**: Easy to add custom questions and topics
 
 ## 📊 Interview Topics
@@ -148,16 +148,15 @@ Question 3 (Medium):  "Can you explain closures with an example?"
 ## 🎖️ Professional Features
 
 ### Advanced Evaluation System
-- **6-Dimensional Scoring** with weighted criteria
-- **Confidence Levels** for evaluation reliability
-- **Improvement Suggestions** with actionable feedback
-- **Performance Trends** across question progression
+- **Multi-Dimensional Scoring** with weighted criteria
+- **Improvement Suggestions** with feedback
+- **Performance Tracking** of question progression
 
 ### Enterprise-Grade Architecture
 - **Error Handling**: Graceful fallbacks for all failure modes
 - **Local Processing**: No external API dependencies
 - **Scalable Design**: Easy to extend with new topics/features
-- **Production Ready**: Comprehensive logging and monitoring
+- **Comprehensive Logging**: For debugging and monitoring
 
 ### User Experience Excellence
 - **Professional UI**: Clean, intuitive Gradio interface
@@ -198,19 +197,12 @@ workflow.add_node("custom_state", custom_function)
 workflow.add_edge("evaluate_answer", "custom_state")
 ```
 
-## 📈 Performance Metrics
+## 📈 System Capabilities
 
-### System Capabilities
-- **Response Time**: < 3 seconds per question generation
-- **Evaluation Speed**: < 2 seconds per answer assessment  
-- **Memory Usage**: ~500MB including LLM model
-- **Concurrent Users**: Supports multiple simultaneous interviews
-
-### Quality Indicators
-- **Question Relevance**: 95%+ contextually appropriate
-- **Evaluation Consistency**: Multi-dimensional scoring reduces bias
-- **User Satisfaction**: Professional interview experience
-- **Technical Accuracy**: Expert-level question and evaluation quality
+### Key Features
+- **Local Processing**: Runs entirely on your machine
+- **Modular Design**: Easy to extend with new features
+- **Adaptive Interviewing**: Questions adjust based on responses
 
 ## 🛠️ Troubleshooting
 
