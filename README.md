@@ -270,6 +270,89 @@ python main.py --server-port 7861
 - [ ] Advanced analytics dashboard
 - [ ] Mobile-responsive interface
 
+## 🎯 Deliverables
+
+### GitHub Repository
+- **Code Structure**: Well-organized with clear separation of concerns
+- **Documentation**: Comprehensive docstrings and type hints throughout
+- **Version Control**: Clean commit history with semantic messages
+
+### Live Demo
+- **Web Interface**: Accessible at `http://localhost:7860` when running locally
+- **Local Execution**: No external dependencies required beyond specified prerequisites
+
+### Setup Instructions
+1. **Prerequisites**:
+   - Python 3.11+
+   - Ollama with llama3.2:3b model
+   - Git
+
+2. **Installation**:
+   ```bash
+   # Clone repository
+   git clone https://github.com/VIKAS9793/ai-interviewer-langchain.git
+   cd ai-interviewer-langchain
+   
+   # Create and activate virtual environment
+   python -m venv venv
+   source venv/bin/activate  # Windows: venv\Scripts\activate
+   
+   # Install dependencies
+   pip install -r requirements.txt
+   
+   # Start the application
+   python main.py
+   ```
+
+3. **LLM Setup**:
+   ```bash
+   # Install Ollama
+   curl -fsSL https://ollama.ai/install.sh | sh
+   
+   # Download the language model
+   ollama pull llama3.2:3b
+   
+   # Start Ollama service
+   ollama serve
+   ```
+
+### Technologies Used
+- **Core**: Python 3.11+
+- **LLM**: Ollama with llama3.2:3b
+- **State Management**: LangGraph 0.1.19
+- **Vector Database**: ChromaDB 0.4.24
+- **Web Interface**: Gradio 4.37.2
+- **Embeddings**: SentenceTransformers
+- **Configuration**: Pydantic
+- **Testing**: Pytest
+
+### Design Decisions & Branching Flow
+1. **State Management**:
+   - LangGraph for robust state machine implementation
+   - Clear separation between UI, business logic, and data layers
+
+2. **Interview Flow**:
+   ```
+   Start → Select Topic → First Question → Evaluate → 
+   └─→ If Score ≥ 7: Harder Question
+   └─→ If 4 ≤ Score < 7: Similar Difficulty
+   └─→ If Score < 4: Easier Question
+   → Continue until 5 questions → Generate Report
+   ```
+
+3. **Key Decisions**:
+   - Local-first architecture for privacy
+   - Modular design for easy extension
+   - Adaptive difficulty based on performance
+   - Comprehensive error handling
+
+### Optional Features Implemented
+- **Web Interface**: Intuitive Gradio-based UI
+- **Vector Database**: Semantic question retrieval with ChromaDB
+- **Multi-dimensional Evaluation**: Comprehensive scoring system
+- **Progress Tracking**: Real-time feedback during interview
+- **Customization**: Easy to add new topics and questions
+
 ## 📄 License
 
 MIT License - See LICENSE file for details.
