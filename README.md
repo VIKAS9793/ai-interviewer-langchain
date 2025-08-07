@@ -219,25 +219,25 @@ python main.py
 
 ```mermaid
 graph TB
-    subgraph "🖥️ Frontend Layer"
-        A[Gradio Web UI]
+    subgraph "Frontend Layer"
+        A["🖥️ Gradio Web UI"]
     end
     
-    subgraph "🧠 Control Layer" 
-        B[LangGraph State Machine]
-        C[Flow Controller]
+    subgraph "Control Layer" 
+        B["🧠 LangGraph State Machine"]
+        C["🎮 Flow Controller"]
     end
     
-    subgraph "🤖 AI Layer"
-        D[Ollama LLM<br/>llama3.2:3b]
-        E[AI Interviewer Agent]
-        F[Response Evaluator]
+    subgraph "AI Layer"
+        D["🤖 Ollama LLM<br/>(llama3.2:3b)"]
+        E["👨‍💼 AI Interviewer Agent"]
+        F["📊 Response Evaluator"]
     end
     
-    subgraph "📊 Data Layer"
-        G[ChromaDB Vector Store]
-        H[Question Bank]
-        I[Session Memory]
+    subgraph "Data Layer"
+        G["🗃️ ChromaDB Vector Store"]
+        H["❓ Question Bank"]
+        I["💾 Session Memory"]
     end
     
     A --> B
@@ -251,10 +251,15 @@ graph TB
     I --> B
     B --> A
     
-    style A fill:#e3f2fd,stroke:#1976d2,stroke-width:3px
-    style B fill:#f3e5f5,stroke:#7b1fa2,stroke-width:3px  
-    style D fill:#e8f5e8,stroke:#388e3c,stroke-width:3px
-    style G fill:#fff3e0,stroke:#f57c00,stroke-width:3px
+    classDef frontend fill:#e8f5e8,stroke:#2e7d32,stroke-width:3px,color:#000000
+    classDef control fill:#f3e5f5,stroke:#7b1fa2,stroke-width:3px,color:#000000
+    classDef ai fill:#fff3e0,stroke:#ef6c00,stroke-width:3px,color:#000000
+    classDef data fill:#e3f2fd,stroke:#1565c0,stroke-width:3px,color:#000000
+    
+    class A frontend
+    class B,C control
+    class D,E,F ai
+    class G,H,I data
 ```
 
 ---
@@ -297,33 +302,37 @@ graph TB
 ### **Interview Flow Diagram**
 
 ```mermaid
-stateDiagram-v2
-    [*] --> Start
-    Start --> SelectTopic
-    SelectTopic --> FirstQuestion
+flowchart TD
+    Start([🎬 Start Interview]) --> SelectTopic[📝 Select Topic]
+    SelectTopic --> FirstQuestion[❓ First Question]
     
-    state "Interview Loop" as interview {
-        FirstQuestion --> EvaluateAnswer
-        EvaluateAnswer --> Decision
+    subgraph InterviewLoop ["🔄 Interview Loop"]
+        FirstQuestion --> EvaluateAnswer[📊 Evaluate Answer]
+        EvaluateAnswer --> Decision{🤔 Performance Check}
         
-        state Decision {
-            [*] --> CheckScore
-            CheckScore -->|Score >= 7| HarderQuestion
-            CheckScore -->|4 <= Score < 7| SimilarQuestion  
-            CheckScore -->|Score < 4| EasierQuestion
-        }
+        Decision -->|Score ≥ 7| HarderQuestion[⬆️ Harder Question]
+        Decision -->|4 ≤ Score < 7| SimilarQuestion[➡️ Similar Question]
+        Decision -->|Score < 4| EasierQuestion[⬇️ Easier Question]
         
-        HarderQuestion --> EvaluateAnswer
-        SimilarQuestion --> EvaluateAnswer
-        EasierQuestion --> EvaluateAnswer
-    }
+        HarderQuestion --> QuestionCount{📊 Question Count}
+        SimilarQuestion --> QuestionCount
+        EasierQuestion --> QuestionCount
+        
+        QuestionCount -->|< 5 Questions| EvaluateAnswer
+    end
     
-    Decision -->|5 Questions Complete| GenerateReport
-    GenerateReport --> [*]
+    QuestionCount -->|5 Questions Complete| GenerateReport[📋 Generate Report]
+    GenerateReport --> End([🏁 Interview Complete])
     
-    style Start fill:#e8f5e8
-    style GenerateReport fill:#e3f2fd
-    style Decision fill:#fff3e0
+    classDef startEnd fill:#c8e6c9,stroke:#4caf50,stroke-width:3px,color:#000000
+    classDef process fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px,color:#000000
+    classDef decision fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#000000
+    classDef question fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px,color:#000000
+    
+    class Start,End startEnd
+    class SelectTopic,EvaluateAnswer,GenerateReport process
+    class Decision,QuestionCount decision
+    class FirstQuestion,HarderQuestion,SimilarQuestion,EasierQuestion question
 ```
 
 ---
@@ -416,23 +425,26 @@ evaluation_dimensions = {
 
 ### **Sample Interview Progression**
 
-<div align="center">
-
 ```mermaid
-graph LR
-    A[Question 1<br/>Easy: Explain var vs let] --> B[Score: 8/10<br/>Strong Fundamentals]
-    B --> C[Question 2<br/>Hard: Event Loop Mechanics]
-    C --> D[Score: 6/10<br/>Needs Clarification] 
-    D --> E[Question 3<br/>Medium: Closures Example]
-    E --> F[Adaptive Flow<br/>Continues Based on Performance]
+flowchart LR
+    A["❓ Question 1<br/>📟 Easy: Explain var vs let"] --> B["📊 Score: 8/10<br/>✅ Strong Fundamentals"]
+    B --> C["❓ Question 2<br/>🔥 Hard: Event Loop Mechanics"]
+    C --> D["📊 Score: 6/10<br/>🤔 Needs Clarification"]
+    D --> E["❓ Question 3<br/>⚖️ Medium: Closures Example"]
+    E --> F["🔄 Adaptive Flow<br/>📈 Continues Based on Performance"]
     
-    style A fill:#e8f5e8
-    style C fill:#ffebee
-    style E fill:#fff3e0
-    style F fill:#e3f2fd
+    classDef easy fill:#e8f5e8,stroke:#4caf50,stroke-width:2px,color:#000000
+    classDef medium fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#000000
+    classDef hard fill:#ffebee,stroke:#f44336,stroke-width:2px,color:#000000
+    classDef score fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px,color:#000000
+    classDef flow fill:#e3f2fd,stroke:#2196f3,stroke-width:2px,color:#000000
+    
+    class A easy
+    class E medium
+    class C hard
+    class B,D score
+    class F flow
 ```
-
-</div>
 
 ---
 
@@ -639,15 +651,18 @@ python main.py --server-port 7861
 **We welcome contributions! Here's how to get started:**
 
 ```mermaid
-graph LR
-    A[Fork Repository] --> B[Create Feature Branch]
-    B --> C[Make Changes] 
-    C --> D[Commit Changes]
-    D --> E[Push to Branch]
-    E --> F[Open Pull Request]
+flowchart LR
+    A["🍴 Fork Repository"] --> B["🌿 Create Feature Branch"]
+    B --> C["✏️ Make Changes"] 
+    C --> D["💾 Commit Changes"]
+    D --> E["🚀 Push to Branch"]
+    E --> F["📝 Open Pull Request"]
     
-    style A fill:#e8f5e8
-    style F fill:#e3f2fd
+    classDef step fill:#e8f5e8,stroke:#4caf50,stroke-width:2px,color:#000000
+    classDef final fill:#e3f2fd,stroke:#2196f3,stroke-width:3px,color:#000000
+    
+    class A,B,C,D,E step
+    class F final
 ```
 
 </div>
