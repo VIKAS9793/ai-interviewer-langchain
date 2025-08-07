@@ -186,27 +186,27 @@ python main.py
 <small>Core Backend</small>
 </td>
 <td align="center" width="16.66%">
-<img src="https://raw.githubusercontent.com/langchain-ai/langgraph/main/docs/static/img/langgraph_logo.png" width="40"><br>
+<img src="https://img.shields.io/badge/LangGraph-FF6B6B?style=for-the-badge&logo=graphql&logoColor=white" width="80"><br>
 <strong>LangGraph</strong><br>
 <small>State Machine</small>
 </td>
 <td align="center" width="16.66%">
-<img src="https://raw.githubusercontent.com/ollama/ollama/main/docs/ollama.png" width="40"><br>
+<img src="https://avatars.githubusercontent.com/u/151674099?s=200&v=4" width="40"><br>
 <strong>Ollama</strong><br>
 <small>Local LLM</small>
 </td>
 <td align="center" width="16.66%">
-<img src="https://docs.trychroma.com/img/chroma.png" width="40"><br>
+<img src="https://img.shields.io/badge/ChromaDB-FF6B35?style=for-the-badge&logo=database&logoColor=white" width="80"><br>
 <strong>ChromaDB</strong><br>
 <small>Vector Store</small>
 </td>
 <td align="center" width="16.66%">
-<img src="https://www.gradio.app/_app/immutable/assets/gradio.CHB5adID.svg" width="40"><br>
+<img src="https://img.shields.io/badge/Gradio-FF7C00?style=for-the-badge&logo=gradio&logoColor=white" width="80"><br>
 <strong>Gradio</strong><br>
 <small>Web Interface</small>
 </td>
 <td align="center" width="16.66%">
-<img src="https://huggingface.co/datasets/huggingface/brand-assets/resolve/main/hf-logo.svg" width="40"><br>
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tensorflow/tensorflow-original.svg" width="40"><br>
 <strong>Transformers</strong><br>
 <small>Embeddings</small>
 </td>
