@@ -298,32 +298,32 @@ graph TB
 
 ```mermaid
 stateDiagram-v2
-    [*] --> 🎯Start
-    🎯Start --> 📝SelectTopic
-    📝SelectTopic --> ❓FirstQuestion
+    [*] --> Start
+    Start --> SelectTopic
+    SelectTopic --> FirstQuestion
     
-    state "🔄 Interview Loop" as interview {
-        ❓FirstQuestion --> 📊EvaluateAnswer
-        📊EvaluateAnswer --> 🤔Decision
+    state "Interview Loop" as interview {
+        FirstQuestion --> EvaluateAnswer
+        EvaluateAnswer --> Decision
         
-        state 🤔Decision {
+        state Decision {
             [*] --> CheckScore
-            CheckScore -->|Score ≥ 7| 📈HarderQuestion
-            CheckScore -->|4 ≤ Score < 7| ➡️SimilarQuestion  
-            CheckScore -->|Score < 4| 📉EasierQuestion
+            CheckScore -->|Score >= 7| HarderQuestion
+            CheckScore -->|4 <= Score < 7| SimilarQuestion  
+            CheckScore -->|Score < 4| EasierQuestion
         }
         
-        📈HarderQuestion --> 📊EvaluateAnswer
-        ➡️SimilarQuestion --> 📊EvaluateAnswer
-        📉EasierQuestion --> 📊EvaluateAnswer
+        HarderQuestion --> EvaluateAnswer
+        SimilarQuestion --> EvaluateAnswer
+        EasierQuestion --> EvaluateAnswer
     }
     
-    🤔Decision -->|5 Questions Complete| 📋GenerateReport
-    📋GenerateReport --> [*]
+    Decision -->|5 Questions Complete| GenerateReport
+    GenerateReport --> [*]
     
-    style 🎯Start fill:#e8f5e8
-    style 📋GenerateReport fill:#e3f2fd
-    style 🤔Decision fill:#fff3e0
+    style Start fill:#e8f5e8
+    style GenerateReport fill:#e3f2fd
+    style Decision fill:#fff3e0
 ```
 
 ---
@@ -420,11 +420,11 @@ evaluation_dimensions = {
 
 ```mermaid
 graph LR
-    A[📝 Question 1<br/>Easy: 'Explain var vs let'] --> B[📊 Score: 8/10<br/>Strong Fundamentals]
-    B --> C[📝 Question 2<br/>Hard: 'Event Loop Mechanics']
-    C --> D[📊 Score: 6/10<br/>Needs Clarification] 
-    D --> E[📝 Question 3<br/>Medium: 'Closures Example']
-    E --> F[🎯 Adaptive Flow<br/>Continues Based on Performance]
+    A[Question 1<br/>Easy: Explain var vs let] --> B[Score: 8/10<br/>Strong Fundamentals]
+    B --> C[Question 2<br/>Hard: Event Loop Mechanics]
+    C --> D[Score: 6/10<br/>Needs Clarification] 
+    D --> E[Question 3<br/>Medium: Closures Example]
+    E --> F[Adaptive Flow<br/>Continues Based on Performance]
     
     style A fill:#e8f5e8
     style C fill:#ffebee
@@ -640,11 +640,11 @@ python main.py --server-port 7861
 
 ```mermaid
 graph LR
-    A[🍴 Fork Repository] --> B[🌿 Create Feature Branch]
-    B --> C[💻 Make Changes] 
-    C --> D[✅ Commit Changes]
-    D --> E[🚀 Push to Branch]
-    E --> F[📝 Open Pull Request]
+    A[Fork Repository] --> B[Create Feature Branch]
+    B --> C[Make Changes] 
+    C --> D[Commit Changes]
+    D --> E[Push to Branch]
+    E --> F[Open Pull Request]
     
     style A fill:#e8f5e8
     style F fill:#e3f2fd
