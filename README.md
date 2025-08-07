@@ -2,6 +2,10 @@
 
 **Professional technical interview simulation powered by local AI**
 
+<div align="center">
+  <img src="src/ai_interviewer/assets/banner.jpg" alt="AI Interviewer Banner" style="max-width: 100%; height: auto; border-radius: 8px; margin: 20px 0;"/>
+</div>
+
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![LangGraph](https://img.shields.io/badge/LangGraph-0.1.19-green.svg)](https://github.com/langchain-ai/langgraph)
 [![Ollama](https://img.shields.io/badge/Ollama-Llama%203.2%203B-orange.svg)](https://ollama.ai/)
