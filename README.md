@@ -2,8 +2,10 @@
 
 **Professional technical interview simulation powered by local AI**
 
-<div align="center" style="width: 100%; overflow: hidden; border-radius: 8px; margin: 10px 0;">
-  <img src="src/ai_interviewer/assets/banner.jpg" alt="AI Interviewer Banner" style="width: 100%; height: 300px; object-fit: cover; object-position: center;"/>
+<div align="center" style="width: 100%; padding: 0 24px; box-sizing: border-box;">
+  <div style="max-width: 1200px; margin: 0 auto; overflow: hidden; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+    <img src="src/ai_interviewer/assets/banner.jpg" alt="AI Interviewer Banner" style="width: 100%; height: 300px; object-fit: cover; object-position: center; display: block;"/>
+  </div>
 </div>
 
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/downloads/)
