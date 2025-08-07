@@ -2,8 +2,8 @@
 
 **Professional technical interview simulation powered by local AI**
 
-<div align="center">
-  <img src="src/ai_interviewer/assets/banner.jpg" alt="AI Interviewer Banner" width="800" style="max-width: 100%; height: auto; border-radius: 8px; margin: 10px 0;"/>
+<div align="center" style="width: 100%; overflow: hidden; border-radius: 8px; margin: 10px 0;">
+  <img src="src/ai_interviewer/assets/banner.jpg" alt="AI Interviewer Banner" style="width: 100%; height: 300px; object-fit: cover; object-position: center;"/>
 </div>
 
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/downloads/)
