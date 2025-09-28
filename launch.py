@@ -36,12 +36,12 @@ def check_ollama():
         )
         
         if result.returncode == 0:
-            if "llama3.1:8b" in result.stdout:
-                print("✅ Ollama and llama3.1:8b model available")
+            if "llama3.2:3b" in result.stdout:
+                print("✅ Ollama and llama3.2:3b model available")
                 return True
             else:
-                print("⚠️ Ollama available but llama3.1:8b model not found")
-                print("💡 Run: ollama pull llama3.1:8b")
+                print("⚠️ Ollama available but llama3.2:3b model not found")
+                print("💡 Run: ollama pull llama3.2:3b")
                 return False
         else:
             print("❌ Ollama not responding")

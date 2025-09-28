@@ -70,6 +70,69 @@ class Config:
     def get_difficulty_levels(cls) -> List[str]:
         """Get available difficulty levels"""
         return ["easy", "medium", "hard"]
+    
+    @classmethod
+    def validate_config(cls) -> Dict[str, Any]:
+        """Validate all configuration settings"""
+        validation_results = {
+            "valid": True,
+            "errors": [],
+            "warnings": []
+        }
+        
+        # Validate LLM settings
+        if not cls.OLLAMA_MODEL or not isinstance(cls.OLLAMA_MODEL, str):
+            validation_results["errors"].append("OLLAMA_MODEL must be a non-empty string")
+            validation_results["valid"] = False
+        
+        if not isinstance(cls.OLLAMA_TEMPERATURE, (int, float)) or not (0.0 <= cls.OLLAMA_TEMPERATURE <= 2.0):
+            validation_results["errors"].append("OLLAMA_TEMPERATURE must be a number between 0.0 and 2.0")
+            validation_results["valid"] = False
+        
+        if not cls.OLLAMA_BASE_URL or not isinstance(cls.OLLAMA_BASE_URL, str):
+            validation_results["errors"].append("OLLAMA_BASE_URL must be a non-empty string")
+            validation_results["valid"] = False
+        
+        # Validate interview settings
+        if not isinstance(cls.MAX_QUESTIONS, int) or cls.MAX_QUESTIONS <= 0:
+            validation_results["errors"].append("MAX_QUESTIONS must be a positive integer")
+            validation_results["valid"] = False
+        
+        if cls.MAX_QUESTIONS > 10:
+            validation_results["warnings"].append("MAX_QUESTIONS is quite high, consider reducing for better user experience")
+        
+        # Validate topics
+        if not cls.AVAILABLE_TOPICS or not isinstance(cls.AVAILABLE_TOPICS, list):
+            validation_results["errors"].append("AVAILABLE_TOPICS must be a non-empty list")
+            validation_results["valid"] = False
+        
+        # Validate evaluation weights
+        if not cls.EVALUATION_WEIGHTS or not isinstance(cls.EVALUATION_WEIGHTS, dict):
+            validation_results["errors"].append("EVALUATION_WEIGHTS must be a dictionary")
+            validation_results["valid"] = False
+        else:
+            total_weight = sum(cls.EVALUATION_WEIGHTS.values())
+            if abs(total_weight - 1.0) > 0.01:  # Allow small floating point errors
+                validation_results["warnings"].append(f"EVALUATION_WEIGHTS sum to {total_weight:.3f}, should sum to 1.0")
+        
+        # Validate Gradio settings
+        if not isinstance(cls.GRADIO_SERVER_PORT, int) or not (1024 <= cls.GRADIO_SERVER_PORT <= 65535):
+            validation_results["errors"].append("GRADIO_SERVER_PORT must be an integer between 1024 and 65535")
+            validation_results["valid"] = False
+        
+        return validation_results
+    
+    @classmethod
+    def get_config_summary(cls) -> Dict[str, Any]:
+        """Get a summary of current configuration"""
+        return {
+            "llm_model": cls.OLLAMA_MODEL,
+            "llm_temperature": cls.OLLAMA_TEMPERATURE,
+            "max_questions": cls.MAX_QUESTIONS,
+            "available_topics": len(cls.AVAILABLE_TOPICS),
+            "gradio_port": cls.GRADIO_SERVER_PORT,
+            "evaluation_dimensions": len(cls.EVALUATION_WEIGHTS)
+        }
 
 # Environment-specific overrides
 if os.getenv("ENVIRONMENT") == "development":

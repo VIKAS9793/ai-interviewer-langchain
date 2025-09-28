@@ -28,6 +28,8 @@ try:
     from src.ai_interviewer.agents.interviewer import AIInterviewer
     from src.ai_interviewer.core.flow_controller import InterviewFlowController
     from src.ai_interviewer.tools.question_bank import QuestionBank
+    from src.ai_interviewer.utils.health_check import HealthChecker
+    from src.ai_interviewer.utils.config import Config
 except ImportError as e:
     print(f"Warning: Could not import modules: {e}")
     # Create mock classes for demonstration
@@ -54,11 +56,61 @@ class InterviewApp:
     """Main Gradio application for AI Technical Interviewer"""
     
     def __init__(self):
+        # Initialize health checker
+        self.health_checker = HealthChecker()
+        
+        # Validate configuration
+        config_validation = Config.validate_config()
+        if not config_validation["valid"]:
+            logger.error("Configuration validation failed:")
+            for error in config_validation["errors"]:
+                logger.error(f"  - {error}")
+            raise ValueError("Invalid configuration")
+        
+        if config_validation["warnings"]:
+            for warning in config_validation["warnings"]:
+                logger.warning(f"Configuration warning: {warning}")
+        
+        # Initialize components
         self.interviewer = AIInterviewer()
         self.flow_controller = InterviewFlowController()
         self.question_bank = QuestionBank()
         self.current_session = None
         self.interview_history = []
+        
+        # Use LangGraph state machine for session management
+        self.use_langgraph = True
+        
+        # Run initial health check
+        self._run_startup_health_check()
+    
+    def _run_startup_health_check(self):
+        """Run health check during startup"""
+        try:
+            logger.info("🔍 Running startup health check...")
+            health_status = self.health_checker.run_comprehensive_check()
+            
+            if health_status["overall_status"] == "critical":
+                logger.error("❌ Critical health issues detected during startup:")
+                for check_name, check_result in health_status["checks"].items():
+                    if check_result["status"] == "critical":
+                        logger.error(f"  - {check_name}: {check_result['message']}")
+                raise RuntimeError("Critical health check failures")
+            elif health_status["overall_status"] == "warning":
+                logger.warning("⚠️ Health warnings detected during startup:")
+                for check_name, check_result in health_status["checks"].items():
+                    if check_result["status"] == "warning":
+                        logger.warning(f"  - {check_name}: {check_result['message']}")
+            else:
+                logger.info("✅ All health checks passed")
+                
+        except Exception as e:
+            logger.error(f"Health check failed during startup: {e}")
+            # Don't fail startup for health check issues, just log them
+    
+    def get_health_status(self) -> Dict[str, Any]:
+        """Get current health status"""
+        return self.health_checker.get_quick_status()
         
     def start_interview(self, topic: str, candidate_name: str) -> Tuple[str, str, str, bool, bool]:
         """Start a new interview session"""
@@ -66,32 +118,70 @@ class InterviewApp:
             if not candidate_name.strip():
                 return "⚠️ Please enter your name to begin the interview.", "", "", True, True
             
-            # Initialize simple session tracking (no LangGraph for now)
-            self.current_session = {
-                "topic": topic,
-                "candidate_name": candidate_name,
-                "question_count": 1,
-                "max_questions": 5,
-                "qa_pairs": [],
-                "start_time": time.time()
-            }
-            self.interview_history = []
-            
-            # Get first question directly from interviewer
-            first_question = self.interviewer.generate_first_question(topic)
-            
-            # Store current question
-            self.current_session["current_question"] = first_question
-            
-            # Add to history
-            self.interview_history.append({
-                "type": "start",
-                "topic": topic,
-                "candidate": candidate_name,
-                "timestamp": time.time()
-            })
-            
-            welcome_msg = f"""## 🎯 Interview Started!
+            if self.use_langgraph:
+                # Use LangGraph state machine
+                result = self.flow_controller.start_interview(topic, candidate_name)
+                
+                if result["status"] == "started":
+                    self.current_session = {
+                        "session_id": result["session_id"],
+                        "topic": topic,
+                        "candidate_name": candidate_name,
+                        "question_count": result["question_number"],
+                        "max_questions": 5,
+                        "qa_pairs": [],
+                        "start_time": time.time()
+                    }
+                    
+                    first_question = result["first_question"]
+                    self.current_session["current_question"] = first_question
+                    
+                    welcome_msg = f"""## 🎯 Interview Started!
+
+**Candidate:** {candidate_name}  
+**Topic:** {topic}  
+**Progress:** Question {result['question_number']} of 5
+
+---
+
+### Question {result['question_number']}/5
+
+{first_question}
+
+💡 **Tip:** Be specific and explain your reasoning. The AI adapts based on your responses!"""
+
+                    status_msg = "🟢 **Status:** Interview Active - Answer the question above"
+                    
+                    return welcome_msg, "", status_msg, False, False
+                else:
+                    return f"❌ **Error:** Failed to start interview", "", "🔴 **Status:** Error", True, True
+            else:
+                # Fallback to simple session tracking
+                self.current_session = {
+                    "topic": topic,
+                    "candidate_name": candidate_name,
+                    "question_count": 1,
+                    "max_questions": 5,
+                    "qa_pairs": [],
+                    "start_time": time.time()
+                }
+                self.interview_history = []
+                
+                # Get first question directly from interviewer
+                first_question = self.interviewer.generate_first_question(topic)
+                
+                # Store current question
+                self.current_session["current_question"] = first_question
+                
+                # Add to history
+                self.interview_history.append({
+                    "type": "start",
+                    "topic": topic,
+                    "candidate": candidate_name,
+                    "timestamp": time.time()
+                })
+                
+                welcome_msg = f"""## 🎯 Interview Started!
 
 **Candidate:** {candidate_name}  
 **Topic:** {topic}  
@@ -105,9 +195,9 @@ class InterviewApp:
 
 💡 **Tip:** Be specific and explain your reasoning. The AI adapts based on your responses!"""
 
-            status_msg = "🟢 **Status:** Interview Active - Answer the question above"
-            
-            return welcome_msg, "", status_msg, False, False
+                status_msg = "🟢 **Status:** Interview Active - Answer the question above"
+                
+                return welcome_msg, "", status_msg, False, False
             
         except Exception as e:
             logger.error(f"Error starting interview: {e}")
@@ -122,39 +212,45 @@ class InterviewApp:
             if not answer.strip():
                 return "⚠️ **Please provide an answer to continue.**", answer, "🟡 **Status:** Waiting for Answer", False
             
-            # Evaluate the current answer
-            current_question = self.current_session.get("current_question", "")
-            evaluation = self.interviewer.evaluate_answer(
-                question=current_question,
-                answer=answer,
-                topic=self.current_session["topic"]
-            )
-            
-            # Store Q&A pair
-            qa_pair = {
-                "question_number": self.current_session["question_count"],
-                "question": current_question,
-                "answer": answer,
-                "evaluation": evaluation
-            }
-            self.current_session["qa_pairs"].append(qa_pair)
-            
-            # Add answer to history
-            self.interview_history.append({
-                "type": "answer",
-                "content": answer,
-                "evaluation": evaluation,
-                "timestamp": time.time()
-            })
-            
-            # Check if interview should continue
-            self.current_session["question_count"] += 1
-            
-            if self.current_session["question_count"] > self.current_session["max_questions"]:
-                # Interview finished - show final report
-                final_report = self.interviewer.generate_final_report(self.current_session)
+            if self.use_langgraph and "session_id" in self.current_session:
+                # Use LangGraph state machine
+                result = self.flow_controller.process_answer(self.current_session, answer)
                 
-                response = f"""## 🎉 Interview Complete!
+                if result["status"] == "continue":
+                    # Update session with new question
+                    self.current_session["question_count"] = result["question_number"]
+                    self.current_session["current_question"] = result["next_question"]
+                    
+                    # Add Q&A pair to session
+                    qa_pair = {
+                        "question_number": result["question_number"] - 1,
+                        "question": self.current_session.get("current_question", ""),
+                        "answer": answer,
+                        "evaluation": result["evaluation"]
+                    }
+                    self.current_session["qa_pairs"].append(qa_pair)
+                    
+                    response = f"""## ✅ Answer Recorded
+
+**Your Score:** {result['evaluation'].get('overall_score', 0)}/10
+
+### Question {result['question_number']}/5
+
+{result['next_question']}
+
+---
+
+**Progress:** {result['question_number']-1}/5 questions completed"""
+                    
+                    status_msg = f"🟢 **Status:** Question {result['question_number']}/5 - Interview Active"
+                    
+                    return response, "", status_msg, False
+                    
+                elif result["status"] == "complete":
+                    # Interview finished
+                    final_report = result["final_report"]
+                    
+                    response = f"""## 🎉 Interview Complete!
 
 ### 📊 Final Assessment
 
@@ -170,25 +266,74 @@ class InterviewApp:
 **Thank you for participating in the AI Technical Interview!**
 
 *Ready for another interview? Select a new topic above and click "Start Interview"*"""
-                
-                status_msg = "✅ **Status:** Interview Completed Successfully"
-                
-                # Reset session
-                self.current_session = None
-                return response, "", status_msg, True
+                    
+                    status_msg = "✅ **Status:** Interview Completed Successfully"
+                    
+                    # Reset session
+                    self.current_session = None
+                    return response, "", status_msg, True
+                else:
+                    return f"❌ **Error:** Unexpected result from flow controller", answer, "🔴 **Status:** Processing Error", False
             else:
-                # Generate next question
-                next_question = self.interviewer.generate_next_question(
-                    topic=self.current_session["topic"],
-                    conversation_history=self.current_session["qa_pairs"],
-                    last_evaluation=evaluation,
-                    question_number=self.current_session["question_count"]
+                # Fallback to simple processing
+                current_question = self.current_session.get("current_question", "")
+                evaluation = self.interviewer.evaluate_answer(
+                    question=current_question,
+                    answer=answer,
+                    topic=self.current_session["topic"]
                 )
                 
-                # Store next question
-                self.current_session["current_question"] = next_question
+                # Store Q&A pair
+                qa_pair = {
+                    "question_number": self.current_session["question_count"],
+                    "question": current_question,
+                    "answer": answer,
+                    "evaluation": evaluation
+                }
+                self.current_session["qa_pairs"].append(qa_pair)
                 
-                response = f"""## ✅ Answer Recorded
+                # Check if interview should continue
+                self.current_session["question_count"] += 1
+                
+                if self.current_session["question_count"] > self.current_session["max_questions"]:
+                    # Interview finished - show final report
+                    final_report = self.interviewer.generate_final_report(self.current_session)
+                    
+                    response = f"""## 🎉 Interview Complete!
+
+### 📊 Final Assessment
+
+{final_report}
+
+---
+
+### 🎯 Summary
+- **Questions Answered:** {len(self.current_session['qa_pairs'])}/5
+- **Topic:** {self.current_session['topic']}
+- **Average Score:** {sum(qa.get('evaluation', {}).get('overall_score', 0) for qa in self.current_session['qa_pairs']) / len(self.current_session['qa_pairs']):.1f}/10
+
+**Thank you for participating in the AI Technical Interview!**
+
+*Ready for another interview? Select a new topic above and click "Start Interview"*"""
+                    
+                    status_msg = "✅ **Status:** Interview Completed Successfully"
+                    
+                    # Reset session
+                    self.current_session = None
+                    return response, "", status_msg, True
+                else:
+                    # Generate next question
+                    next_question = self.interviewer.generate_next_question(
+                        topic=self.current_session["topic"],
+                        conversation_history=self.current_session["qa_pairs"],
+                        last_evaluation=evaluation,
+                        question_number=self.current_session["question_count"]
+                    )
+                    
+                    # Store next question
+                    self.current_session["current_question"] = next_question
+                    
+                    response = f"""## ✅ Answer Recorded
 
 **Your Score:** {evaluation.get('overall_score', 0)}/10
 
@@ -199,10 +344,10 @@ class InterviewApp:
 ---
 
 **Progress:** {self.current_session['question_count']-1}/5 questions completed"""
-                
-                status_msg = f"🟢 **Status:** Question {self.current_session['question_count']}/5 - Interview Active"
-                
-                return response, "", status_msg, False
+                    
+                    status_msg = f"🟢 **Status:** Question {self.current_session['question_count']}/5 - Interview Active"
+                    
+                    return response, "", status_msg, False
                 
         except Exception as e:
             logger.error(f"Error processing answer: {e}")
