@@ -75,7 +75,7 @@ class OfflineOptimizationEngine:
         
         # Embedding cache
         self.embedding_cache = {}
-        self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+        self.embedding_model = None  # Lazy load
         
         # LLM connection pool
         self.llm_pool = self._init_llm_pool()
@@ -139,13 +139,13 @@ class OfflineOptimizationEngine:
     
     def _init_llm_pool(self) -> List[Ollama]:
         """Initialize LLM connection pool"""
-        pool_size = min(5, self.max_concurrent // 4)  # 4 requests per LLM instance
+        pool_size = min(2, self.max_concurrent // 4)  # Reduce to 2 instances for better performance
         pool = []
         
         for i in range(pool_size):
             try:
                 llm = Ollama(
-                    model="llama3.2:3b",
+                    model="tinyllama",
                     temperature=0.3,
                     base_url="http://localhost:11434"
                 )
@@ -158,9 +158,15 @@ class OfflineOptimizationEngine:
         
         if not pool:
             logger.error("No LLM instances available - falling back to single instance")
-            pool.append(Ollama(model="llama3.2:3b", temperature=0.3))
+            pool.append(Ollama(model="tinyllama", temperature=0.3))
         
         return pool
+    
+    def _get_embedding_model(self):
+        """Lazy load embedding model"""
+        if self.embedding_model is None:
+            self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+        return self.embedding_model
     
     def get_cached_question(self, topic: str, difficulty: str, context_hash: str) -> Optional[str]:
         """Get cached question if available"""
@@ -301,7 +307,7 @@ class OfflineOptimizationEngine:
             return self.embedding_cache[text_hash]
         
         # Generate embedding
-        embedding = self.embedding_model.encode(text).tolist()
+        embedding = self._get_embedding_model().encode(text).tolist()
         
         # Cache embedding
         self.embedding_cache[text_hash] = embedding

@@ -154,7 +154,7 @@ class AdaptiveState(TypedDict):
 ├─────────────────────────────────────────────────────────────┤
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────┐ │
 │  │   Ollama LLM    │  │   ChromaDB      │  │  SQLite     │ │
-│  │  (llama3.2:3b)  │  │   Vector Store  │  │  Database   │ │
+│  │  (TinyLlama)    │  │   Vector Store  │  │  Database   │ │
 │  └─────────────────┘  └─────────────────┘  └─────────────┘ │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -217,7 +217,7 @@ pip install -r enhanced_requirements.txt
 ollama serve
 
 # Pull required model
-ollama pull llama3.2:3b
+ollama pull tinyllama
 
 # Run enhanced system
 python enhanced_main.py

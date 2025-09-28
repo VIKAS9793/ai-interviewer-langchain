@@ -4,13 +4,13 @@ Centralized configuration management
 """
 
 import os
-from typing import Dict, List
+from typing import Dict, List, Any
 
 class Config:
     """Configuration class for AI Interviewer"""
     
     # LLM Settings
-    OLLAMA_MODEL = "llama3.2:3b"
+    OLLAMA_MODEL = "tinyllama"
     OLLAMA_TEMPERATURE = 0.7
     OLLAMA_BASE_URL = "http://localhost:11434"
     

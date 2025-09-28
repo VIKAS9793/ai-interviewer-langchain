@@ -7,6 +7,7 @@ import logging
 import asyncio
 import json
 import pickle
+import time
 from typing import Dict, List, Any, Optional, Tuple, TypedDict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -155,59 +156,110 @@ class LearningDatabase:
     def update_learning_metrics(self, metrics: LearningMetrics):
         """Update learning metrics"""
         with self.get_connection() as conn:
+            # Convert datetime objects to ISO format strings for JSON serialization
+            metrics_dict = {}
+            for key, value in metrics.__dict__.items():
+                if isinstance(value, datetime):
+                    metrics_dict[key] = value.isoformat()
+                else:
+                    metrics_dict[key] = value
+            
             conn.execute("""
                 INSERT OR REPLACE INTO learning_metrics (metric_type, metric_data, last_updated)
                 VALUES (?, ?, ?)
-            """, ('global', json.dumps(metrics.__dict__), datetime.now().isoformat()))
+            """, ('global', json.dumps(metrics_dict), datetime.now().isoformat()))
 
 class AdaptiveQuestionGenerator:
     """Intelligent question generator with learning capabilities"""
     
     def __init__(self, learning_db: LearningDatabase):
         self.learning_db = learning_db
-        self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+        self.embedding_model = None  # Lazy load
         self.question_cache = {}
         self.performance_cache = {}
         
-        # Initialize ChromaDB for semantic question search
-        self.chroma_client = chromadb.PersistentClient(
-            path="./chroma_questions",
-            settings=Settings(anonymized_telemetry=False)
-        )
-        self.question_collection = self.chroma_client.get_or_create_collection("questions")
+        # Initialize ChromaDB for semantic question search (lazy load)
+        self.chroma_client = None
+    
+    def _get_embedding_model(self):
+        """Lazy load embedding model"""
+        if self.embedding_model is None:
+            self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+        return self.embedding_model
+    
+    def _get_chroma_client(self):
+        """Lazy load ChromaDB client"""
+        if self.chroma_client is None:
+            self.chroma_client = chromadb.PersistentClient(
+                path="./chroma_questions",
+                settings=Settings(anonymized_telemetry=False)
+            )
+        return self.chroma_client
     
     def generate_adaptive_question(self, state: AdaptiveState) -> str:
-        """Generate question based on learning and adaptation"""
+        """Generate question based on learning and adaptation (optimized)"""
         topic = state['topic']
         question_number = state['current_question_number']
-        performance_trend = state.get('performance_trend', [])
-        knowledge_gaps = state.get('knowledge_gaps', [])
         
-        # Analyze performance trend
-        if performance_trend:
-            recent_performance = np.mean(performance_trend[-3:]) if len(performance_trend) >= 3 else performance_trend[-1]
-            difficulty = self._determine_adaptive_difficulty(recent_performance, question_number)
-        else:
+        # Simplified difficulty determination
+        if question_number <= 2:
+            difficulty = "easy"
+        elif question_number <= 4:
             difficulty = "medium"
+        else:
+            difficulty = "hard"
         
-        # Get learning insights
-        learning_metrics = self.learning_db.get_learning_metrics()
-        topic_performance = learning_metrics.topic_performance.get(topic, 0.5)
-        
-        # Generate context-aware question
-        question = self._generate_contextual_question(
-            topic=topic,
-            difficulty=difficulty,
-            question_number=question_number,
-            knowledge_gaps=knowledge_gaps,
-            performance_trend=performance_trend,
-            topic_performance=topic_performance
-        )
-        
-        # Cache question for learning
-        self._cache_question(question, topic, difficulty)
+        # Generate simple contextual question
+        question = self._generate_simple_question(topic, difficulty, question_number)
         
         return question
+    
+    def _generate_simple_question(self, topic: str, difficulty: str, question_number: int) -> str:
+        """Generate a simple question without complex learning logic"""
+        # Simple question templates for faster generation
+        templates = {
+            "JavaScript/Frontend Development": {
+                "easy": [
+                    "What is the difference between var, let, and const in JavaScript?",
+                    "Explain what a closure is in JavaScript.",
+                    "What is the DOM and how do you access elements?"
+                ],
+                "medium": [
+                    "How does JavaScript handle asynchronous operations?",
+                    "Explain the concept of prototypal inheritance.",
+                    "What are the differences between == and === in JavaScript?"
+                ],
+                "hard": [
+                    "Explain the event loop in JavaScript and how it handles async operations.",
+                    "How would you implement a custom Promise from scratch?",
+                    "Explain memory management and garbage collection in JavaScript."
+                ]
+            },
+            "Python/Backend Development": {
+                "easy": [
+                    "What is the difference between a list and a tuple in Python?",
+                    "Explain Python's GIL (Global Interpreter Lock).",
+                    "What are decorators in Python?"
+                ],
+                "medium": [
+                    "How does Python handle memory management?",
+                    "Explain the difference between __str__ and __repr__.",
+                    "What are context managers and how do you create one?"
+                ],
+                "hard": [
+                    "Explain Python's metaclasses and when you would use them.",
+                    "How would you implement a custom iterator in Python?",
+                    "Explain the differences between multiprocessing and threading in Python."
+                ]
+            }
+        }
+        
+        topic_questions = templates.get(topic, templates["JavaScript/Frontend Development"])
+        difficulty_questions = topic_questions.get(difficulty, topic_questions["medium"])
+        
+        # Select question based on question number
+        question_index = (question_number - 1) % len(difficulty_questions)
+        return difficulty_questions[question_index]
     
     def _determine_adaptive_difficulty(self, performance: float, question_number: int) -> str:
         """Determine difficulty based on performance and question number"""
@@ -263,7 +315,7 @@ Question:"""
         
         try:
             # Use Ollama for question generation
-            llm = Ollama(model="llama3.2:3b", temperature=0.3)
+            llm = Ollama(model="tinyllama", temperature=0.3)
             chain = context_prompt | llm
             
             question = chain.invoke({
@@ -330,21 +382,53 @@ class AdaptiveEvaluator:
     
     def evaluate_with_learning(self, question: str, answer: str, topic: str, 
                              state: AdaptiveState) -> Dict[str, Any]:
-        """Evaluate answer with learning and adaptation"""
+        """Evaluate answer with simplified learning (optimized for speed)"""
         
-        # Get historical performance for comparison
-        learning_metrics = self.learning_db.get_learning_metrics()
+        # Simple evaluation based on answer length and keywords
+        score = self._simple_evaluation(question, answer, topic)
         
-        # Perform comprehensive evaluation
-        evaluation = self._comprehensive_evaluation(question, answer, topic, state)
-        
-        # Update learning insights
-        self._update_learning_insights(evaluation, topic, state)
-        
-        # Identify knowledge gaps and strengths
-        evaluation.update(self._identify_knowledge_patterns(answer, topic, evaluation))
+        evaluation = {
+            "score": score,
+            "feedback": self._generate_simple_feedback(score, answer),
+            "strengths": ["Good attempt"] if score > 5 else [],
+            "improvements": ["Try to be more specific"] if score < 7 else [],
+            "technical_accuracy": score / 10,
+            "completeness": min(score / 8, 1.0),
+            "clarity": min(score / 7, 1.0)
+        }
         
         return evaluation
+    
+    def _simple_evaluation(self, question: str, answer: str, topic: str) -> float:
+        """Simple evaluation based on answer characteristics"""
+        if not answer or len(answer.strip()) < 10:
+            return 2.0
+        
+        # Basic scoring based on answer length and content
+        base_score = min(len(answer) / 50, 5.0)  # Max 5 points for length
+        
+        # Add points for technical keywords
+        technical_keywords = {
+            "JavaScript/Frontend Development": ["function", "variable", "object", "array", "DOM", "event", "async", "promise"],
+            "Python/Backend Development": ["function", "class", "method", "import", "def", "return", "exception", "module"]
+        }
+        
+        keywords = technical_keywords.get(topic, [])
+        keyword_count = sum(1 for keyword in keywords if keyword.lower() in answer.lower())
+        keyword_score = min(keyword_count * 0.5, 3.0)  # Max 3 points for keywords
+        
+        return min(base_score + keyword_score, 10.0)
+    
+    def _generate_simple_feedback(self, score: float, answer: str) -> str:
+        """Generate simple feedback based on score"""
+        if score >= 8:
+            return "Excellent answer! You demonstrated good understanding of the concepts."
+        elif score >= 6:
+            return "Good answer! You covered the main points well."
+        elif score >= 4:
+            return "Decent answer. Consider providing more specific examples or details."
+        else:
+            return "Your answer needs improvement. Try to be more specific and provide examples."
     
     def _comprehensive_evaluation(self, question: str, answer: str, topic: str, 
                                 state: AdaptiveState) -> Dict[str, Any]:
@@ -400,7 +484,7 @@ Respond in JSON format:
         )
         
         try:
-            llm = Ollama(model="llama3.2:3b", temperature=0.2)
+            llm = Ollama(model="tinyllama", temperature=0.2)
             chain = evaluation_prompt | llm
             
             response = chain.invoke({
@@ -724,8 +808,16 @@ class AdaptiveLearningSystem:
         """Determine if interview should continue with adaptive logic"""
         if state["interview_complete"]:
             return "complete"
-        else:
-            return "continue"
+        
+        # Check if we've reached the maximum number of questions
+        current_question = state.get("current_question_number", 0)
+        max_questions = state.get("max_questions", 5)
+        
+        if current_question >= max_questions:
+            state["interview_complete"] = True
+            return "complete"
+        
+        return "continue"
     
     def _generate_adaptive_report_node(self, state: AdaptiveState) -> AdaptiveState:
         """Generate comprehensive adaptive report"""

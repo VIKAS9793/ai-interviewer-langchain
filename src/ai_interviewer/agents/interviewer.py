@@ -4,6 +4,7 @@ Professional technical interview simulation with intelligent question generation
 """
 
 import logging
+import time
 from typing import Dict, List, Optional, Any
 from langchain_community.llms import Ollama
 from langchain.prompts import PromptTemplate
