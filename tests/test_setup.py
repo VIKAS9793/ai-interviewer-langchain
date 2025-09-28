@@ -59,7 +59,7 @@ def test_ollama_connection():
         from langchain_community.llms import Ollama
         
         # Try to initialize Ollama
-        llm = Ollama(model="llama3.1:8b", temperature=0.1)
+        llm = Ollama(model="llama3.2:3b", temperature=0.1)
         
         # Simple test
         response = llm.invoke("Hello")
@@ -69,7 +69,7 @@ def test_ollama_connection():
     except Exception as e:
         print(f"❌ Ollama Error: {e}")
         print("💡 Make sure Ollama is running: ollama serve")
-        print("💡 And model is pulled: ollama pull llama3.1:8b")
+        print("💡 And model is pulled: ollama pull llama3.2:3b")
         return False
 
 def test_chromadb():
@@ -196,7 +196,7 @@ def main():
         print("🎉 All tests passed! Ready to run the AI Interviewer!")
         print("\n🚀 Next steps:")
         print("1. Make sure Ollama is running: ollama serve")
-        print("2. Pull the model: ollama pull llama3.1:8b")
+        print("2. Pull the model: ollama pull llama3.2:3b")
         print("3. Run the app: python main.py")
     else:
         print("⚠️ Some tests failed. Check the errors above.")

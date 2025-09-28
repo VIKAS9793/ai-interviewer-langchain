@@ -89,7 +89,7 @@ if __name__ == "__main__":
         print("🎉 All validations passed! Ready to run AI Interviewer!")
         print("\n🚀 Next steps:")
         print("1. Ensure Ollama is running: ollama serve")
-        print("2. Pull model: ollama pull llama3.1:8b")
+        print("2. Pull model: ollama pull llama3.2:3b")
         print("3. Run: python main.py")
         sys.exit(0)
     else:

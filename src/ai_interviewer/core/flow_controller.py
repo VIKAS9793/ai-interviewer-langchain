@@ -27,9 +27,10 @@ class InterviewState(TypedDict):
 class InterviewFlowController:
     """LangGraph-based flow controller for intelligent interview progression"""
     
-    def __init__(self):
+    def __init__(self, interviewer_factory=None):
         """Initialize the flow controller with LangGraph state machine"""
-        # Remove interviewer initialization to avoid circular imports
+        # Use dependency injection to avoid circular imports
+        self.interviewer_factory = interviewer_factory or self._get_interviewer
         self.graph = self._build_interview_graph()
         self.active_sessions: Dict[str, Dict] = {}
     
@@ -168,9 +169,8 @@ class InterviewFlowController:
     def _ask_question_node(self, state: InterviewState) -> InterviewState:
         """Generate and ask the next question"""
         try:
-            # Import here to avoid circular imports
-            from ..agents.interviewer import AIInterviewer
-            interviewer = AIInterviewer()
+            # Use dependency injection to avoid circular imports
+            interviewer = self.interviewer_factory()
             
             if state["current_question_number"] == 1:
                 # First question
@@ -198,9 +198,8 @@ class InterviewFlowController:
     def _evaluate_answer_node(self, state: InterviewState) -> InterviewState:
         """Evaluate the candidate's answer"""
         try:
-            # Import here to avoid circular imports
-            from ..agents.interviewer import AIInterviewer
-            interviewer = AIInterviewer()
+            # Use dependency injection to avoid circular imports
+            interviewer = self.interviewer_factory()
             
             evaluation = interviewer.evaluate_answer(
                 question=state["current_question"],
@@ -270,9 +269,8 @@ class InterviewFlowController:
     def _generate_report_node(self, state: InterviewState) -> InterviewState:
         """Generate the final interview report"""
         try:
-            # Import here to avoid circular imports
-            from ..agents.interviewer import AIInterviewer
-            interviewer = AIInterviewer()
+            # Use dependency injection to avoid circular imports
+            interviewer = self.interviewer_factory()
             
             final_report = interviewer.generate_final_report(state)
             state["final_report"] = final_report
@@ -310,3 +308,8 @@ The interview has been completed. Thank you for your participation!
             logger.info(f"Session {session_id} ended and cleaned up")
             return True
         return False
+    
+    def _get_interviewer(self):
+        """Lazy import of AIInterviewer to avoid circular imports"""
+        from ..agents.interviewer import AIInterviewer
+        return AIInterviewer()

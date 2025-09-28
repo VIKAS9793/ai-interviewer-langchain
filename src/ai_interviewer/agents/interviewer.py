@@ -34,26 +34,80 @@ class AnswerEvaluation(BaseModel):
 class AIInterviewer:
     """Main AI Interviewer class with professional questioning and evaluation"""
     
-    def __init__(self):
+    def __init__(self, use_connection_pool: bool = True):
         """Initialize the AI Interviewer with Ollama LLM"""
+        self.use_connection_pool = use_connection_pool
+        self.llm = None
+        
+        if not use_connection_pool:
+            self._initialize_llm()
+        else:
+            from ..utils.connection_pool import get_connection_pool
+            self.connection_pool = get_connection_pool()
+    
+    def _initialize_llm(self):
+        """Initialize LLM with comprehensive error handling"""
         try:
-            # Initialize Ollama LLM (Local - no external APIs)
             from ..utils.config import Config
+            
+            # Validate configuration
+            if not Config.OLLAMA_MODEL:
+                raise ValueError("OLLAMA_MODEL not configured")
+            
+            # Initialize Ollama LLM (Local - no external APIs)
             self.llm = Ollama(
                 model=Config.OLLAMA_MODEL,
-                temperature=Config.OLLAMA_TEMPERATURE
+                temperature=Config.OLLAMA_TEMPERATURE,
+                base_url=Config.OLLAMA_BASE_URL
             )
             
-            # Test connection
+            # Test connection with timeout
+            import time
+            start_time = time.time()
             test_response = self.llm.invoke("Hello")
-            logger.info("✅ Ollama connection established successfully")
             
-        except Exception as e:
-            logger.error(f"❌ Failed to connect to Ollama: {e}")
+            if not test_response or len(test_response.strip()) == 0:
+                raise ConnectionError("Ollama returned empty response")
+            
+            connection_time = time.time() - start_time
+            logger.info(f"✅ Ollama connection established successfully (response time: {connection_time:.2f}s)")
+            
+        except ConnectionError as e:
+            logger.error(f"❌ Ollama connection failed: {e}")
+            logger.error("💡 Make sure Ollama is running: ollama serve")
+            logger.error(f"💡 And model is available: ollama pull {Config.OLLAMA_MODEL}")
             raise ConnectionError(f"Ollama connection failed: {e}")
+        except TimeoutError as e:
+            logger.error(f"❌ Ollama connection timeout: {e}")
+            raise ConnectionError(f"Ollama connection timeout: {e}")
+        except Exception as e:
+            logger.error(f"❌ Failed to initialize Ollama: {e}")
+            raise ConnectionError(f"Ollama initialization failed: {e}")
+    
+    def _ensure_llm_connection(self):
+        """Ensure LLM connection is available, reconnect if needed"""
+        if not self.use_connection_pool and self.llm is None:
+            logger.warning("LLM connection lost, attempting to reconnect...")
+            self._initialize_llm()
+    
+    def _invoke_llm(self, prompt: str) -> str:
+        """Invoke LLM with proper connection handling"""
+        if self.use_connection_pool:
+            with self.connection_pool.get_connection() as connection:
+                return connection.invoke(prompt)
+        else:
+            self._ensure_llm_connection()
+            return self.llm.invoke(prompt)
     
     def generate_first_question(self, topic: str) -> str:
         """Generate the first interview question for a given topic"""
+        
+        # Validate input
+        if not topic or not topic.strip():
+            raise ValueError("Topic cannot be empty")
+        
+        # Ensure LLM connection
+        self._ensure_llm_connection()
         
         question_prompt = PromptTemplate(
             input_variables=["topic"],
@@ -73,25 +127,55 @@ Question:"""
         )
         
         try:
-            chain = question_prompt | self.llm
-            question = chain.invoke({"topic": topic})
+            if self.use_connection_pool:
+                # Use connection pool
+                with self.connection_pool.get_connection() as connection:
+                    chain = question_prompt | connection.llm_instance
+                    question = chain.invoke({"topic": topic})
+            else:
+                # Use direct connection
+                chain = question_prompt | self.llm
+                question = chain.invoke({"topic": topic})
+            
+            if not question or len(question.strip()) == 0:
+                raise ValueError("LLM returned empty question")
+            
             return question.strip()
             
+        except ConnectionError as e:
+            logger.error(f"LLM connection error generating first question: {e}")
+            return self._get_fallback_first_question(topic)
         except Exception as e:
             logger.error(f"Error generating first question: {e}")
-            # Fallback questions by topic
-            fallback_questions = {
-                "JavaScript/Frontend Development": "Can you explain the difference between 'let', 'const', and 'var' in JavaScript?",
-                "Python/Backend Development": "What is the difference between a list and a tuple in Python?",
-                "Machine Learning/AI": "Can you explain what overfitting means in machine learning?",
-                "System Design": "What factors would you consider when designing a scalable web application?",
-                "Data Structures & Algorithms": "Can you explain the time complexity of different sorting algorithms?"
-            }
-            return fallback_questions.get(topic, "Tell me about your experience with programming.")
+            return self._get_fallback_first_question(topic)
+    
+    def _get_fallback_first_question(self, topic: str) -> str:
+        """Get fallback first question when LLM fails"""
+        fallback_questions = {
+            "JavaScript/Frontend Development": "Can you explain the difference between 'let', 'const', and 'var' in JavaScript?",
+            "Python/Backend Development": "What is the difference between a list and a tuple in Python?",
+            "Machine Learning/AI": "Can you explain what overfitting means in machine learning?",
+            "System Design": "What factors would you consider when designing a scalable web application?",
+            "Data Structures & Algorithms": "Can you explain the time complexity of different sorting algorithms?"
+        }
+        return fallback_questions.get(topic, "Tell me about your experience with programming.")
     
     def generate_next_question(self, topic: str, conversation_history: List[Dict], 
                              last_evaluation: Dict, question_number: int) -> str:
         """Generate the next question based on conversation history and performance"""
+        
+        # Validate inputs
+        if not topic or not topic.strip():
+            raise ValueError("Topic cannot be empty")
+        if not isinstance(conversation_history, list):
+            raise ValueError("Conversation history must be a list")
+        if not isinstance(last_evaluation, dict):
+            raise ValueError("Last evaluation must be a dictionary")
+        if not isinstance(question_number, int) or question_number < 1:
+            raise ValueError("Question number must be a positive integer")
+        
+        # Ensure LLM connection
+        self._ensure_llm_connection()
         
         # Determine difficulty based on last evaluation
         last_score = last_evaluation.get("overall_score", 5)
@@ -154,25 +238,57 @@ Question:"""
         )
         
         try:
-            chain = next_question_prompt | self.llm
-            question = chain.invoke({
-                "topic": topic,
-                "difficulty": difficulty,
-                "question_number": question_number,
-                "conversation_context": conversation_context,
-                "follow_up_strategy": follow_up_strategy,
-                "last_strengths": ", ".join(last_strengths) if last_strengths else "None identified",
-                "last_improvements": ", ".join(last_improvements) if last_improvements else "None identified"
-            })
+            if self.use_connection_pool:
+                # Use connection pool
+                with self.connection_pool.get_connection() as connection:
+                    chain = next_question_prompt | connection.llm_instance
+                    question = chain.invoke({
+                        "topic": topic,
+                        "difficulty": difficulty,
+                        "question_number": question_number,
+                        "conversation_context": conversation_context,
+                        "follow_up_strategy": follow_up_strategy,
+                        "last_strengths": ", ".join(last_strengths) if last_strengths else "None identified",
+                        "last_improvements": ", ".join(last_improvements) if last_improvements else "None identified"
+                    })
+            else:
+                # Use direct connection
+                chain = next_question_prompt | self.llm
+                question = chain.invoke({
+                    "topic": topic,
+                    "difficulty": difficulty,
+                    "question_number": question_number,
+                    "conversation_context": conversation_context,
+                    "follow_up_strategy": follow_up_strategy,
+                    "last_strengths": ", ".join(last_strengths) if last_strengths else "None identified",
+                    "last_improvements": ", ".join(last_improvements) if last_improvements else "None identified"
+                })
+            
+            if not question or len(question.strip()) == 0:
+                raise ValueError("LLM returned empty question")
+            
             return question.strip()
             
+        except ConnectionError as e:
+            logger.error(f"LLM connection error generating next question: {e}")
+            return self._get_fallback_question(topic, difficulty, question_number)
         except Exception as e:
             logger.error(f"Error generating next question: {e}")
-            # Fallback based on difficulty and topic
             return self._get_fallback_question(topic, difficulty, question_number)
     
     def evaluate_answer(self, question: str, answer: str, topic: str) -> Dict[str, Any]:
         """Evaluate candidate's answer with professional scoring"""
+        
+        # Validate inputs
+        if not question or not question.strip():
+            raise ValueError("Question cannot be empty")
+        if not answer or not answer.strip():
+            raise ValueError("Answer cannot be empty")
+        if not topic or not topic.strip():
+            raise ValueError("Topic cannot be empty")
+        
+        # Ensure LLM connection
+        self._ensure_llm_connection()
         
         evaluation_prompt = PromptTemplate(
             input_variables=["question", "answer", "topic"],
@@ -209,12 +325,26 @@ Format your response as JSON:
         )
         
         try:
-            chain = evaluation_prompt | self.llm
-            response = chain.invoke({
-                "question": question,
-                "answer": answer,
-                "topic": topic
-            })
+            if self.use_connection_pool:
+                # Use connection pool
+                with self.connection_pool.get_connection() as connection:
+                    chain = evaluation_prompt | connection.llm_instance
+                    response = chain.invoke({
+                        "question": question,
+                        "answer": answer,
+                        "topic": topic
+                    })
+            else:
+                # Use direct connection
+                chain = evaluation_prompt | self.llm
+                response = chain.invoke({
+                    "question": question,
+                    "answer": answer,
+                    "topic": topic
+                })
+            
+            if not response or len(response.strip()) == 0:
+                raise ValueError("LLM returned empty evaluation response")
             
             # Extract JSON from response (robust parsing)
             response_text = response.strip()
@@ -230,6 +360,11 @@ Format your response as JSON:
                 # Validate required fields
                 required_fields = ['technical_accuracy', 'problem_solving', 'communication', 'depth', 'overall_score']
                 if all(field in evaluation for field in required_fields):
+                    # Validate score ranges
+                    for field in required_fields:
+                        if not isinstance(evaluation[field], int) or not (1 <= evaluation[field] <= 10):
+                            logger.warning(f"Invalid score for {field}: {evaluation[field]}, using fallback")
+                            return self._get_fallback_evaluation(answer)
                     return evaluation
                 else:
                     logger.warning("Missing required fields in evaluation, using fallback")
@@ -238,13 +373,25 @@ Format your response as JSON:
                 logger.warning("No valid JSON found in response, using fallback")
                 return self._get_fallback_evaluation(answer)
             
+        except ConnectionError as e:
+            logger.error(f"LLM connection error evaluating answer: {e}")
+            return self._get_fallback_evaluation(answer)
+        except json.JSONDecodeError as e:
+            logger.error(f"JSON parsing error in evaluation: {e}")
+            return self._get_fallback_evaluation(answer)
         except Exception as e:
             logger.error(f"Error evaluating answer: {e}")
-            # Fallback evaluation
             return self._get_fallback_evaluation(answer)
     
     def generate_final_report(self, session_data: Dict) -> str:
         """Generate comprehensive final interview report"""
+        
+        # Validate inputs
+        if not session_data or not isinstance(session_data, dict):
+            raise ValueError("Session data must be a non-empty dictionary")
+        
+        # Ensure LLM connection
+        self._ensure_llm_connection()
         
         report_prompt = PromptTemplate(
             input_variables=["topic", "questions", "answers", "scores"],
@@ -269,20 +416,43 @@ Report:"""
         
         try:
             # Prepare session data
-            questions = [qa.get("question", "") for qa in session_data.get("qa_pairs", [])]
-            answers = [qa.get("answer", "") for qa in session_data.get("qa_pairs", [])]
-            scores = [qa.get("evaluation", {}).get("overall_score", 0) for qa in session_data.get("qa_pairs", [])]
+            qa_pairs = session_data.get("qa_pairs", [])
+            if not qa_pairs:
+                logger.warning("No Q&A pairs found in session data")
+                return self._get_fallback_report(session_data)
             
-            chain = report_prompt | self.llm
-            report = chain.invoke({
-                "topic": session_data.get("topic", "Technical Interview"),
-                "questions": "\n".join([f"{i+1}. {q}" for i, q in enumerate(questions)]),
-                "answers": "\n".join([f"{i+1}. {a[:200]}..." for i, a in enumerate(answers)]),
-                "scores": f"Average Score: {sum(scores)/len(scores) if scores else 0:.1f}/10"
-            })
+            questions = [qa.get("question", "") for qa in qa_pairs]
+            answers = [qa.get("answer", "") for qa in qa_pairs]
+            scores = [qa.get("evaluation", {}).get("overall_score", 0) for qa in qa_pairs]
+            
+            if self.use_connection_pool:
+                # Use connection pool
+                with self.connection_pool.get_connection() as connection:
+                    chain = report_prompt | connection.llm_instance
+                    report = chain.invoke({
+                        "topic": session_data.get("topic", "Technical Interview"),
+                        "questions": "\n".join([f"{i+1}. {q}" for i, q in enumerate(questions)]),
+                        "answers": "\n".join([f"{i+1}. {a[:200]}..." for i, a in enumerate(answers)]),
+                        "scores": f"Average Score: {sum(scores)/len(scores) if scores else 0:.1f}/10"
+                    })
+            else:
+                # Use direct connection
+                chain = report_prompt | self.llm
+                report = chain.invoke({
+                    "topic": session_data.get("topic", "Technical Interview"),
+                    "questions": "\n".join([f"{i+1}. {q}" for i, q in enumerate(questions)]),
+                    "answers": "\n".join([f"{i+1}. {a[:200]}..." for i, a in enumerate(answers)]),
+                    "scores": f"Average Score: {sum(scores)/len(scores) if scores else 0:.1f}/10"
+                })
+            
+            if not report or len(report.strip()) == 0:
+                raise ValueError("LLM returned empty report")
             
             return report.strip()
             
+        except ConnectionError as e:
+            logger.error(f"LLM connection error generating final report: {e}")
+            return self._get_fallback_report(session_data)
         except Exception as e:
             logger.error(f"Error generating final report: {e}")
             return self._get_fallback_report(session_data)
