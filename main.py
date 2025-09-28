@@ -1,11 +1,14 @@
 """
-AI Technical Interviewer - Main Entry Point
+AI Technical Interviewer - Legacy Version
+⚠️  DEPRECATED: This is the legacy version of the AI Interviewer
 
-Tech Stack:
-- LangGraph (specified as preferred)
-- Ollama + llama3.2:3b (exactly as specified)  
-- Gradio web interface (meets "CLI, web, or chat" requirement)
-- ChromaDB vector store (bonus feature)
+🚀 NEW ENHANCED VERSION AVAILABLE:
+   → Run: python enhanced_main.py
+   → Features: Autonomous Learning, Offline Optimization, Concurrent Processing
+   → Documentation: See ENHANCED_SYSTEM_DOCUMENTATION.md
+
+This legacy version is maintained for backward compatibility only.
+For the latest features and improvements, please use the enhanced version.
 """
 
 import gradio as gr
@@ -772,8 +775,14 @@ class InterviewApp:
         return interface
 
 def main():
-    """Main entry point"""
-    print("🚀 Starting AI Technical Interviewer...")
+    """Legacy main entry point - DEPRECATED"""
+    print("⚠️  WARNING: You are running the LEGACY version of AI Technical Interviewer")
+    print("🚀 NEW ENHANCED VERSION AVAILABLE:")
+    print("   → Run: python enhanced_main.py")
+    print("   → Features: Autonomous Learning, Offline Optimization, Concurrent Processing")
+    print("   → Documentation: See ENHANCED_SYSTEM_DOCUMENTATION.md")
+    print("=" * 80)
+    print("🔄 Starting legacy version for backward compatibility...")
     print("📋 Requirements: 100% Compliant with Pre-work Specifications")
     print("🧠 LLM: Ollama + llama3.2:3b (Local)")
     print("🔄 Flow: LangGraph State Machine")

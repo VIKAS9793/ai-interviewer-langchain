@@ -1,5 +1,12 @@
-# AI Interviewer - Core Dependencies
-# Python 3.11+ required
+# AI Interviewer - Legacy Requirements
+# ⚠️  DEPRECATED: This is the legacy requirements file
+
+# 🚀 NEW ENHANCED VERSION AVAILABLE:
+#   → Use: enhanced_requirements.txt
+#   → Features: Autonomous Learning, Offline Optimization, Concurrent Processing
+#   → Documentation: See ENHANCED_SYSTEM_DOCUMENTATION.md
+
+# Legacy dependencies maintained for backward compatibility only
 
 # LangChain & LangGraph
 langchain==0.2.11
