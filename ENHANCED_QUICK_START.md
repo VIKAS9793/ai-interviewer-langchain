@@ -20,7 +20,7 @@ pip install -r enhanced_requirements.txt
 ollama serve
 
 # Pull model (if not already done)
-ollama pull llama3.2:3b
+ollama pull tinyllama
 ```
 
 ### **3. Launch Enhanced System**
@@ -30,7 +30,8 @@ python enhanced_main.py
 ```
 
 ### **4. Access Enhanced Interface**
-Open your browser to: `http://localhost:7860`
+Open your browser to: `http://localhost:7860` (or dynamically assigned port)
+**🌍 Public sharing enabled for global access**
 
 ## 🧠 Enhanced Features Overview
 

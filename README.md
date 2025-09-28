@@ -12,7 +12,7 @@
 
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-3776ab.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![LangGraph](https://img.shields.io/badge/LangGraph-Enhanced-00d084.svg?style=for-the-badge&logo=graphql&logoColor=white)](https://github.com/langchain-ai/langgraph)
-[![Ollama](https://img.shields.io/badge/Ollama-Llama%203.2%203B-ff6b35.svg?style=for-the-badge&logo=meta&logoColor=white)](https://ollama.ai/)
+[![Ollama](https://img.shields.io/badge/Ollama-TinyLlama-ff6b35.svg?style=for-the-badge&logo=meta&logoColor=white)](https://ollama.ai/)
 [![Gradio](https://img.shields.io/badge/Gradio-Enhanced-ff7c00.svg?style=for-the-badge&logo=gradio&logoColor=white)](https://gradio.app/)
 [![Autonomous Learning](https://img.shields.io/badge/System-Autonomous%20Learning-9f7aea.svg?style=for-the-badge&logo=brain&logoColor=white)](#)
 [![Enterprise Ready](https://img.shields.io/badge/Status-Enterprise%20Ready-28a745.svg?style=for-the-badge&logo=checkmarx&logoColor=white)](#)
@@ -45,7 +45,7 @@
 </table>
 </div>
 
-> 🚀 **A revolutionary AI interviewer with autonomous learning capabilities that continuously improves through advanced LangGraph state machines, Ollama's llama3.2:3b, and intelligent offline optimization.**
+> 🚀 **A revolutionary AI interviewer with autonomous learning capabilities that continuously improves through advanced LangGraph state machines, Ollama's TinyLlama, and intelligent offline optimization.**
 
 ---
 
@@ -76,6 +76,12 @@
 <td align="center">⭐<br><strong>Performance Monitoring</strong><br><small>Real-time system performance tracking</small></td>
 <td align="center">⭐<br><strong>Enhanced UI</strong><br><small>Modern interface with learning insights</small></td>
 <td align="center">⭐<br><strong>Comprehensive Testing</strong><br><small>Enterprise-grade test suite</small></td>
+</tr>
+<tr>
+<td align="center">🌍<br><strong>Public Sharing</strong><br><small>Global access via Gradio public URLs</small></td>
+<td align="center">🔄<br><strong>Dynamic Port Management</strong><br><small>Automatic port finding and fallback</small></td>
+<td align="center">⚡<br><strong>Optimized Performance</strong><br><small>Lazy loading and simplified workflows</small></td>
+<td align="center">🛡️<br><strong>Graceful Error Handling</strong><br><small>Robust fallback mechanisms</small></td>
 </tr>
 </table>
 
@@ -126,8 +132,8 @@
 # Install Ollama
 curl -fsSL https://ollama.ai/install.sh | sh
 
-# Pull llama3.2:3b model
-ollama pull llama3.2:3b
+# Pull TinyLlama model
+ollama pull tinyllama
 
 # Start Ollama service
 ollama serve
@@ -157,8 +163,8 @@ pip install -r requirements.txt
 ### 🌟 **3. Launch**
 
 ```bash
-# Start the application
-python main.py
+# Start the enhanced application
+python enhanced_main.py
 ```
 
 <div align="center">
@@ -236,7 +242,7 @@ graph TB
     end
     
     subgraph "AI Layer"
-        G["🤖 Ollama LLM<br/>(llama3.2:3b)"]
+        G["🤖 Ollama LLM<br/>(TinyLlama)"]
         H["👨‍💼 Adaptive Question Generator<br/>Context-Aware Questions"]
         I["📊 Enhanced Evaluator<br/>Multi-Dimensional Analysis"]
     end
@@ -568,7 +574,7 @@ workflow.add_edge("custom_learning_state", "update_learning")
 
 - [ ] Python 3.11+ installed
 - [ ] Ollama installed and running  
-- [ ] llama3.2:3b model downloaded
+- [ ] TinyLlama model downloaded
 - [ ] Git for repository cloning
 
 ### **📦 Installation Commands**
@@ -590,7 +596,8 @@ python enhanced_main.py
 ```
 
 ### **🌐 Access Your Interview Portal**
-**Open: `http://localhost:7860`**
+**Open: `http://localhost:7860` (or dynamically assigned port)**
+**🌍 Public sharing enabled for global access**
 
 </div>
 
@@ -609,7 +616,7 @@ ollama list
 ollama serve
 
 # Download model if missing
-ollama pull llama3.2:3b
+ollama pull tinyllama
 ```
 
 </details>
@@ -634,8 +641,8 @@ python main.py
 # Check port availability
 netstat -an | grep 7860
 
-# Use alternative port
-python main.py --server-port 7861
+# Dynamic port checking automatically finds available ports
+python enhanced_main.py
 ```
 
 </details>

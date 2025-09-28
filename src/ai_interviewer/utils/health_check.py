@@ -53,7 +53,7 @@ class HealthChecker:
                 models = response.json().get("models", [])
                 model_names = [model.get("name", "") for model in models]
                 
-                if Config.OLLAMA_MODEL in model_names:
+                if Config.OLLAMA_MODEL in model_names or f"{Config.OLLAMA_MODEL}:latest" in model_names:
                     response_time = (time.time() - start_time) * 1000
                     return HealthCheckResult(
                         status=HealthStatus.HEALTHY,
@@ -68,7 +68,7 @@ class HealthChecker:
                 else:
                     return HealthCheckResult(
                         status=HealthStatus.CRITICAL,
-                        message=f"Model {Config.OLLAMA_MODEL} not found in Ollama",
+                        message=f"Model {Config.OLLAMA_MODEL} not found in Ollama. Available models: {', '.join(model_names)}",
                         details={
                             "base_url": Config.OLLAMA_BASE_URL,
                             "expected_model": Config.OLLAMA_MODEL,

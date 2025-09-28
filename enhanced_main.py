@@ -9,6 +9,7 @@ import sys
 import os
 import time
 import asyncio
+import socket
 from typing import List, Tuple, Optional, Dict, Any
 import json
 from pathlib import Path
@@ -20,6 +21,26 @@ os.environ["CHROMA_SERVER_NOFILE"] = "1"
 # Add project root to Python path
 project_root = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, project_root)
+
+def find_available_port(start_port: int = 7860, max_attempts: int = 10) -> int:
+    """Find an available port starting from start_port"""
+    for port in range(start_port, start_port + max_attempts):
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.bind(('localhost', port))
+                return port
+        except OSError:
+            continue
+    raise RuntimeError(f"No available ports found in range {start_port}-{start_port + max_attempts - 1}")
+
+def is_port_available(port: int) -> bool:
+    """Check if a port is available"""
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(('localhost', port))
+            return True
+    except OSError:
+        return False
 
 try:
     from src.ai_interviewer.core.enhanced_flow_controller import EnhancedFlowController
@@ -719,39 +740,85 @@ class EnhancedInterviewApp:
 
 def main():
     """Enhanced main entry point"""
-    print("🚀 Starting Enhanced AI Technical Interviewer...")
-    print("🧠 Features: Autonomous Learning-Based Adaptive Intelligence")
-    print("📋 Requirements: 100% Compliant with Enterprise Standards")
-    print("🤖 LLM: Ollama + llama3.2:3b (Local)")
-    print("🔄 Flow: Enhanced LangGraph with Learning")
-    print("⚡ Optimization: Offline Caching & Concurrency")
-    print("🌐 Interface: Enhanced Gradio Web UI")
+    print("Starting Enhanced AI Technical Interviewer...")
+    print("Features: Autonomous Learning-Based Adaptive Intelligence")
+    print("Requirements: 100% Compliant with Enterprise Standards")
+    print("LLM: Ollama + tinyllama (Local)")
+    print("Flow: Enhanced LangGraph with Learning")
+    print("Optimization: Offline Caching & Concurrency")
+    print("Interface: Enhanced Gradio Web UI")
     print("=" * 80)
     
     try:
         app = EnhancedInterviewApp()
         interface = app.create_enhanced_interface()
         
-        # Launch with enhanced configuration
-        interface.launch(
-            server_name="0.0.0.0",  # Allow external access
-            server_port=7860,
-            share=False,  # Set to True if you want public sharing
-            show_error=True,
-            quiet=False,
-            inbrowser=True,  # Auto-open browser
-            favicon_path=None,
-        )
+        # Find an available port dynamically
+        try:
+            available_port = find_available_port(start_port=7860, max_attempts=20)
+            print(f"Found available port: {available_port}")
+        except RuntimeError as e:
+            print(f"Port finding failed: {e}")
+            print("Falling back to default port 7860...")
+            available_port = 7860
+        
+        # Launch with enhanced configuration and dynamic port
+        print(f"Launching Enhanced AI Interviewer on port {available_port}...")
+        
+        try:
+            interface.launch(
+                server_name="0.0.0.0",  # Allow external access
+                server_port=available_port,  # Use dynamically found port
+                share=True,  # Enable public sharing
+                show_error=True,
+                quiet=False,
+                inbrowser=True,  # Auto-open browser
+                favicon_path=None,
+            )
+        except Exception as launch_error:
+            print(f"Failed to launch on port {available_port}: {launch_error}")
+            print("Attempting to find another available port...")
+            
+            # Try alternative ports
+            for alt_port in range(available_port + 1, available_port + 10):
+                if is_port_available(alt_port):
+                    print(f"Trying alternative port: {alt_port}")
+                    try:
+                        interface.launch(
+                            server_name="0.0.0.0",
+                            server_port=alt_port,
+                            share=True,  # Enable public sharing
+                            show_error=True,
+                            quiet=False,
+                            inbrowser=True,
+                            favicon_path=None,
+                        )
+                        print(f"Successfully launched on port {alt_port}")
+                        break
+                    except Exception as alt_error:
+                        print(f"Port {alt_port} also failed: {alt_error}")
+                        continue
+            else:
+                raise RuntimeError("Could not find any available port to launch the application")
         
     except Exception as e:
         logger.error(f"Failed to start enhanced application: {e}")
-        print(f"❌ Error: {e}")
-        print("\n🔧 Enhanced Troubleshooting:")
+        print(f"Error: {e}")
+        print("\nEnhanced Troubleshooting:")
         print("1. Ensure Ollama is running: ollama serve")
-        print("2. Pull the model: ollama pull llama3.2:3b") 
+        print("2. Pull the model: ollama pull tinyllama")
         print("3. Check requirements: pip install -r requirements.txt")
         print("4. Try: pip install --upgrade gradio pydantic fastapi")
         print("5. Check system resources for concurrent processing")
+        print("6. Try running on a different port manually")
+        
+        # Try to find and suggest available ports
+        print("\nChecking for available ports...")
+        for port in range(7860, 7870):
+            if is_port_available(port):
+                print(f"Port {port} is available")
+            else:
+                print(f"Port {port} is occupied")
 
 if __name__ == "__main__":
     main()
