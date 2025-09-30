@@ -629,7 +629,7 @@ ollama pull tinyllama
 rm -rf ./chroma_db
 
 # Restart application
-python main.py
+python enhanced_main.py
 ```
 
 </details>
