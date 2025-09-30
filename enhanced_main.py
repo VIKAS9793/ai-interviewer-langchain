@@ -732,7 +732,7 @@ class EnhancedInterviewApp:
             <div class="footer-section">
                 <p><strong>Enhanced AI Technical Interviewer</strong> • Autonomous Learning System • Powered by Advanced AI Agents</p>
                 <p style="font-size: 0.9rem;">🧠 Learning Intelligence • ⚡ Offline Optimization • 🔄 Concurrent Processing • 🔒 Privacy First</p>
-                <p style="font-size: 0.8rem;">Built with LangGraph, Ollama + llama3.2:3b, ChromaDB, and Advanced Caching</p>
+                <p style="font-size: 0.8rem;">Built with LangGraph, Ollama + TinyLlama, ChromaDB, and Advanced Caching</p>
             </div>
             """)
         
