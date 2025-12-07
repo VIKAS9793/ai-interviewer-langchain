@@ -158,6 +158,7 @@ huggingface_hub/
 
 # Datasets
 data/
+!data/**/.keep
 datasets/
 *.csv
 *.json
@@ -173,6 +174,7 @@ vectors/
 
 # ===== GRADIO SPECIFIC =====
 # Gradio temporary files
+.gradio/
 gradio_cached_examples/
 flagged/
 *.gradio

@@ -10,7 +10,7 @@ class Config:
     """Configuration class for AI Interviewer"""
     
     # LLM Settings
-    OLLAMA_MODEL = "tinyllama"
+    OLLAMA_MODEL = "llama3.2:3b"
     OLLAMA_TEMPERATURE = 0.7
     OLLAMA_BASE_URL = "http://localhost:11434"
     

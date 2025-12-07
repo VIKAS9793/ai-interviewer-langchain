@@ -1,47 +1,23 @@
-# AI Interviewer - Legacy Requirements
-# ⚠️  DEPRECATED: This is the legacy requirements file
+# Core Application
+gradio==5.41.0
+python-dotenv==1.0.1
+rich==13.7.1
+typing-extensions==4.12.2
 
-# 🚀 NEW ENHANCED VERSION AVAILABLE:
-#   → Use: enhanced_requirements.txt
-#   → Features: Autonomous Learning, Offline Optimization, Concurrent Processing
-#   → Documentation: See ENHANCED_SYSTEM_DOCUMENTATION.md
-
-# Legacy dependencies maintained for backward compatibility only
-
-# LangChain & LangGraph
+# AI & LLM Framework
 langchain==0.2.11
 langchain-community==0.2.10
 langchain-core==0.2.23
 langchain-ollama==0.1.1
-langgraph==0.1.19
+ollama==0.6.1
 
-# Web Interface
-gradio==5.41.0
-
-# Vector Store & Embeddings
-chromadb==0.4.24
-sentence-transformers==3.0.1
-
-# Core Dependencies
+# Data Validation
 pydantic==2.11.7
 pydantic-core==2.33.2
-typing-extensions==4.12.2
 
-# HTTP & JSON
+# Networking
 httpx==0.27.0
 requests==2.32.3
-jsonschema==4.23.0
 
-# Data Processing
-numpy==1.24.4
-pandas==2.0.3
-
-# Utilities
-python-dotenv==1.0.1
-click==8.1.7
-rich==13.7.1
-psutil==5.9.8
-
-# Optional but recommended (removed problematic packages)
-setuptools==70.0.0
-wheel==0.43.0
+# Testing & Development
+pytest==7.4.3
