@@ -18,7 +18,9 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 
+import os
 from langchain_community.llms import Ollama
+from langchain_huggingface import HuggingFaceEndpoint
 from langchain.prompts import PromptTemplate
 
 from .autonomous_reasoning_engine import (
@@ -111,17 +113,27 @@ class AutonomousInterviewer:
 
         logger.info("🤖 Autonomous Interviewer initialized")
     
-    def _get_llm(self) -> Ollama:
-        """Get LLM with lazy loading"""
+    def _get_llm(self) -> HuggingFaceEndpoint:
+        """Get Cloud LLM with lazy loading"""
         if self._llm is None:
             try:
-                self._llm = Ollama(
-                    model=self.model_name,
+                # CLOUD ADAPTATION: Use Hugging Face Serverless Inference
+                # Requires HF_TOKEN in environment variables
+                token = os.environ.get("HF_TOKEN")
+                if not token:
+                    logger.warning("⚠️ HF_TOKEN not found! Falling back to public endpoints (may be rate limited).")
+                
+                self._llm = HuggingFaceEndpoint(
+                    repo_id="meta-llama/Meta-Llama-3-8B-Instruct",
+                    task="text-generation",
+                    max_new_tokens=512,
+                    top_k=50,
                     temperature=0.4,
-                    base_url="http://localhost:11434"
+                    huggingfacehub_api_token=token
                 )
+                logger.info("☁️ Connected to Hugging Face Cloud Inference (Meta-Llama-3-8B)")
             except Exception as e:
-                logger.error(f"Failed to initialize LLM: {e}")
+                logger.error(f"Failed to initialize Cloud LLM: {e}")
         return self._llm
     
     # ==================== INTERVIEW LIFECYCLE ====================

@@ -21,3 +21,5 @@ requests==2.32.3
 
 # Testing & Development
 pytest==7.4.3
+huggingface-hub>=0.23.0
+langchain-huggingface>=0.0.3
