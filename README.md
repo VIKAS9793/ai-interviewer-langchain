@@ -14,8 +14,23 @@
 [![Ollama](https://img.shields.io/badge/Ollama-llama3.2%3A3b-007EC6.svg?style=for-the-badge&logo=meta&logoColor=white)](https://ollama.ai/)
 [![Release](https://img.shields.io/badge/Release-v2.0.0-green.svg?style=for-the-badge)](CHANGELOG.md)
 [![Self-Thinking](https://img.shields.io/badge/AI-Self_Thinking-9f7aea.svg?style=for-the-badge&logo=brain&logoColor=white)](#)
+[![HuggingFace Spaces](https://img.shields.io/badge/🤗%20Try%20it%20Live-Hugging%20Face-yellow.svg?style=for-the-badge)](https://huggingface.co/spaces/Vikas9793/ai-interviewer)
 
 > 🚀 **A self-thinking AI interviewer with Chain-of-Thought reasoning, responsible AI guardrails, and persistent memory. Built with Ollama for complete offline privacy.**
+
+</div>
+
+---
+
+## 🎯 Try it Live!
+
+<div align="center">
+
+### 🤗 **[Launch AI Interviewer on Hugging Face Spaces](https://huggingface.co/spaces/Vikas9793/ai-interviewer)**
+
+*No installation required! Try the autonomous interview experience in your browser.*
+
+**📢 We'd love your feedback!** Share your experience in the [Discussions](https://github.com/VIKAS9793/ai-interviewer-langchain/discussions) or open an [Issue](https://github.com/VIKAS9793/ai-interviewer-langchain/issues).
 
 </div>
 
