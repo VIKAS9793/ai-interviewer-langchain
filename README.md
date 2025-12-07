@@ -59,6 +59,25 @@
 
 ---
 
+## ☁️ Cloud-First Development (v2.1+)
+
+> **📢 New Features First on Cloud!** We're developing new features on the `cloud` branch for instant visibility on [Hugging Face Spaces](https://huggingface.co/spaces/Vikas9793/ai-interviewer). Once stable, features are backported to `main` for local/Ollama users.
+
+### 🆕 Latest Cloud Features (v2.1):
+- 🤖 **Multi-Model Support:** Choose between LLaMA 3, Mistral, or Qwen
+- ⏱️ **Live Interview Timer:** Real-time progress tracking
+- 📊 **Visual Progress Bar:** See your interview progress at a glance
+- 🧠 **Context Engineering:** Advanced context management for intelligent reasoning
+- 📚 **Knowledge Grounding:** Answer verification against authoritative sources
+
+### Where to Find:
+| Version | Branch | Features | Link |
+|---------|--------|----------|------|
+| **Cloud (Latest)** | [`cloud`](https://github.com/VIKAS9793/ai-interviewer-langchain/tree/cloud) | Multi-model, Live timer, CE | [🤗 Try Live](https://huggingface.co/spaces/Vikas9793/ai-interviewer) |
+| **Local (Stable)** | `main` | Ollama, Privacy-first | This repo |
+
+---
+
 ## 🎥 Quick Look
 
 ```mermaid
