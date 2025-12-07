@@ -72,6 +72,10 @@ class EnhancedInterviewApp:
         """Initialize with new autonomous system"""
         logger.info("🚀 Initializing Autonomous AI Interviewer...")
         
+        # Ensure data directories exist
+        import os
+        os.makedirs("data/memory", exist_ok=True)
+        
         # Initialize autonomous flow controller
         self.flow_controller = AutonomousFlowController(
             max_concurrent_sessions=20,
@@ -116,29 +120,68 @@ class EnhancedInterviewApp:
             }
         }
     
-    def _generate_progress_html(self, question_num: int = 0, elapsed_seconds: int = 0) -> str:
-        """Generate progress bar HTML with current state"""
+    def _generate_progress_html(self, question_num: int = 0, elapsed_seconds: int = 0, start_timestamp: float = 0) -> str:
+        """Generate progress bar HTML with JavaScript-based live timer"""
         progress_pct = (question_num / 5) * 100 if question_num > 0 else 0
-        minutes = elapsed_seconds // 60
-        seconds = elapsed_seconds % 60
-        time_str = f"{minutes:02d}:{seconds:02d}"
         
-        return f"""
-        <div class="progress-container">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                <span style="color: var(--text-secondary);">Question</span>
-                <span style="color: var(--learning-color); font-weight: 600;">{question_num} / 5</span>
+        # Use start_timestamp for JS live timer if interview is active
+        if question_num > 0 and start_timestamp > 0:
+            # JavaScript will calculate and update elapsed time live
+            return f"""
+            <div class="progress-container">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: var(--text-secondary);">Question</span>
+                    <span style="color: var(--learning-color); font-weight: 600;">{question_num} / 5</span>
+                </div>
+                <div class="progress-bar-wrapper">
+                    <div class="progress-bar-fill" style="width: {progress_pct}%;">{question_num}/5</div>
+                </div>
             </div>
-            <div class="progress-bar-wrapper">
-                <div class="progress-bar-fill" style="width: {progress_pct}%;">{question_num}/5</div>
+            <div class="timer-display">
+                <span class="timer-icon">⏱️</span>
+                <span style="color: var(--text-secondary);">Elapsed:</span>
+                <span class="timer-value" id="live-timer">00:00</span>
             </div>
-        </div>
-        <div class="timer-display">
-            <span class="timer-icon">⏱️</span>
-            <span style="color: var(--text-secondary);">Elapsed:</span>
-            <span class="timer-value">{time_str}</span>
-        </div>
-        """
+            <script>
+                (function() {{
+                    const startTime = {start_timestamp};
+                    const timerEl = document.getElementById('live-timer');
+                    if (timerEl && startTime > 0) {{
+                        function updateTimer() {{
+                            const now = Date.now() / 1000;
+                            const elapsed = Math.floor(now - startTime);
+                            const mins = Math.floor(elapsed / 60);
+                            const secs = elapsed % 60;
+                            timerEl.textContent = String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+                        }}
+                        updateTimer();
+                        setInterval(updateTimer, 1000);
+                    }}
+                }})();
+            </script>
+            """
+        else:
+            # Static display for initial/completed state
+            minutes = elapsed_seconds // 60
+            seconds = elapsed_seconds % 60
+            time_str = f"{minutes:02d}:{seconds:02d}"
+            
+            return f"""
+            <div class="progress-container">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: var(--text-secondary);">Question</span>
+                    <span style="color: var(--learning-color); font-weight: 600;">{question_num} / 5</span>
+                </div>
+                <div class="progress-bar-wrapper">
+                    <div class="progress-bar-fill" style="width: {progress_pct}%;">{question_num}/5</div>
+                </div>
+            </div>
+            <div class="timer-display">
+                <span class="timer-icon">⏱️</span>
+                <span style="color: var(--text-secondary);">Elapsed:</span>
+                <span class="timer-value">{time_str}</span>
+            </div>
+            """
         
     def start_interview(self, topic: str, candidate_name: str, model_id: str = "meta-llama/Meta-Llama-3-8B-Instruct") -> Tuple[str, str, str, str, bool, bool]:
         """Start autonomous interview session with self-thinking AI"""
@@ -205,7 +248,7 @@ class EnhancedInterviewApp:
 💡 **The AI thinks before asking each question and explains its reasoning!**"""
 
                 status_msg = f"🟢 **Status:** Autonomous Interview Active - Question 1/5"
-                progress_html = self._generate_progress_html(1, 0)
+                progress_html = self._generate_progress_html(1, 0, self.current_session["start_time"])
                 
                 return welcome_msg, "", progress_html, status_msg, False, False
             else:
@@ -225,7 +268,8 @@ class EnhancedInterviewApp:
             if not answer.strip():
                 elapsed = int(time.time() - self.current_session.get("start_time", time.time()))
                 q_num = self.current_session.get("question_count", 1)
-                return "⚠️ **Please provide an answer.**", answer, self._generate_progress_html(q_num, elapsed), "🟡 **Status:** Waiting", False
+                start_ts = self.current_session.get("start_time", 0)
+                return "⚠️ **Please provide an answer.**", answer, self._generate_progress_html(q_num, elapsed, start_ts), "🟡 **Status:** Waiting", False
             
             # Validate content with guardrails
             if self.responsible_ai:
@@ -270,7 +314,8 @@ class EnhancedInterviewApp:
 {result.get('next_question', '')}"""
 
                 status_msg = f"🟢 **Status:** Autonomous - Question {q_num}/5"
-                progress_html = self._generate_progress_html(q_num, elapsed)
+                start_ts = self.current_session.get("start_time", 0)
+                progress_html = self._generate_progress_html(q_num, elapsed, start_ts)
                 return response, "", progress_html, status_msg, False
                 
             elif result["status"] == "completed":
