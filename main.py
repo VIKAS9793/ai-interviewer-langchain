@@ -115,12 +115,36 @@ class EnhancedInterviewApp:
                 "compliance": self.responsible_ai.get_compliance_status() if self.responsible_ai else {}
             }
         }
+    
+    def _generate_progress_html(self, question_num: int = 0, elapsed_seconds: int = 0) -> str:
+        """Generate progress bar HTML with current state"""
+        progress_pct = (question_num / 5) * 100 if question_num > 0 else 0
+        minutes = elapsed_seconds // 60
+        seconds = elapsed_seconds % 60
+        time_str = f"{minutes:02d}:{seconds:02d}"
         
-    def start_interview(self, topic: str, candidate_name: str) -> Tuple[str, str, str, bool, bool]:
+        return f"""
+        <div class="progress-container">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span style="color: var(--text-secondary);">Question</span>
+                <span style="color: var(--learning-color); font-weight: 600;">{question_num} / 5</span>
+            </div>
+            <div class="progress-bar-wrapper">
+                <div class="progress-bar-fill" style="width: {progress_pct}%;">{question_num}/5</div>
+            </div>
+        </div>
+        <div class="timer-display">
+            <span class="timer-icon">⏱️</span>
+            <span style="color: var(--text-secondary);">Elapsed:</span>
+            <span class="timer-value">{time_str}</span>
+        </div>
+        """
+        
+    def start_interview(self, topic: str, candidate_name: str) -> Tuple[str, str, str, str, bool, bool]:
         """Start autonomous interview session with self-thinking AI"""
         try:
             if not candidate_name.strip():
-                return "⚠️ Please enter your name to begin the interview.", "", "", True, True
+                return "⚠️ Please enter your name to begin the interview.", "", self._generate_progress_html(0, 0), "", True, True
             
             # Start autonomous interview
             result = self.flow_controller.start_interview(topic, candidate_name)
@@ -166,24 +190,27 @@ class EnhancedInterviewApp:
 💡 **The AI thinks before asking each question and explains its reasoning!**"""
 
                 status_msg = f"🟢 **Status:** Autonomous Interview Active - Question 1/5"
+                progress_html = self._generate_progress_html(1, 0)
                 
-                return welcome_msg, "", status_msg, False, False
+                return welcome_msg, "", progress_html, status_msg, False, False
             else:
                 error_msg = result.get('message', 'Failed to start interview')
-                return f"❌ **Error:** {error_msg}", "", "🔴 **Status:** Error", True, True
+                return f"❌ **Error:** {error_msg}", "", self._generate_progress_html(0, 0), "🔴 **Status:** Error", True, True
             
         except Exception as e:
             logger.error(f"Error starting autonomous interview: {e}")
-            return f"❌ **Error:** {str(e)}", "", "🔴 **Status:** Error", True, True
+            return f"❌ **Error:** {str(e)}", "", self._generate_progress_html(0, 0), "🔴 **Status:** Error", True, True
     
-    def process_answer(self, answer: str) -> Tuple[str, str, str, bool]:
+    def process_answer(self, answer: str) -> Tuple[str, str, str, str, bool]:
         """Process answer with autonomous reasoning and guardrails"""
         try:
             if not self.current_session:
-                return "❌ **Error:** No active session. Please start an interview.", "", "🔴 **Status:** No Session", True
+                return "❌ **Error:** No active session. Please start an interview.", "", self._generate_progress_html(0, 0), "🔴 **Status:** No Session", True
             
             if not answer.strip():
-                return "⚠️ **Please provide an answer.**", answer, "🟡 **Status:** Waiting", False
+                elapsed = int(time.time() - self.current_session.get("start_time", time.time()))
+                q_num = self.current_session.get("question_count", 1)
+                return "⚠️ **Please provide an answer.**", answer, self._generate_progress_html(q_num, elapsed), "🟡 **Status:** Waiting", False
             
             # Validate content with guardrails
             if self.responsible_ai:
@@ -197,6 +224,9 @@ class EnhancedInterviewApp:
                 answer
             )
             
+            # Calculate elapsed time
+            elapsed = int(time.time() - self.current_session.get("start_time", time.time()))
+            
             if result["status"] == "continue":
                 # Update session
                 self.current_session["question_count"] = result.get("question_number", 2)
@@ -204,6 +234,7 @@ class EnhancedInterviewApp:
                 evaluation = result.get("evaluation", {})
                 feedback = result.get("feedback", "")
                 reasoning = result.get("reasoning", {})
+                q_num = result.get('question_number', 2)
                 
                 response = f"""## ✅ Answer Evaluated with Autonomous Reasoning
 
@@ -219,19 +250,22 @@ class EnhancedInterviewApp:
 
 ---
 
-### Question {result.get('question_number', 2)}/5
+### Question {q_num}/5
 
-{result.get('next_question', '')}
+{result.get('next_question', '')}"""
 
----
-**Progress:** {result.get('question_number', 2) - 1}/5 completed"""
-
-                status_msg = f"🟢 **Status:** Autonomous - Question {result.get('question_number', 2)}/5"
-                return response, "", status_msg, False
+                status_msg = f"🟢 **Status:** Autonomous - Question {q_num}/5"
+                progress_html = self._generate_progress_html(q_num, elapsed)
+                return response, "", progress_html, status_msg, False
                 
             elif result["status"] == "completed":
                 final_report = result.get("final_report", "Interview completed.")
                 summary = result.get("summary", {})
+                
+                # Format elapsed time
+                minutes = elapsed // 60
+                seconds = elapsed % 60
+                time_str = f"{minutes}m {seconds}s"
                 
                 response = f"""## 🎉 Autonomous Interview Complete!
 
@@ -242,6 +276,7 @@ class EnhancedInterviewApp:
 ### 📊 Performance Summary:
 - **Questions:** {summary.get('questions_asked', 5)}
 - **Average Score:** {summary.get('avg_score', 0):.1f}/10
+- **Total Time:** {time_str}
 - **Strengths:** {', '.join(summary.get('strengths', ['N/A'])[:3])}
 - **Areas to Improve:** {', '.join(summary.get('areas_for_improvement', ['N/A'])[:3])}
 
@@ -252,13 +287,13 @@ class EnhancedInterviewApp:
 **Ready for another interview? Select a topic and click Start!**"""
 
                 self.current_session = None
-                return response, "", "✅ **Status:** Interview Completed", True
+                return response, "", self._generate_progress_html(5, elapsed), "✅ **Status:** Interview Completed", True
             else:
-                return f"❌ **Error:** {result.get('message', 'Unexpected error')}", answer, "🔴 **Status:** Error", False
+                return f"❌ **Error:** {result.get('message', 'Unexpected error')}", answer, self._generate_progress_html(0, elapsed), "🔴 **Status:** Error", False
             
         except Exception as e:
             logger.error(f"Error processing answer: {e}")
-            return f"❌ **Error:** {str(e)}", answer, "🔴 **Status:** Error", False
+            return f"❌ **Error:** {str(e)}", answer, self._generate_progress_html(0, 0), "🔴 **Status:** Error", False
     
     def get_system_analytics(self) -> Dict[str, Any]:
         """Get comprehensive system analytics"""
@@ -433,6 +468,59 @@ class EnhancedInterviewApp:
             color: var(--text-primary) !important;
             font-weight: 600;
         }
+        
+        /* Progress bar styling */
+        .progress-container {
+            background: var(--bg-medium) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .progress-bar-wrapper {
+            background: var(--bg-dark);
+            border-radius: 20px;
+            height: 24px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+        
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--learning-color) 100%);
+            border-radius: 20px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        
+        /* Timer styling */
+        .timer-display {
+            background: var(--bg-medium) !important;
+            border: 1px solid var(--learning-color) !important;
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            margin: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .timer-icon {
+            font-size: 1.2rem;
+        }
+        
+        .timer-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--learning-color) !important;
+            font-family: 'Courier New', monospace;
+        }
         """
         
         with gr.Blocks(
@@ -529,7 +617,29 @@ class EnhancedInterviewApp:
                     )
                     
                     # System status
-                    gr.Markdown("### 📊 System Status")
+                    gr.Markdown("### 📊 Interview Progress")
+                    
+                    # Progress bar HTML component
+                    progress_html = gr.HTML(
+                        """
+                        <div class="progress-container">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span style="color: var(--text-secondary);">Question</span>
+                                <span style="color: var(--learning-color); font-weight: 600;">0 / 5</span>
+                            </div>
+                            <div class="progress-bar-wrapper">
+                                <div class="progress-bar-fill" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                        <div class="timer-display">
+                            <span class="timer-icon">⏱️</span>
+                            <span style="color: var(--text-secondary);">Elapsed:</span>
+                            <span class="timer-value">00:00</span>
+                        </div>
+                        """,
+                        elem_id="progress-tracker"
+                    )
+                    
                     system_status = gr.Markdown(
                         "🟡 **Status:** Ready to Start",
                         elem_classes=["system-status"]
@@ -603,20 +713,20 @@ class EnhancedInterviewApp:
             start_btn.click(
                 fn=self.start_interview,
                 inputs=[topic_dropdown, candidate_name],
-                outputs=[interview_display, answer_input, system_status, start_btn_disabled, submit_btn_disabled]
+                outputs=[interview_display, answer_input, progress_html, system_status, start_btn_disabled, submit_btn_disabled]
             )
             
             submit_btn.click(
                 fn=self.process_answer,
                 inputs=[answer_input],
-                outputs=[interview_display, answer_input, system_status, submit_btn_disabled]
+                outputs=[interview_display, answer_input, progress_html, system_status, submit_btn_disabled]
             )
             
             # Allow Enter key to submit
             answer_input.submit(
                 fn=self.process_answer,
                 inputs=[answer_input], 
-                outputs=[interview_display, answer_input, system_status, submit_btn_disabled]
+                outputs=[interview_display, answer_input, progress_html, system_status, submit_btn_disabled]
             )
             
             # Clear button
