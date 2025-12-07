@@ -664,17 +664,15 @@ def main():
         print(f"Launching Enhanced AI Interviewer on port {available_port}...")
         
         try:
-            # Queue is required for Spaces to handle concurrent requests
-            interface.queue(concurrency_count=2)
+            # Queue for Spaces - default_concurrency_limit for Gradio 4.x
+            interface.queue(default_concurrency_limit=2)
             
             interface.launch(
                 server_name="0.0.0.0",  # Allow external access
-                server_port=available_port,  # Use dynamically found port
+                server_port=7860,  # Fixed port for Spaces
                 share=False,  # Disabled for Spaces (platform handles this)
                 show_error=True,
                 quiet=False,
-                inbrowser=False,  # Disabled for Spaces (no local browser)
-                favicon_path=None,
             )
         except Exception as launch_error:
             print(f"Failed to launch on port {available_port}: {launch_error}")
