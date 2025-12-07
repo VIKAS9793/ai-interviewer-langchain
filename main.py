@@ -641,9 +641,9 @@ def main():
     print("Starting Enhanced AI Technical Interviewer...")
     print("Features: Autonomous Learning-Based Adaptive Intelligence")
     print("Requirements: 100% Compliant with Enterprise Standards")
-    print("LLM: Ollama + llama3.2:3b (Local)")
+    print("LLM: Hugging Face Cloud (Meta-Llama-3-8B-Instruct)")
     print("Flow: Enhanced LangGraph with Learning")
-    print("Optimization: Offline Caching & Concurrency")
+    print("Optimization: Cloud Caching & Concurrency")
     print("Interface: Enhanced Gradio Web UI")
     print("=" * 80)
     
@@ -664,13 +664,16 @@ def main():
         print(f"Launching Enhanced AI Interviewer on port {available_port}...")
         
         try:
+            # Queue is required for Spaces to handle concurrent requests
+            interface.queue(concurrency_count=2)
+            
             interface.launch(
                 server_name="0.0.0.0",  # Allow external access
                 server_port=available_port,  # Use dynamically found port
-                share=True,  # Enable public sharing
+                share=False,  # Disabled for Spaces (platform handles this)
                 show_error=True,
                 quiet=False,
-                inbrowser=True,  # Auto-open browser
+                inbrowser=False,  # Disabled for Spaces (no local browser)
                 favicon_path=None,
             )
         except Exception as launch_error:
@@ -685,10 +688,10 @@ def main():
                         interface.launch(
                             server_name="0.0.0.0",
                             server_port=alt_port,
-                            share=True,  # Enable public sharing
+                            share=False,  # Disabled for Spaces
                             show_error=True,
                             quiet=False,
-                            inbrowser=True,
+                            inbrowser=False,  # Disabled for Spaces
                             favicon_path=None,
                         )
                         print(f"Successfully launched on port {alt_port}")

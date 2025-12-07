@@ -22,7 +22,8 @@ from collections import deque
 import threading
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 
-from langchain_community.llms import Ollama
+import os
+from langchain_huggingface import HuggingFaceEndpoint
 from langchain.prompts import PromptTemplate
 
 
@@ -127,20 +128,27 @@ class AutonomousReasoningEngine:
         # Initialize with lazy loading
         logger.info("🧠 Autonomous Reasoning Engine initialized")
     
-    def _get_llm(self) -> Ollama:
-        """Lazy load LLM with self-healing"""
+    def _get_llm(self) -> HuggingFaceEndpoint:
+        """Lazy load Cloud LLM with self-healing"""
         if self._llm is None:
             try:
-                self._llm = Ollama(
-                    model=self.model_name,
+                # CLOUD ADAPTATION: Use Hugging Face Serverless Inference
+                # Requires HF_TOKEN in environment variables
+                token = os.environ.get("HF_TOKEN")
+                if not token:
+                    logger.warning("⚠️ HF_TOKEN not found! Falling back to public endpoints (may be rate limited).")
+                
+                self._llm = HuggingFaceEndpoint(
+                    repo_id="meta-llama/Meta-Llama-3-8B-Instruct",
+                    task="text-generation",
+                    max_new_tokens=512,
+                    top_k=50,
                     temperature=0.3,  # Lower for more deterministic reasoning
-                    base_url="http://localhost:11434"
+                    huggingfacehub_api_token=token
                 )
-                # Test connection
-                self._llm.invoke("test")
-                logger.info(f"✅ LLM connected: {self.model_name}")
+                logger.info("☁️ Reasoning Engine connected to Hugging Face Cloud (Meta-Llama-3-8B)")
             except Exception as e:
-                logger.warning(f"⚠️ LLM connection failed, will use fallback: {e}")
+                logger.warning(f"⚠️ Cloud LLM connection failed, will use fallback: {e}")
                 self._llm = None
         return self._llm
     
