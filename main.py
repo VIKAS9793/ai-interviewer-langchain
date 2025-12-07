@@ -54,6 +54,8 @@ except ImportError as e:
     
     # Minimal fallback
     class AutonomousFlowController:
+        def __init__(self, **kwargs):
+            pass
         def start_interview(self, topic, name): 
             return {"status": "started", "session_id": "fallback", "first_question": f"Fallback question for {topic}", "greeting": f"Welcome {name}!"}
         def process_answer(self, session_id, answer): 

@@ -21,7 +21,7 @@ from enum import Enum
 import os
 from langchain_community.llms import Ollama
 from langchain_huggingface import HuggingFaceEndpoint
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
 
 from .autonomous_reasoning_engine import (
     AutonomousReasoningEngine,
