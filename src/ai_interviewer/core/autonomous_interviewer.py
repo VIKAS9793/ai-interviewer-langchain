@@ -113,6 +113,13 @@ class AutonomousInterviewer:
 
         logger.info("🤖 Autonomous Interviewer initialized")
     
+    def set_model(self, model_id: str) -> None:
+        """Set the model to use for LLM inference"""
+        if model_id != self.model_name:
+            self.model_name = model_id
+            self._llm = None  # Reset LLM to force re-initialization
+            logger.info(f"🔄 Model changed to: {model_id}")
+    
     def _get_llm(self) -> HuggingFaceEndpoint:
         """Get Cloud LLM with lazy loading"""
         if self._llm is None:
@@ -124,14 +131,14 @@ class AutonomousInterviewer:
                     logger.warning("⚠️ HF_TOKEN not found! Falling back to public endpoints (may be rate limited).")
                 
                 self._llm = HuggingFaceEndpoint(
-                    repo_id="meta-llama/Meta-Llama-3-8B-Instruct",
+                    repo_id=self.model_name,
                     task="text-generation",
                     max_new_tokens=512,
                     top_k=50,
                     temperature=0.4,
                     huggingfacehub_api_token=token
                 )
-                logger.info("☁️ Connected to Hugging Face Cloud Inference (Meta-Llama-3-8B)")
+                logger.info(f"☁️ Connected to Hugging Face Cloud Inference ({self.model_name})")
             except Exception as e:
                 logger.error(f"Failed to initialize Cloud LLM: {e}")
         return self._llm

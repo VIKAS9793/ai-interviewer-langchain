@@ -140,20 +140,34 @@ class EnhancedInterviewApp:
         </div>
         """
         
-    def start_interview(self, topic: str, candidate_name: str) -> Tuple[str, str, str, str, bool, bool]:
+    def start_interview(self, topic: str, candidate_name: str, model_id: str = "meta-llama/Meta-Llama-3-8B-Instruct") -> Tuple[str, str, str, str, bool, bool]:
         """Start autonomous interview session with self-thinking AI"""
         try:
             if not candidate_name.strip():
                 return "⚠️ Please enter your name to begin the interview.", "", self._generate_progress_html(0, 0), "", True, True
             
+            # Set model on flow controller's interviewer
+            if hasattr(self.flow_controller, 'interviewer'):
+                self.flow_controller.interviewer.set_model(model_id)
+            
             # Start autonomous interview
             result = self.flow_controller.start_interview(topic, candidate_name)
             
             if result["status"] == "started":
+                # Get model display name
+                model_names = {
+                    "meta-llama/Meta-Llama-3-8B-Instruct": "LLaMA 3 (8B)",
+                    "mistralai/Mistral-7B-Instruct-v0.3": "Mistral (7B)",
+                    "Qwen/Qwen2.5-7B-Instruct": "Qwen 2.5 (7B)"
+                }
+                model_display = model_names.get(model_id, model_id.split("/")[-1])
+                
                 self.current_session = {
                     "session_id": result["session_id"],
                     "topic": topic,
                     "candidate_name": candidate_name,
+                    "model_id": model_id,
+                    "model_display": model_display,
                     "question_count": 1,
                     "max_questions": 5,
                     "qa_pairs": [],
@@ -167,7 +181,8 @@ class EnhancedInterviewApp:
                 welcome_msg = f"""## 🤖 Autonomous AI Interview Started!
 
 **Candidate:** {candidate_name}  
-**Topic:** {topic}
+**Topic:** {topic}  
+**AI Model:** {model_display}
 
 ### {greeting}
 
@@ -609,6 +624,19 @@ class EnhancedInterviewApp:
                         info="Choose your area of expertise"
                     )
                     
+                    # Model selector for multi-model support
+                    model_dropdown = gr.Dropdown(
+                        label="🤖 AI Model",
+                        choices=[
+                            ("Meta LLaMA 3 (8B)", "meta-llama/Meta-Llama-3-8B-Instruct"),
+                            ("Mistral (7B)", "mistralai/Mistral-7B-Instruct-v0.3"),
+                            ("Qwen 2.5 (7B)", "Qwen/Qwen2.5-7B-Instruct"),
+                        ],
+                        value="meta-llama/Meta-Llama-3-8B-Instruct",
+                        elem_classes=["custom-input"],
+                        info="Select AI model (different models have different strengths)"
+                    )
+                    
                     start_btn = gr.Button(
                         "🚀 Start Enhanced Interview", 
                         variant="primary", 
@@ -712,7 +740,7 @@ class EnhancedInterviewApp:
             # Event handlers
             start_btn.click(
                 fn=self.start_interview,
-                inputs=[topic_dropdown, candidate_name],
+                inputs=[topic_dropdown, candidate_name, model_dropdown],
                 outputs=[interview_display, answer_input, progress_html, system_status, start_btn_disabled, submit_btn_disabled]
             )
             
