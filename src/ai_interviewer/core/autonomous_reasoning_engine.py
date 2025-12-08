@@ -24,7 +24,7 @@ from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeou
 
 import os
 from langchain_huggingface import HuggingFaceEndpoint
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
 
 
 from .reasoning_bank import ReasoningBank
