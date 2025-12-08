@@ -19,7 +19,6 @@ from datetime import datetime
 from enum import Enum
 
 import os
-from langchain_community.llms import Ollama
 from langchain_huggingface import HuggingFaceEndpoint
 from langchain_core.prompts import PromptTemplate
 

@@ -855,8 +855,8 @@ class EnhancedInterviewApp:
             gr.HTML("""
             <div class="footer-section">
                 <p><strong>Enhanced AI Technical Interviewer</strong> • Autonomous Learning System • Powered by Advanced AI Agents</p>
-                <p style="font-size: 0.9rem;">🧠 Learning Intelligence • ⚡ Offline Optimization • 🔄 Concurrent Processing • 🔒 Privacy First</p>
-                <p style="font-size: 0.8rem;">Built with LangGraph, Ollama + llama3.2:3b, ChromaDB, and Advanced Caching</p>
+                <p style="font-size: 0.9rem;">🧠 Chain-of-Thought Reasoning • ⚡ Semantic Evaluation • 🔄 Hybrid Scoring • 🛡️ AI Guardrails</p>
+                <p style="font-size: 0.8rem;">Built with LangChain, HuggingFace Inference API, Gradio, and Sentence Transformers</p>
             </div>
             """)
         
@@ -929,12 +929,12 @@ def main():
     except Exception as e:
         logger.error(f"Failed to start enhanced application: {e}")
         print(f"Error: {e}")
-        print("\nEnhanced Troubleshooting:")
-        print("1. Ensure Ollama is running: ollama serve")
-        print("2. Pull the model: ollama pull llama3.2:3b")
-        print("3. Check requirements: pip install -r requirements.txt")
-        print("4. Try: pip install --upgrade gradio pydantic fastapi")
-        print("5. Check system resources for concurrent processing")
+        print("\nTroubleshooting (Cloud Deployment):")
+        print("1. Ensure HF_TOKEN is set: export HF_TOKEN=your_token")
+        print("2. Check requirements: pip install -r requirements.txt")
+        print("3. Verify HuggingFace API status: https://status.huggingface.co")
+        print("4. Try: pip install --upgrade gradio langchain-huggingface")
+        print("5. Check system resources and network connectivity")
         print("6. Try running on a different port manually")
         
         # Try to find and suggest available ports
