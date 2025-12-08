@@ -19,26 +19,16 @@ license: mit
 
 [![Live Demo](https://img.shields.io/badge/🚀_Try_Live_Demo-HuggingFace_Spaces-FF6B6B?style=for-the-badge)](https://huggingface.co/spaces/Vikas9793/ai-interviewer)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/VIKAS9793/ai-interviewer-langchain)
+[![License](https://img.shields.io/badge/License-MIT-22C55E?style=for-the-badge)](LICENSE)
 
----
+![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)
+![Gradio](https://img.shields.io/badge/Gradio-6.0.2-FF7C00?style=flat-square)
+![LangChain](https://img.shields.io/badge/LangChain-Framework-1C3C3C?style=flat-square)
+![HuggingFace](https://img.shields.io/badge/🤗_HuggingFace-API-FFD21E?style=flat-square)
+![LLaMA](https://img.shields.io/badge/LLaMA_3-8B-0467DF?style=flat-square)
+![Qwen](https://img.shields.io/badge/Qwen_2.5-32B-7C3AED?style=flat-square)
 
-### 🛠️ Tech Stack
-
-[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
-[![Gradio](https://img.shields.io/badge/Gradio-6.0.2-FF7C00?style=flat-square&logo=gradio&logoColor=white)](https://gradio.app)
-[![LangChain](https://img.shields.io/badge/LangChain-Framework-1C3C3C?style=flat-square&logo=chainlink&logoColor=white)](https://langchain.com)
-[![HuggingFace](https://img.shields.io/badge/🤗_HuggingFace-Inference_API-FFD21E?style=flat-square)](https://huggingface.co)
-[![Sentence Transformers](https://img.shields.io/badge/Sentence_Transformers-Embeddings-4B8BBE?style=flat-square)](https://sbert.net)
-
-### 🤖 AI Models
-
-[![LLaMA](https://img.shields.io/badge/Meta_LLaMA_3-8B_Instruct-0467DF?style=flat-square&logo=meta&logoColor=white)](https://huggingface.co/meta-llama)
-[![Qwen](https://img.shields.io/badge/Qwen_2.5-32B_Instruct-7C3AED?style=flat-square)](https://huggingface.co/Qwen)
-[![MiniLM](https://img.shields.io/badge/MiniLM-Embeddings-22C55E?style=flat-square)](https://huggingface.co/sentence-transformers)
-
----
-
-**Self-Thinking AI** • **Chain-of-Thought Reasoning** • **Hybrid Evaluation** • **Responsible AI**
+**Self-Thinking AI** • **Chain-of-Thought** • **Hybrid Evaluation** • **Responsible AI**
 
 </div>
 
@@ -143,9 +133,12 @@ pie title Scoring Distribution
 ## 🚀 Quick Start
 
 ### ☁️ Live Demo (Recommended)
-```
-🌐 https://huggingface.co/spaces/Vikas9793/ai-interviewer
-```
+
+<div align="center">
+
+[![Try Now](https://img.shields.io/badge/🌐_Try_Now-huggingface.co/spaces/Vikas9793/ai--interviewer-FF6B6B?style=for-the-badge)](https://huggingface.co/spaces/Vikas9793/ai-interviewer)
+
+</div>
 
 ### 💻 Local Installation
 ```bash
