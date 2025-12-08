@@ -394,8 +394,8 @@ class AutonomousInterviewer:
         question = session.current_question
         topic = session.topic
         
-        # Heuristic evaluation (always available)
-        heuristic_eval = self._heuristic_evaluation(answer, topic)
+        # Heuristic evaluation (always available) - with question for relevance check
+        heuristic_eval = self._heuristic_evaluation(answer, topic, question)
         
         # Try LLM evaluation for deeper insights
         llm_eval = self._llm_evaluation(question, answer, topic, session)
@@ -423,7 +423,7 @@ class AutonomousInterviewer:
         
         return merged_eval
     
-    def _heuristic_evaluation(self, answer: str, topic: str) -> Dict[str, Any]:
+    def _heuristic_evaluation(self, answer: str, topic: str, question: str = "") -> Dict[str, Any]:
         """Fast heuristic evaluation (always works)"""
         if not answer or len(answer.strip()) < 10:
             return {
@@ -431,7 +431,21 @@ class AutonomousInterviewer:
                 "technical_accuracy": 0.2,
                 "completeness": 0.1,
                 "clarity": 0.3,
+                "relevance": 0.0,
                 "source": "heuristic"
+            }
+        
+        # CRITICAL: Question-Answer Relevance Check
+        relevance_score = self._check_answer_relevance(question, answer)
+        if relevance_score < 0.3:  # Answer is off-topic
+            return {
+                "score": 2.0,
+                "technical_accuracy": 0.1,
+                "completeness": 0.1,
+                "clarity": 0.3,
+                "relevance": relevance_score,
+                "source": "heuristic",
+                "warning": "Answer does not appear to address the question asked"
             }
         
         # Length-based scoring
@@ -455,21 +469,56 @@ class AutonomousInterviewer:
         if any(word in answer.lower() for word in ["example", "for instance", "such as", "like"]):
             example_score = 1.5
         
-        total_score = min(length_score + keyword_score + structure_score + example_score, 10)
+        # Apply relevance penalty
+        relevance_multiplier = max(relevance_score, 0.3)
+        total_score = min((length_score + keyword_score + structure_score + example_score) * relevance_multiplier, 10)
         
         return {
             "score": round(total_score, 1),
-            "technical_accuracy": min(keyword_score / 3, 1.0),
+            "technical_accuracy": min(keyword_score / 3, 1.0) * relevance_multiplier,
             "completeness": min(length_score / 4, 1.0),
             "clarity": min((structure_score + 0.5) / 2.5, 1.0),
+            "relevance": relevance_score,
             "source": "heuristic",
             "details": {
                 "word_count": word_count,
                 "keywords_found": keyword_count,
                 "has_structure": structure_score > 0,
-                "has_examples": example_score > 0
+                "has_examples": example_score > 0,
+                "relevance_check": relevance_score
             }
         }
+    
+    def _check_answer_relevance(self, question: str, answer: str) -> float:
+        """Check if answer is relevant to the question asked"""
+        if not question:
+            return 1.0  # No question to check against
+        
+        # Extract key terms from question (simple heuristic)
+        question_lower = question.lower()
+        answer_lower = answer.lower()
+        
+        # Extract question keywords (skip common words)
+        stop_words = {'the', 'a', 'an', 'is', 'are', 'was', 'were', 'what', 'how', 'why', 
+                      'can', 'you', 'explain', 'describe', 'tell', 'me', 'about', 'between',
+                      'and', 'or', 'in', 'of', 'to', 'for', 'with', 'do', 'does', 'your'}
+        
+        question_words = set(question_lower.split()) - stop_words
+        answer_words = set(answer_lower.split())
+        
+        # Check keyword overlap
+        if not question_words:
+            return 1.0
+        
+        overlap = question_words & answer_words
+        relevance_ratio = len(overlap) / len(question_words)
+        
+        # Boost for key technical terms from question appearing in answer
+        technical_terms = [w for w in question_words if len(w) > 5]  # Longer words are likely technical
+        technical_overlap = sum(1 for term in technical_terms if term in answer_lower)
+        technical_boost = min(technical_overlap * 0.2, 0.4) if technical_terms else 0
+        
+        return min(relevance_ratio + technical_boost, 1.0)
     
     def _llm_evaluation(self, question: str, answer: str, 
                        topic: str, session: InterviewSession) -> Optional[Dict[str, Any]]:
