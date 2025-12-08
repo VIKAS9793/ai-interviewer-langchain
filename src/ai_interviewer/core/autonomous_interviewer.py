@@ -42,11 +42,22 @@ class SemanticRelevanceChecker:
     """
     Semantic relevance checker using Sentence Transformers.
     Uses embedding similarity to verify answer addresses the question.
+    
+    Features:
+    - Lazy model loading
+    - Embedding cache (avoid recomputing for same text)
+    - Similarity cache (avoid recomputing for same Q&A pairs)
     """
+    
+    MAX_EMBEDDING_CACHE_SIZE = 100
+    MAX_SIMILARITY_CACHE_SIZE = 50
     
     def __init__(self):
         self._model = None
         self._available = True
+        self._embedding_cache: Dict[str, Any] = {}  # text -> embedding
+        self._similarity_cache: Dict[str, float] = {}  # "q|||a" -> similarity
+        self._cache_stats = {"hits": 0, "misses": 0}
         
     def _get_model(self):
         """Lazy load the sentence transformer model"""
@@ -64,27 +75,77 @@ class SemanticRelevanceChecker:
                 self._available = False
         return self._model
     
+    def _get_embedding(self, text: str):
+        """Get embedding for text, using cache if available"""
+        if text in self._embedding_cache:
+            self._cache_stats["hits"] += 1
+            return self._embedding_cache[text]
+        
+        self._cache_stats["misses"] += 1
+        model = self._get_model()
+        if model is None:
+            return None
+        
+        embedding = model.encode(text, convert_to_tensor=True)
+        
+        # Cache with LRU-style eviction (remove oldest if full)
+        if len(self._embedding_cache) >= self.MAX_EMBEDDING_CACHE_SIZE:
+            # Remove first (oldest) item
+            oldest_key = next(iter(self._embedding_cache))
+            del self._embedding_cache[oldest_key]
+        
+        self._embedding_cache[text] = embedding
+        return embedding
+    
     def compute_similarity(self, question: str, answer: str) -> float:
         """
         Compute semantic similarity between question and answer.
         Returns 0.0-1.0 where higher means more relevant.
+        Uses caching to avoid recomputation.
         """
+        # Check similarity cache first
+        cache_key = f"{question}|||{answer}"
+        if cache_key in self._similarity_cache:
+            logger.debug(f"📦 Similarity cache HIT")
+            return self._similarity_cache[cache_key]
+        
         model = self._get_model()
         if model is None:
             return -1.0  # Signal that semantic check is unavailable
         
         try:
-            # Encode both texts
-            embeddings = model.encode([question, answer], convert_to_tensor=True)
+            # Get cached embeddings
+            q_embedding = self._get_embedding(question)
+            a_embedding = self._get_embedding(answer)
+            
+            if q_embedding is None or a_embedding is None:
+                return -1.0
             
             # Compute cosine similarity
             from sentence_transformers.util import cos_sim
-            similarity = cos_sim(embeddings[0], embeddings[1]).item()
+            similarity = cos_sim(q_embedding, a_embedding).item()
+            similarity = max(0.0, min(1.0, similarity))  # Clamp to [0, 1]
             
-            return max(0.0, min(1.0, similarity))  # Clamp to [0, 1]
+            # Cache the similarity result
+            if len(self._similarity_cache) >= self.MAX_SIMILARITY_CACHE_SIZE:
+                oldest_key = next(iter(self._similarity_cache))
+                del self._similarity_cache[oldest_key]
+            self._similarity_cache[cache_key] = similarity
+            
+            return similarity
         except Exception as e:
             logger.warning(f"Semantic similarity computation failed: {e}")
             return -1.0
+    
+    def get_cache_stats(self) -> Dict[str, Any]:
+        """Get cache statistics for monitoring"""
+        return {
+            "embedding_cache_size": len(self._embedding_cache),
+            "similarity_cache_size": len(self._similarity_cache),
+            "cache_hits": self._cache_stats["hits"],
+            "cache_misses": self._cache_stats["misses"],
+            "hit_rate": self._cache_stats["hits"] / max(1, self._cache_stats["hits"] + self._cache_stats["misses"])
+        }
 
 # Global instance for reuse
 _semantic_checker = None
