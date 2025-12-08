@@ -1,102 +1,58 @@
+---
+title: AI Technical Interviewer
+emoji: 🤖
+colorFrom: indigo
+colorTo: purple
+sdk: gradio
+sdk_version: 4.44.0
+python_version: "3.11"
+app_file: main.py
+pinned: false
+license: mit
+---
+
 # 🤖 Autonomous AI Technical Interviewer
 
-<div align="center">
+A self-thinking AI interview system with Chain-of-Thought reasoning, hybrid evaluation, and responsible AI guardrails.
 
-### **Self-Thinking, Responsible AI Interview System (v2.0)**
+## ✨ Features
 
-<div style="max-width: 1200px; margin: 20px auto; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.12); background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #9f7aea 100%); padding: 4px;">
-  <img src="src/ai_interviewer/assets/banner.jpg" alt="Autonomous AI Interviewer Banner" style="width: 100%; height: auto; border-radius: 12px; display: block;"/>
-</div>
+- **🧠 Chain-of-Thought:** Self-reasoning before every question
+- **📊 Hybrid Evaluation:** Dual-model scoring (LLaMA + Qwen2.5)
+- **🎯 Semantic Relevance:** Embedding-based answer checking
+- **🔍 AI Internal Monologue:** Transparent decision-making display
+- **🛡️ AI Guardrails:** Fair, unbiased, explainable decisions
 
-<br>
+## 🚀 Usage
 
-[![Python 3.11+](https://img.shields.io/badge/Python-3.11+-3776ab.svg?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/downloads/)
-[![Ollama](https://img.shields.io/badge/Ollama-llama3.2%3A3b-007EC6.svg?style=for-the-badge&logo=meta&logoColor=white)](https://ollama.ai/)
-[![Release](https://img.shields.io/badge/Release-v2.0.0-green.svg?style=for-the-badge)](CHANGELOG.md)
-[![Self-Thinking](https://img.shields.io/badge/AI-Self_Thinking-9f7aea.svg?style=for-the-badge&logo=brain&logoColor=white)](#)
-[![HuggingFace Spaces](https://img.shields.io/badge/🤗%20Try%20it%20Live-Hugging%20Face-yellow.svg?style=for-the-badge)](https://huggingface.co/spaces/Vikas9793/ai-interviewer)
+1. Enter your name
+2. Select an interview topic
+3. Click "Start Enhanced Interview"
+4. Answer 5 adaptive questions
+5. Receive comprehensive feedback with detailed scoring
 
-> 🚀 **A self-thinking AI interviewer with Chain-of-Thought reasoning, responsible AI guardrails, and persistent memory. Built with Ollama for complete offline privacy.**
+## ⚙️ Configuration
 
-</div>
+This Space requires a **Hugging Face API Token** (`HF_TOKEN`) to access models.
 
----
+Add your token in the Space **Settings** → **Repository Secrets** → `HF_TOKEN`
 
-## 🎯 Try it Live!
+## 🔧 Models Used
 
-<div align="center">
+| Purpose | Model |
+|---------|-------|
+| Questions | Meta-Llama-3-8B-Instruct |
+| Evaluation | Qwen2.5-32B-Instruct |
+| Embeddings | all-MiniLM-L6-v2 |
 
-### 🤗 **[Launch AI Interviewer on Hugging Face Spaces](https://huggingface.co/spaces/Vikas9793/ai-interviewer)**
+## 📚 Topics Available
 
-*No installation required! Try the autonomous interview experience in your browser.*
-
-**📢 We'd love your feedback!** Share your experience in the [Discussions](https://github.com/VIKAS9793/ai-interviewer-langchain/discussions) or open an [Issue](https://github.com/VIKAS9793/ai-interviewer-langchain/issues).
-
-</div>
-
----
-
-## 📚 Documentation
-
-| Document | Description |
-|----------|-------------|
-| **[🚀 Setup Guide](docs/SETUP.md)** | Prerequisites, Installation, and Running the app. |
-| **[🏗️ Architecture](docs/ARCHITECTURE.md)** | Deep dive into the Hybrid Agentic Architecture (ReasoningBank, ReflectAgent). |
-| **[🧠 ADRs](docs/ADR.md)** | Architectural Decision Records explaining *why* we built it this way. |
-| **[🔧 Troubleshooting](docs/TROUBLESHOOTING.md)** | Solutions for common Ollama and connection issues. |
-| **[🛣️ Roadmap](docs/ROADMAP.md)** | Future plans including Voice Mode and Code Sandbox. |
-| **[📝 Changelog](CHANGELOG.md)** | History of changes (Latest: v2.0 - Hybrid Architecture). |
-
----
-
-## ⚡ Key Features (v2.0)
-
-*   **Autonomy:** Uses Chain-of-Thought (CoT) to "think" before every question/evaluation.
-*   **Persistent Memory:** "Remembers" successful strategies using **ReasoningBank** (SQLite).
-*   **Self-Correction:** **ReflectAgent** reviews questions for bias before they are asked.
-*   **Human-Like:** Adapts tone and difficulty based on candidate stress levels (`metacognitive.py`).
-*   **Local Privacy:** Runs 100% offline with **Ollama (`llama3.2:3b`)**.
-
----
-
-## ☁️ Cloud-First Development (v2.1+)
-
-> **📢 New Features First on Cloud!** We're developing new features on the `cloud` branch for instant visibility on [Hugging Face Spaces](https://huggingface.co/spaces/Vikas9793/ai-interviewer). Once stable, features are backported to `main` for local/Ollama users.
-
-### 🆕 Latest Cloud Features (v2.1):
-- 🤖 **Multi-Model Support:** Choose between LLaMA 3, Mistral, or Qwen
-- ⏱️ **Live Interview Timer:** Real-time progress tracking
-- 📊 **Visual Progress Bar:** See your interview progress at a glance
-- 🧠 **Context Engineering:** Advanced context management for intelligent reasoning
-- 📚 **Knowledge Grounding:** Answer verification against authoritative sources
-
-### Where to Find:
-| Version | Branch | Features | Link |
-|---------|--------|----------|------|
-| **Cloud (Latest)** | [`cloud`](https://github.com/VIKAS9793/ai-interviewer-langchain/tree/cloud) | Multi-model, Live timer, CE | [🤗 Try Live](https://huggingface.co/spaces/Vikas9793/ai-interviewer) |
-| **Local (Stable)** | `main` | Ollama, Privacy-first | This repo |
-
----
-
-## 🎥 Quick Look
-
-```mermaid
-graph LR
-    A[👤 Start] --> B{🧠 Reasoning Engine}
-    B -->|Retrieve Strategy| C[(📚 Memory Bank)]
-    B -->|Draft Question| D[📝 Draft]
-    D -->|Safety Check| E[🛡️ Reflect Agent]
-    E -->|Approved| F[🗣️ Ask Candidate]
-    F -->|Answer| G[📊 Evaluate]
-    G -->|Update Memory| C
-```
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to get started.
+- JavaScript/Frontend Development
+- Python/Backend Development
+- Machine Learning/AI
+- System Design
+- Data Structures & Algorithms
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - See [LICENSE](LICENSE) for details.

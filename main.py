@@ -54,6 +54,8 @@ except ImportError as e:
     
     # Minimal fallback
     class AutonomousFlowController:
+        def __init__(self, **kwargs):
+            pass
         def start_interview(self, topic, name): 
             return {"status": "started", "session_id": "fallback", "first_question": f"Fallback question for {topic}", "greeting": f"Welcome {name}!"}
         def process_answer(self, session_id, answer): 
@@ -72,10 +74,14 @@ class EnhancedInterviewApp:
         """Initialize with new autonomous system"""
         logger.info("🚀 Initializing Autonomous AI Interviewer...")
         
+        # Ensure data directories exist
+        import os
+        os.makedirs("data/memory", exist_ok=True)
+        
         # Initialize autonomous flow controller
         self.flow_controller = AutonomousFlowController(
             max_concurrent_sessions=20,
-            model_name="llama3.2:3b"
+            model_name="meta-llama/Meta-Llama-3-8B-Instruct"
         )
         
         # Initialize ResponsibleAI guardrails
@@ -101,6 +107,68 @@ class EnhancedInterviewApp:
         logger.info("✅ Autonomous AI Interviewer initialized")
         logger.info(f"   Autonomous features: {list(self.autonomous_features.keys())}")
     
+    def _format_reasoning_display(self, reasoning: Dict[str, Any], evaluation: Dict[str, Any]) -> str:
+        """Format AI reasoning for display in the Accordion"""
+        approach = reasoning.get('question_approach', 'adaptive').replace('_', ' ').title()
+        confidence = reasoning.get('confidence', 0.7)
+        thought_chain_id = reasoning.get('thought_chain_id', 'N/A')
+        
+        # Get grounding info from evaluation
+        grounding = evaluation.get('grounding', {})
+        accuracy = grounding.get('accuracy_assessment', 'unverified')
+        correct_points = grounding.get('correct_points', [])
+        missing_concepts = grounding.get('missing_concepts', [])
+        
+        # Build grounding section
+        grounding_section = ""
+        if grounding:
+            grounding_icon = "✅" if accuracy == "verified" else "⚠️"
+            grounding_section = f"""
+---
+
+#### 📚 Knowledge Grounding {grounding_icon}
+
+**Verification Status:** {accuracy.replace('_', ' ').title()}
+"""
+            if correct_points:
+                grounding_section += "\n**Verified Concepts:**\n"
+                for point in correct_points[:3]:
+                    grounding_section += f"- ✓ {point.get('concept', '').replace('_', ' ').title()}\n"
+            
+            if missing_concepts:
+                grounding_section += "\n**Consider mentioning:**\n"
+                for concept in missing_concepts[:2]:
+                    grounding_section += f"- 💡 {concept.replace('_', ' ').title()}\n"
+        
+        # Build reasoning markdown
+        md = f"""### 🧠 AI Decision Process
+
+**Reasoning Chain ID:** {thought_chain_id}
+
+---
+
+#### 📊 Evaluation Metrics
+| Metric | Value |
+|--------|-------|
+| **Approach** | {approach} |
+| **Confidence** | {confidence:.0%} |
+| **Score Given** | {evaluation.get('score', 5)}/10 |
+
+---
+
+#### 💭 Chain of Thought
+1. **Analyzed** candidate's response for technical accuracy
+2. **Evaluated** depth, clarity, and practical understanding
+3. **Compared** against expert-level benchmarks
+4. **Selected** {approach} strategy for next question
+5. **Confidence** level: {confidence:.0%} based on response quality
+{grounding_section}
+---
+
+*Powered by Autonomous Reasoning Engine + Knowledge Grounding*
+"""
+        return md
+    
     def get_health_status(self) -> Dict[str, Any]:
         """Get comprehensive health status"""
         system_status = self.flow_controller.get_system_status()
@@ -115,21 +183,66 @@ class EnhancedInterviewApp:
                 "compliance": self.responsible_ai.get_compliance_status() if self.responsible_ai else {}
             }
         }
+    
+    def _generate_progress_html(self, question_num: int = 0, elapsed_seconds: int = 0, start_timestamp: float = 0) -> str:
+        """Generate progress bar HTML with elapsed time (updates on each interaction)"""
+        progress_pct = (question_num / 5) * 100 if question_num > 0 else 0
         
-    def start_interview(self, topic: str, candidate_name: str) -> Tuple[str, str, str, bool, bool]:
+        # Calculate elapsed from start_timestamp if available
+        if start_timestamp > 0 and question_num > 0:
+            import time
+            elapsed_seconds = int(time.time() - start_timestamp)
+        
+        minutes = elapsed_seconds // 60
+        seconds = elapsed_seconds % 60
+        time_str = f"{minutes:02d}:{seconds:02d}"
+        
+        # Note: Gradio sanitizes JavaScript, so timer updates only on each interaction
+        return f"""
+        <div class="progress-container">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span style="color: var(--text-secondary);">Question</span>
+                <span style="color: var(--learning-color); font-weight: 600;">{question_num} / 5</span>
+            </div>
+            <div class="progress-bar-wrapper">
+                <div class="progress-bar-fill" style="width: {progress_pct}%;">{question_num}/5</div>
+            </div>
+        </div>
+        <div class="timer-display">
+            <span class="timer-icon">⏱️</span>
+            <span style="color: var(--text-secondary);">Elapsed:</span>
+            <span class="timer-value">{time_str}</span>
+        </div>
+        """
+        
+    def start_interview(self, topic: str, candidate_name: str, model_id: str = "meta-llama/Meta-Llama-3-8B-Instruct") -> Tuple[str, str, str, str, bool, bool]:
         """Start autonomous interview session with self-thinking AI"""
         try:
             if not candidate_name.strip():
-                return "⚠️ Please enter your name to begin the interview.", "", "", True, True
+                return "⚠️ Please enter your name to begin the interview.", "", self._generate_progress_html(0, 0), "", True, True
+            
+            # Set model on flow controller's interviewer
+            if hasattr(self.flow_controller, 'interviewer'):
+                self.flow_controller.interviewer.set_model(model_id)
             
             # Start autonomous interview
             result = self.flow_controller.start_interview(topic, candidate_name)
             
             if result["status"] == "started":
+                # Get model display name
+                model_names = {
+                    "meta-llama/Meta-Llama-3-8B-Instruct": "LLaMA 3 (8B)",
+                    "mistralai/Mistral-7B-Instruct-v0.3": "Mistral (7B)",
+                    "Qwen/Qwen2.5-7B-Instruct": "Qwen 2.5 (7B)"
+                }
+                model_display = model_names.get(model_id, model_id.split("/")[-1])
+                
                 self.current_session = {
                     "session_id": result["session_id"],
                     "topic": topic,
                     "candidate_name": candidate_name,
+                    "model_id": model_id,
+                    "model_display": model_display,
                     "question_count": 1,
                     "max_questions": 5,
                     "qa_pairs": [],
@@ -143,7 +256,8 @@ class EnhancedInterviewApp:
                 welcome_msg = f"""## 🤖 Autonomous AI Interview Started!
 
 **Candidate:** {candidate_name}  
-**Topic:** {topic}
+**Topic:** {topic}  
+**AI Model:** {model_display}
 
 ### {greeting}
 
@@ -166,24 +280,28 @@ class EnhancedInterviewApp:
 💡 **The AI thinks before asking each question and explains its reasoning!**"""
 
                 status_msg = f"🟢 **Status:** Autonomous Interview Active - Question 1/5"
+                progress_html = self._generate_progress_html(1, 0, self.current_session["start_time"])
                 
-                return welcome_msg, "", status_msg, False, False
+                return welcome_msg, "", progress_html, status_msg, False, False
             else:
                 error_msg = result.get('message', 'Failed to start interview')
-                return f"❌ **Error:** {error_msg}", "", "🔴 **Status:** Error", True, True
+                return f"❌ **Error:** {error_msg}", "", self._generate_progress_html(0, 0), "🔴 **Status:** Error", True, True
             
         except Exception as e:
             logger.error(f"Error starting autonomous interview: {e}")
-            return f"❌ **Error:** {str(e)}", "", "🔴 **Status:** Error", True, True
+            return f"❌ **Error:** {str(e)}", "", self._generate_progress_html(0, 0), "🔴 **Status:** Error", True, True
     
-    def process_answer(self, answer: str) -> Tuple[str, str, str, bool]:
+    def process_answer(self, answer: str) -> Tuple[str, str, str, str, bool, str]:
         """Process answer with autonomous reasoning and guardrails"""
         try:
             if not self.current_session:
-                return "❌ **Error:** No active session. Please start an interview.", "", "🔴 **Status:** No Session", True
+                return "❌ **Error:** No active session. Please start an interview.", "", self._generate_progress_html(0, 0), "🔴 **Status:** No Session", True, ""
             
             if not answer.strip():
-                return "⚠️ **Please provide an answer.**", answer, "🟡 **Status:** Waiting", False
+                elapsed = int(time.time() - self.current_session.get("start_time", time.time()))
+                q_num = self.current_session.get("question_count", 1)
+                start_ts = self.current_session.get("start_time", 0)
+                return "⚠️ **Please provide an answer.**", answer, self._generate_progress_html(q_num, elapsed, start_ts), "🟡 **Status:** Waiting", False, ""
             
             # Validate content with guardrails
             if self.responsible_ai:
@@ -197,6 +315,9 @@ class EnhancedInterviewApp:
                 answer
             )
             
+            # Calculate elapsed time
+            elapsed = int(time.time() - self.current_session.get("start_time", time.time()))
+            
             if result["status"] == "continue":
                 # Update session
                 self.current_session["question_count"] = result.get("question_number", 2)
@@ -204,6 +325,7 @@ class EnhancedInterviewApp:
                 evaluation = result.get("evaluation", {})
                 feedback = result.get("feedback", "")
                 reasoning = result.get("reasoning", {})
+                q_num = result.get('question_number', 2)
                 
                 response = f"""## ✅ Answer Evaluated with Autonomous Reasoning
 
@@ -219,19 +341,27 @@ class EnhancedInterviewApp:
 
 ---
 
-### Question {result.get('question_number', 2)}/5
+### Question {q_num}/5
 
-{result.get('next_question', '')}
+{result.get('next_question', '')}"""
 
----
-**Progress:** {result.get('question_number', 2) - 1}/5 completed"""
-
-                status_msg = f"🟢 **Status:** Autonomous - Question {result.get('question_number', 2)}/5"
-                return response, "", status_msg, False
+                status_msg = f"🟢 **Status:** Autonomous - Question {q_num}/5"
+                start_ts = self.current_session.get("start_time", 0)
+                progress_html = self._generate_progress_html(q_num, elapsed, start_ts)
+                
+                # Generate reasoning markdown for Accordion
+                reasoning_md = self._format_reasoning_display(reasoning, evaluation)
+                
+                return response, "", progress_html, status_msg, False, reasoning_md
                 
             elif result["status"] == "completed":
                 final_report = result.get("final_report", "Interview completed.")
                 summary = result.get("summary", {})
+                
+                # Format elapsed time
+                minutes = elapsed // 60
+                seconds = elapsed % 60
+                time_str = f"{minutes}m {seconds}s"
                 
                 response = f"""## 🎉 Autonomous Interview Complete!
 
@@ -242,6 +372,7 @@ class EnhancedInterviewApp:
 ### 📊 Performance Summary:
 - **Questions:** {summary.get('questions_asked', 5)}
 - **Average Score:** {summary.get('avg_score', 0):.1f}/10
+- **Total Time:** {time_str}
 - **Strengths:** {', '.join(summary.get('strengths', ['N/A'])[:3])}
 - **Areas to Improve:** {', '.join(summary.get('areas_for_improvement', ['N/A'])[:3])}
 
@@ -252,13 +383,13 @@ class EnhancedInterviewApp:
 **Ready for another interview? Select a topic and click Start!**"""
 
                 self.current_session = None
-                return response, "", "✅ **Status:** Interview Completed", True
+                return response, "", self._generate_progress_html(5, elapsed), "✅ **Status:** Interview Completed", True, ""
             else:
-                return f"❌ **Error:** {result.get('message', 'Unexpected error')}", answer, "🔴 **Status:** Error", False
+                return f"❌ **Error:** {result.get('message', 'Unexpected error')}", answer, self._generate_progress_html(0, elapsed), "🔴 **Status:** Error", False, ""
             
         except Exception as e:
             logger.error(f"Error processing answer: {e}")
-            return f"❌ **Error:** {str(e)}", answer, "🔴 **Status:** Error", False
+            return f"❌ **Error:** {str(e)}", answer, self._generate_progress_html(0, 0), "🔴 **Status:** Error", False, ""
     
     def get_system_analytics(self) -> Dict[str, Any]:
         """Get comprehensive system analytics"""
@@ -433,6 +564,59 @@ class EnhancedInterviewApp:
             color: var(--text-primary) !important;
             font-weight: 600;
         }
+        
+        /* Progress bar styling */
+        .progress-container {
+            background: var(--bg-medium) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .progress-bar-wrapper {
+            background: var(--bg-dark);
+            border-radius: 20px;
+            height: 24px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+        
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--learning-color) 100%);
+            border-radius: 20px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        
+        /* Timer styling */
+        .timer-display {
+            background: var(--bg-medium) !important;
+            border: 1px solid var(--learning-color) !important;
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            margin: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .timer-icon {
+            font-size: 1.2rem;
+        }
+        
+        .timer-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--learning-color) !important;
+            font-family: 'Courier New', monospace;
+        }
         """
         
         with gr.Blocks(
@@ -521,6 +705,19 @@ class EnhancedInterviewApp:
                         info="Choose your area of expertise"
                     )
                     
+                    # Model selector for multi-model support
+                    model_dropdown = gr.Dropdown(
+                        label="🤖 AI Model",
+                        choices=[
+                            ("Meta LLaMA 3 (8B)", "meta-llama/Meta-Llama-3-8B-Instruct"),
+                            ("Mistral (7B)", "mistralai/Mistral-7B-Instruct-v0.3"),
+                            ("Qwen 2.5 (7B)", "Qwen/Qwen2.5-7B-Instruct"),
+                        ],
+                        value="meta-llama/Meta-Llama-3-8B-Instruct",
+                        elem_classes=["custom-input"],
+                        info="Select AI model (different models have different strengths)"
+                    )
+                    
                     start_btn = gr.Button(
                         "🚀 Start Enhanced Interview", 
                         variant="primary", 
@@ -529,7 +726,29 @@ class EnhancedInterviewApp:
                     )
                     
                     # System status
-                    gr.Markdown("### 📊 System Status")
+                    gr.Markdown("### 📊 Interview Progress")
+                    
+                    # Progress bar HTML component
+                    progress_html = gr.HTML(
+                        """
+                        <div class="progress-container">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span style="color: var(--text-secondary);">Question</span>
+                                <span style="color: var(--learning-color); font-weight: 600;">0 / 5</span>
+                            </div>
+                            <div class="progress-bar-wrapper">
+                                <div class="progress-bar-fill" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                        <div class="timer-display">
+                            <span class="timer-icon">⏱️</span>
+                            <span style="color: var(--text-secondary);">Elapsed:</span>
+                            <span class="timer-value">00:00</span>
+                        </div>
+                        """,
+                        elem_id="progress-tracker"
+                    )
+                    
                     system_status = gr.Markdown(
                         "🟡 **Status:** Ready to Start",
                         elem_classes=["system-status"]
@@ -568,6 +787,13 @@ class EnhancedInterviewApp:
                         """,
                         elem_classes=["enhanced-interview-content"]
                     )
+                    
+                    # AI Reasoning Accordion (Collapsible)
+                    with gr.Accordion("🧠 AI Internal Monologue", open=False) as reasoning_accordion:
+                        reasoning_display = gr.Markdown(
+                            "*AI thoughts will appear here after each answer evaluation...*",
+                            elem_classes=["reasoning-display"]
+                        )
             
             # Answer section
             gr.Markdown("### 💬 Your Response")
@@ -602,21 +828,21 @@ class EnhancedInterviewApp:
             # Event handlers
             start_btn.click(
                 fn=self.start_interview,
-                inputs=[topic_dropdown, candidate_name],
-                outputs=[interview_display, answer_input, system_status, start_btn_disabled, submit_btn_disabled]
+                inputs=[topic_dropdown, candidate_name, model_dropdown],
+                outputs=[interview_display, answer_input, progress_html, system_status, start_btn_disabled, submit_btn_disabled]
             )
             
             submit_btn.click(
                 fn=self.process_answer,
                 inputs=[answer_input],
-                outputs=[interview_display, answer_input, system_status, submit_btn_disabled]
+                outputs=[interview_display, answer_input, progress_html, system_status, submit_btn_disabled, reasoning_display]
             )
             
             # Allow Enter key to submit
             answer_input.submit(
                 fn=self.process_answer,
                 inputs=[answer_input], 
-                outputs=[interview_display, answer_input, system_status, submit_btn_disabled]
+                outputs=[interview_display, answer_input, progress_html, system_status, submit_btn_disabled, reasoning_display]
             )
             
             # Clear button
@@ -629,8 +855,8 @@ class EnhancedInterviewApp:
             gr.HTML("""
             <div class="footer-section">
                 <p><strong>Enhanced AI Technical Interviewer</strong> • Autonomous Learning System • Powered by Advanced AI Agents</p>
-                <p style="font-size: 0.9rem;">🧠 Learning Intelligence • ⚡ Offline Optimization • 🔄 Concurrent Processing • 🔒 Privacy First</p>
-                <p style="font-size: 0.8rem;">Built with LangGraph, Ollama + llama3.2:3b, ChromaDB, and Advanced Caching</p>
+                <p style="font-size: 0.9rem;">🧠 Chain-of-Thought Reasoning • ⚡ Semantic Evaluation • 🔄 Hybrid Scoring • 🛡️ AI Guardrails</p>
+                <p style="font-size: 0.8rem;">Built with LangChain, HuggingFace Inference API, Gradio, and Sentence Transformers</p>
             </div>
             """)
         
@@ -641,9 +867,9 @@ def main():
     print("Starting Enhanced AI Technical Interviewer...")
     print("Features: Autonomous Learning-Based Adaptive Intelligence")
     print("Requirements: 100% Compliant with Enterprise Standards")
-    print("LLM: Ollama + llama3.2:3b (Local)")
+    print("LLM: Hugging Face Cloud (Meta-Llama-3-8B-Instruct)")
     print("Flow: Enhanced LangGraph with Learning")
-    print("Optimization: Offline Caching & Concurrency")
+    print("Optimization: Cloud Caching & Concurrency")
     print("Interface: Enhanced Gradio Web UI")
     print("=" * 80)
     
@@ -664,14 +890,15 @@ def main():
         print(f"Launching Enhanced AI Interviewer on port {available_port}...")
         
         try:
+            # Queue for Spaces - default_concurrency_limit for Gradio 4.x
+            interface.queue(default_concurrency_limit=2)
+            
             interface.launch(
                 server_name="0.0.0.0",  # Allow external access
-                server_port=available_port,  # Use dynamically found port
-                share=True,  # Enable public sharing
+                server_port=7860,  # Fixed port for Spaces
+                share=False,  # Disabled for Spaces (platform handles this)
                 show_error=True,
                 quiet=False,
-                inbrowser=True,  # Auto-open browser
-                favicon_path=None,
             )
         except Exception as launch_error:
             print(f"Failed to launch on port {available_port}: {launch_error}")
@@ -685,10 +912,10 @@ def main():
                         interface.launch(
                             server_name="0.0.0.0",
                             server_port=alt_port,
-                            share=True,  # Enable public sharing
+                            share=False,  # Disabled for Spaces
                             show_error=True,
                             quiet=False,
-                            inbrowser=True,
+                            inbrowser=False,  # Disabled for Spaces
                             favicon_path=None,
                         )
                         print(f"Successfully launched on port {alt_port}")
@@ -702,12 +929,12 @@ def main():
     except Exception as e:
         logger.error(f"Failed to start enhanced application: {e}")
         print(f"Error: {e}")
-        print("\nEnhanced Troubleshooting:")
-        print("1. Ensure Ollama is running: ollama serve")
-        print("2. Pull the model: ollama pull llama3.2:3b")
-        print("3. Check requirements: pip install -r requirements.txt")
-        print("4. Try: pip install --upgrade gradio pydantic fastapi")
-        print("5. Check system resources for concurrent processing")
+        print("\nTroubleshooting (Cloud Deployment):")
+        print("1. Ensure HF_TOKEN is set: export HF_TOKEN=your_token")
+        print("2. Check requirements: pip install -r requirements.txt")
+        print("3. Verify HuggingFace API status: https://status.huggingface.co")
+        print("4. Try: pip install --upgrade gradio langchain-huggingface")
+        print("5. Check system resources and network connectivity")
         print("6. Try running on a different port manually")
         
         # Try to find and suggest available ports

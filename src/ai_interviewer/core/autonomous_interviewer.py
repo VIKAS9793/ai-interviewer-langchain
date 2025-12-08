@@ -18,8 +18,9 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 
-from langchain_community.llms import Ollama
-from langchain.prompts import PromptTemplate
+import os
+from langchain_huggingface import HuggingFaceEndpoint
+from langchain_core.prompts import PromptTemplate
 
 from .autonomous_reasoning_engine import (
     AutonomousReasoningEngine,
@@ -31,9 +32,129 @@ from .autonomous_reasoning_engine import (
 
 
 from .reflect_agent import ReflectAgent
+from .context_engineer import KnowledgeGrounding
 
 logger = logging.getLogger(__name__)
 
+
+class SemanticRelevanceChecker:
+    """
+    Semantic relevance checker using Sentence Transformers.
+    Uses embedding similarity to verify answer addresses the question.
+    
+    Features:
+    - Lazy model loading
+    - Embedding cache (avoid recomputing for same text)
+    - Similarity cache (avoid recomputing for same Q&A pairs)
+    """
+    
+    MAX_EMBEDDING_CACHE_SIZE = 100
+    MAX_SIMILARITY_CACHE_SIZE = 50
+    
+    def __init__(self):
+        self._model = None
+        self._available = True
+        self._embedding_cache: Dict[str, Any] = {}  # text -> embedding
+        self._similarity_cache: Dict[str, float] = {}  # "q|||a" -> similarity
+        self._cache_stats = {"hits": 0, "misses": 0}
+        
+    def _get_model(self):
+        """Lazy load the sentence transformer model"""
+        if self._model is None and self._available:
+            try:
+                from sentence_transformers import SentenceTransformer
+                # Use a small, fast model suitable for HF Spaces
+                self._model = SentenceTransformer('all-MiniLM-L6-v2')
+                logger.info("✅ SemanticRelevanceChecker: Model loaded (all-MiniLM-L6-v2)")
+            except ImportError:
+                logger.warning("sentence-transformers not installed, falling back to keyword matching")
+                self._available = False
+            except Exception as e:
+                logger.warning(f"Failed to load sentence transformer: {e}")
+                self._available = False
+        return self._model
+    
+    def _get_embedding(self, text: str):
+        """Get embedding for text, using cache if available"""
+        if text in self._embedding_cache:
+            self._cache_stats["hits"] += 1
+            return self._embedding_cache[text]
+        
+        self._cache_stats["misses"] += 1
+        model = self._get_model()
+        if model is None:
+            return None
+        
+        embedding = model.encode(text, convert_to_tensor=True)
+        
+        # Cache with LRU-style eviction (remove oldest if full)
+        if len(self._embedding_cache) >= self.MAX_EMBEDDING_CACHE_SIZE:
+            # Remove first (oldest) item
+            oldest_key = next(iter(self._embedding_cache))
+            del self._embedding_cache[oldest_key]
+        
+        self._embedding_cache[text] = embedding
+        return embedding
+    
+    def compute_similarity(self, question: str, answer: str) -> float:
+        """
+        Compute semantic similarity between question and answer.
+        Returns 0.0-1.0 where higher means more relevant.
+        Uses caching to avoid recomputation.
+        """
+        # Check similarity cache first
+        cache_key = f"{question}|||{answer}"
+        if cache_key in self._similarity_cache:
+            logger.debug(f"📦 Similarity cache HIT")
+            return self._similarity_cache[cache_key]
+        
+        model = self._get_model()
+        if model is None:
+            return -1.0  # Signal that semantic check is unavailable
+        
+        try:
+            # Get cached embeddings
+            q_embedding = self._get_embedding(question)
+            a_embedding = self._get_embedding(answer)
+            
+            if q_embedding is None or a_embedding is None:
+                return -1.0
+            
+            # Compute cosine similarity
+            from sentence_transformers.util import cos_sim
+            similarity = cos_sim(q_embedding, a_embedding).item()
+            similarity = max(0.0, min(1.0, similarity))  # Clamp to [0, 1]
+            
+            # Cache the similarity result
+            if len(self._similarity_cache) >= self.MAX_SIMILARITY_CACHE_SIZE:
+                oldest_key = next(iter(self._similarity_cache))
+                del self._similarity_cache[oldest_key]
+            self._similarity_cache[cache_key] = similarity
+            
+            return similarity
+        except Exception as e:
+            logger.warning(f"Semantic similarity computation failed: {e}")
+            return -1.0
+    
+    def get_cache_stats(self) -> Dict[str, Any]:
+        """Get cache statistics for monitoring"""
+        return {
+            "embedding_cache_size": len(self._embedding_cache),
+            "similarity_cache_size": len(self._similarity_cache),
+            "cache_hits": self._cache_stats["hits"],
+            "cache_misses": self._cache_stats["misses"],
+            "hit_rate": self._cache_stats["hits"] / max(1, self._cache_stats["hits"] + self._cache_stats["misses"])
+        }
+
+# Global instance for reuse
+_semantic_checker = None
+
+def get_semantic_checker() -> SemanticRelevanceChecker:
+    """Get or create the global semantic checker instance"""
+    global _semantic_checker
+    if _semantic_checker is None:
+        _semantic_checker = SemanticRelevanceChecker()
+    return _semantic_checker
 
 
 class InterviewPhase(Enum):
@@ -78,7 +199,7 @@ class AutonomousInterviewer:
     4. HUMAN-LIKE: Natural conversation, empathy, adaptability
     """
     
-    def __init__(self, model_name: str = "llama3.2:3b"):
+    def __init__(self, model_name: str = "meta-llama/Meta-Llama-3-8B-Instruct"):
         self.model_name = model_name
         self.reasoning_engine = AutonomousReasoningEngine(model_name)
         self.active_sessions: Dict[str, InterviewSession] = {}
@@ -108,21 +229,68 @@ class AutonomousInterviewer:
             self.reflect_agent = ReflectAgent()
         except Exception as e:
             logger.warning(f"ReflectAgent failed to init: {e}")
+        
+        # Knowledge Grounding for answer verification
+        self.knowledge_grounding = None
+        try:
+            self.knowledge_grounding = KnowledgeGrounding()
+        except Exception as e:
+            logger.warning(f"KnowledgeGrounding failed to init: {e}")
 
         logger.info("🤖 Autonomous Interviewer initialized")
     
-    def _get_llm(self) -> Ollama:
-        """Get LLM with lazy loading"""
+    def set_model(self, model_id: str) -> None:
+        """Set the model to use for LLM inference"""
+        if model_id != self.model_name:
+            self.model_name = model_id
+            self._llm = None  # Reset LLM to force re-initialization
+            logger.info(f"🔄 Model changed to: {model_id}")
+    
+    def _get_llm(self) -> HuggingFaceEndpoint:
+        """Get Cloud LLM with lazy loading"""
         if self._llm is None:
             try:
-                self._llm = Ollama(
-                    model=self.model_name,
+                # CLOUD ADAPTATION: Use Hugging Face Serverless Inference
+                # Requires HF_TOKEN in environment variables
+                token = os.environ.get("HF_TOKEN")
+                if not token:
+                    logger.warning("⚠️ HF_TOKEN not found! Falling back to public endpoints (may be rate limited).")
+                
+                self._llm = HuggingFaceEndpoint(
+                    repo_id=self.model_name,
+                    task="text-generation",
+                    max_new_tokens=512,
+                    top_k=50,
                     temperature=0.4,
-                    base_url="http://localhost:11434"
+                    huggingfacehub_api_token=token
                 )
+                logger.info(f"☁️ Connected to Hugging Face Cloud Inference ({self.model_name})")
             except Exception as e:
-                logger.error(f"Failed to initialize LLM: {e}")
+                logger.error(f"Failed to initialize Cloud LLM: {e}")
         return self._llm
+    
+    def _get_evaluation_llm(self) -> HuggingFaceEndpoint:
+        """
+        Get dedicated LLM for evaluation (Qwen2.5 for better calibration).
+        Uses low temperature for consistent scoring.
+        """
+        try:
+            from ..utils.config import Config
+            token = os.environ.get("HF_TOKEN")
+            
+            eval_llm = HuggingFaceEndpoint(
+                repo_id=Config.EVALUATION_MODEL,
+                task="text-generation",
+                max_new_tokens=512,
+                top_k=30,
+                temperature=Config.EVALUATION_TEMPERATURE,
+                huggingfacehub_api_token=token
+            )
+            logger.info(f"📊 Evaluation LLM ready: {Config.EVALUATION_MODEL}")
+            return eval_llm
+        except Exception as e:
+            logger.warning(f"Evaluation LLM unavailable, using primary LLM: {e}")
+            return self._get_llm()
     
     # ==================== INTERVIEW LIFECYCLE ====================
     
@@ -246,7 +414,8 @@ class AutonomousInterviewer:
                 "evaluation_approach": eval_thought.conclusion,
                 "question_approach": next_question_result.get("approach"),
                 "adaptations_made": next_question_result.get("adaptations", []),
-                "confidence": next_question_result.get("confidence", 0.7)
+                "confidence": next_question_result.get("confidence", 0.7),
+                "thought_chain_id": next_question_result.get("thought_chain_id", "N/A")
             },
             "progress": {
                 "completed": session.question_number - 1,
@@ -366,14 +535,27 @@ class AutonomousInterviewer:
         question = session.current_question
         topic = session.topic
         
-        # Heuristic evaluation (always available)
-        heuristic_eval = self._heuristic_evaluation(answer, topic)
+        # Heuristic evaluation (always available) - with question for relevance check
+        heuristic_eval = self._heuristic_evaluation(answer, topic, question)
         
         # Try LLM evaluation for deeper insights
         llm_eval = self._llm_evaluation(question, answer, topic, session)
         
+        # Knowledge Grounding verification
+        grounding_result = None
+        if self.knowledge_grounding:
+            try:
+                grounding_result = self.knowledge_grounding.verify_answer(topic, question, answer)
+                logger.info(f"📚 Grounding: {grounding_result.get('accuracy_assessment', 'unknown')}")
+            except Exception as e:
+                logger.warning(f"Knowledge grounding failed: {e}")
+        
         # Merge evaluations with reasoning
         merged_eval = self._merge_evaluations(heuristic_eval, llm_eval, thought_chain)
+        
+        # Add grounding info to merged evaluation
+        if grounding_result:
+            merged_eval["grounding"] = grounding_result
         
         # Extract insights for learning
         merged_eval["knowledge_insights"] = self._extract_knowledge_insights(
@@ -382,7 +564,7 @@ class AutonomousInterviewer:
         
         return merged_eval
     
-    def _heuristic_evaluation(self, answer: str, topic: str) -> Dict[str, Any]:
+    def _heuristic_evaluation(self, answer: str, topic: str, question: str = "") -> Dict[str, Any]:
         """Fast heuristic evaluation (always works)"""
         if not answer or len(answer.strip()) < 10:
             return {
@@ -390,92 +572,197 @@ class AutonomousInterviewer:
                 "technical_accuracy": 0.2,
                 "completeness": 0.1,
                 "clarity": 0.3,
+                "relevance": 0.0,
                 "source": "heuristic"
             }
         
-        # Length-based scoring
-        word_count = len(answer.split())
-        length_score = min(word_count / 30, 1.0) * 4  # Max 4 points
+        # CRITICAL: Question-Answer Relevance Check
+        relevance_score = self._check_answer_relevance(question, answer)
+        if relevance_score < 0.3:  # Answer is off-topic
+            return {
+                "score": 2.0,
+                "technical_accuracy": 0.1,
+                "completeness": 0.1,
+                "clarity": 0.3,
+                "relevance": relevance_score,
+                "source": "heuristic",
+                "warning": "Answer does not appear to address the question asked"
+            }
         
-        # Keyword matching
+        # Length-based scoring (BOOSTED for comprehensive answers)
+        word_count = len(answer.split())
+        # More generous: 100+ words gets full points, scaled linearly
+        length_score = min(word_count / 50, 1.0) * 5  # Max 5 points (was 4)
+        
+        # Keyword matching (topic relevance)
         keywords = self._get_topic_keywords(topic)
         keyword_count = sum(1 for kw in keywords if kw.lower() in answer.lower())
         keyword_score = min(keyword_count * 0.8, 3.0)  # Max 3 points
         
-        # Structure indicators
+        # Structure indicators (BOOSTED)
         structure_score = 0
-        if any(word in answer.lower() for word in ["first", "second", "because", "therefore"]):
-            structure_score += 1
-        if any(char in answer for char in ["1.", "2.", "-", "•"]):
-            structure_score += 1
+        if any(word in answer.lower() for word in ["first", "second", "because", "therefore", "however"]):
+            structure_score += 1.5
+        if any(char in answer for char in ["1.", "2.", "3.", "-", "•", ":"]):
+            structure_score += 1.5
+        structure_score = min(structure_score, 3.0)  # Max 3 points (was 2)
         
-        # Example usage
+        # Example usage and practical application
         example_score = 0
-        if any(word in answer.lower() for word in ["example", "for instance", "such as", "like"]):
-            example_score = 1.5
+        if any(word in answer.lower() for word in ["example", "for instance", "such as", "like", "consider"]):
+            example_score = 2.0  # Was 1.5
         
-        total_score = min(length_score + keyword_score + structure_score + example_score, 10)
+        # DEPTH BONUS: Comprehensive answers deserve extra credit
+        depth_bonus = 0
+        if word_count > 150 and structure_score > 1:
+            depth_bonus = 1.5  # Bonus for truly comprehensive answers
+        
+        # Apply relevance penalty
+        relevance_multiplier = max(relevance_score, 0.3)
+        base_score = length_score + keyword_score + structure_score + example_score + depth_bonus
+        total_score = min(base_score * relevance_multiplier, 10)
         
         return {
             "score": round(total_score, 1),
-            "technical_accuracy": min(keyword_score / 3, 1.0),
-            "completeness": min(length_score / 4, 1.0),
-            "clarity": min((structure_score + 0.5) / 2.5, 1.0),
+            "technical_accuracy": min(keyword_score / 3, 1.0) * relevance_multiplier,
+            "completeness": min(length_score / 5, 1.0),
+            "clarity": min((structure_score + 0.5) / 3.5, 1.0),
+            "relevance": relevance_score,
             "source": "heuristic",
             "details": {
                 "word_count": word_count,
                 "keywords_found": keyword_count,
                 "has_structure": structure_score > 0,
-                "has_examples": example_score > 0
+                "has_examples": example_score > 0,
+                "depth_bonus": depth_bonus > 0,
+                "relevance_check": relevance_score
             }
         }
     
+    def _check_answer_relevance(self, question: str, answer: str) -> float:
+        """
+        Check if answer is relevant to the question asked.
+        Uses semantic similarity (embedding-based) with fallback to keyword matching.
+        """
+        if not question:
+            return 1.0  # No question to check against
+        
+        # Try semantic similarity first (embedding-based)
+        semantic_checker = get_semantic_checker()
+        semantic_score = semantic_checker.compute_similarity(question, answer)
+        
+        if semantic_score >= 0:  # Semantic check succeeded
+            logger.info(f"📊 Semantic similarity: {semantic_score:.2f}")
+            # Semantic similarity threshold: below 0.3 is definitely off-topic
+            if semantic_score < 0.25:
+                logger.warning(f"⚠️ Answer appears OFF-TOPIC (semantic: {semantic_score:.2f})")
+            return semantic_score
+        
+        # Fallback to keyword matching if semantic check unavailable
+        logger.info("📊 Using keyword-based relevance (semantic unavailable)")
+        question_lower = question.lower()
+        answer_lower = answer.lower()
+        
+        # Extract question keywords (skip common words)
+        stop_words = {'the', 'a', 'an', 'is', 'are', 'was', 'were', 'what', 'how', 'why', 
+                      'can', 'you', 'explain', 'describe', 'tell', 'me', 'about', 'between',
+                      'and', 'or', 'in', 'of', 'to', 'for', 'with', 'do', 'does', 'your'}
+        
+        question_words = set(question_lower.split()) - stop_words
+        answer_words = set(answer_lower.split())
+        
+        # Check keyword overlap
+        if not question_words:
+            return 1.0
+        
+        overlap = question_words & answer_words
+        relevance_ratio = len(overlap) / len(question_words)
+        
+        # Boost for key technical terms from question appearing in answer
+        technical_terms = [w for w in question_words if len(w) > 5]
+        technical_overlap = sum(1 for term in technical_terms if term in answer_lower)
+        technical_boost = min(technical_overlap * 0.2, 0.4) if technical_terms else 0
+        
+        return min(relevance_ratio + technical_boost, 1.0)
+    
     def _llm_evaluation(self, question: str, answer: str, 
                        topic: str, session: InterviewSession) -> Optional[Dict[str, Any]]:
-        """LLM-based evaluation for nuanced assessment"""
+        """
+        LLM-based evaluation using Prometheus-style rubric scoring.
+        Uses dedicated evaluation LLM (Qwen2.5) with 1-5 scale for reliability.
+        """
         try:
-            llm = self._get_llm()
+            # Use dedicated evaluation LLM for better calibration
+            llm = self._get_evaluation_llm()
             if not llm:
                 return None
             
+            # Prometheus-style rubric prompt for reliable scoring
             eval_prompt = PromptTemplate(
                 input_variables=["question", "answer", "topic", "context"],
-                template="""You are a senior technical interviewer evaluating a candidate's answer.
+                template="""You are an expert technical interviewer. Evaluate the candidate's answer using the scoring rubric below.
 
+### INTERVIEW CONTEXT
 TOPIC: {topic}
 QUESTION: {question}
-ANSWER: {answer}
-CONTEXT: {context}
+CANDIDATE'S ANSWER: {answer}
+SESSION INFO: {context}
 
-Evaluate this answer on these dimensions (1-10):
-1. Technical Accuracy: How technically correct is the response?
-2. Depth of Understanding: Does the candidate truly understand the concepts?
-3. Communication Quality: Is the answer clear and well-structured?
-4. Practical Application: Can they apply this knowledge?
+### SCORING RUBRIC (Use this exactly)
 
-Also identify:
-- 2-3 key strengths demonstrated
-- 2-3 areas for improvement
-- Any knowledge gaps revealed
+Score 5 - EXCEPTIONAL:
+- Comprehensive coverage of all key concepts
+- Technically accurate with no errors
+- Well-structured with clear examples
+- Demonstrates deep understanding
+
+Score 4 - GOOD:
+- Covers main concepts correctly
+- Minor gaps but no major errors
+- Clear explanation and good structure
+- Shows solid understanding
+
+Score 3 - ADEQUATE:
+- Addresses the question but lacks depth
+- Some correct points, minor errors possible
+- Could be better organized
+- Basic understanding demonstrated
+
+Score 2 - LIMITED:
+- Partially relevant to the question
+- Significant gaps or errors present
+- Lacks structure or clarity
+- Surface-level understanding only
+
+Score 1 - POOR:
+- Does not address the question
+- Incorrect or irrelevant information
+- Minimal effort or off-topic
+- No understanding demonstrated
+
+### YOUR EVALUATION
+
+Analyze the answer step-by-step, then provide your assessment.
 
 Respond in JSON format:
 {{
-    "score": <overall score 1-10>,
+    "score": <1-5 based on rubric above>,
     "technical_accuracy": <0.0-1.0>,
     "understanding_depth": <0.0-1.0>,
     "communication": <0.0-1.0>,
     "practical_application": <0.0-1.0>,
-    "strengths": ["strength1", "strength2"],
-    "improvements": ["area1", "area2"],
-    "knowledge_gaps": ["gap1"],
-    "brief_feedback": "One sentence summary"
+    "strengths": ["specific strength 1", "specific strength 2"],
+    "improvements": ["specific area to improve 1", "specific area to improve 2"],
+    "brief_feedback": "Actionable one-sentence feedback for the candidate"
 }}"""
             )
             
             context = f"Question {session.question_number}/{session.max_questions}"
             if session.performance_history:
+                # Convert existing scores to 1-5 scale for context
                 avg = sum(session.performance_history) / len(session.performance_history)
-                context += f", Average so far: {avg:.1f}/10"
+                avg_scaled = avg / 2  # Convert 1-10 to 1-5 scale
+                context += f", Average so far: {avg_scaled:.1f}/5"
             
             chain = eval_prompt | llm
             response = chain.invoke({
@@ -490,7 +777,8 @@ Respond in JSON format:
             json_end = response.rfind('}') + 1
             if json_start != -1 and json_end > json_start:
                 evaluation = json.loads(response[json_start:json_end])
-                evaluation["source"] = "llm"
+                evaluation["source"] = "llm_qwen"
+                evaluation["scale"] = 5  # Mark as 1-5 scale
                 return evaluation
             
             return None
@@ -502,23 +790,39 @@ Respond in JSON format:
     def _merge_evaluations(self, heuristic: Dict[str, Any],
                           llm_eval: Optional[Dict[str, Any]],
                           thought_chain: ThoughtChain) -> Dict[str, Any]:
-        """Merge heuristic and LLM evaluations intelligently"""
+        """
+        Merge heuristic and LLM evaluations intelligently.
+        
+        Uses 60/40 weighting (LLM/Heuristic) with scale normalization.
+        LLM uses 1-5 scale, heuristic uses 1-10 scale.
+        Final output is 1-10 scale for UI consistency.
+        """
         if llm_eval is None:
-            # Only heuristic available
+            # Only heuristic available - use as-is (already 1-10 scale)
             return {
                 **heuristic,
-                "confidence": 0.6,
-                "evaluation_method": "heuristic_only"
+                "confidence": 0.5,  # Lower confidence without LLM
+                "evaluation_method": "heuristic_only",
+                "scale": 10
             }
         
-        # Weighted merge (prefer LLM but use heuristic as sanity check)
-        llm_weight = 0.7
-        heuristic_weight = 0.3
+        # Rebalanced weights (60/40 - more trust in improved heuristics)
+        llm_weight = 0.6
+        heuristic_weight = 0.4
         
+        # Get scores with scale normalization
+        # LLM returns 1-5 scale, convert to 1-10
+        llm_score = llm_eval.get("score", 3) * 2  # 1-5 -> 2-10
+        heuristic_score = heuristic.get("score", 5)  # Already 1-10
+        
+        # Weighted merge
         merged_score = (
-            llm_eval.get("score", 5) * llm_weight +
-            heuristic.get("score", 5) * heuristic_weight
+            llm_score * llm_weight +
+            heuristic_score * heuristic_weight
         )
+        
+        # Confidence based on evaluation method
+        confidence = 0.85 if llm_eval.get("source") == "llm_qwen" else 0.75
         
         return {
             "score": round(merged_score, 1),
@@ -527,13 +831,17 @@ Respond in JSON format:
             "communication": llm_eval.get("communication", heuristic.get("clarity", 0.5)),
             "practical_application": llm_eval.get("practical_application", 0.5),
             "completeness": heuristic.get("completeness", 0.5),
+            "relevance": heuristic.get("relevance", 1.0),
             "strengths": llm_eval.get("strengths", ["Good attempt"]),
             "improvements": llm_eval.get("improvements", ["More detail needed"]),
             "knowledge_gaps": llm_eval.get("knowledge_gaps", []),
             "brief_feedback": llm_eval.get("brief_feedback", ""),
-            "confidence": 0.85,
-            "evaluation_method": "merged",
-            "reasoning_approach": thought_chain.conclusion
+            "confidence": confidence,
+            "evaluation_method": "merged_hybrid",
+            "reasoning_approach": thought_chain.conclusion,
+            "scale": 10,
+            "llm_raw_score": llm_eval.get("score", 3),
+            "heuristic_raw_score": heuristic.get("score", 5)
         }
     
     # ==================== HUMAN-LIKE INTERACTIONS ====================
@@ -755,9 +1063,7 @@ Respond in JSON format:
 ---
 
 ## Recommendations
-1. Focus on areas where knowledge gaps were identified
-2. Practice explaining technical concepts clearly
-3. Consider deeper study of {session.topic} fundamentals
+{self._generate_dynamic_recommendations(session, avg_score)}
 
 ---
 
@@ -769,6 +1075,32 @@ Respond in JSON format:
 *This report was generated by an autonomous AI interviewer with self-thinking capabilities.*
 """
         return report
+    
+    def _generate_dynamic_recommendations(self, session: InterviewSession, avg_score: float) -> str:
+        """Generate recommendations based on actual performance"""
+        recommendations = []
+        
+        if avg_score >= 8:
+            # High performer - positive recommendations
+            recommendations.append("🎉 **Excellent performance!** Consider mentoring others in your strong areas.")
+            if session.strengths:
+                recommendations.append(f"💪 Continue building on your strengths: {', '.join(session.strengths[:2])}")
+            recommendations.append("📚 Explore advanced topics to further deepen expertise")
+        elif avg_score >= 6:
+            # Good performer
+            recommendations.append("👍 Good foundation - keep practicing to reach excellence")
+            if session.knowledge_gaps:
+                recommendations.append(f"📖 Focus on improving: {', '.join(session.knowledge_gaps[:2])}")
+            else:
+                recommendations.append("📖 Continue practicing with more complex scenarios")
+        else:
+            # Needs improvement
+            if session.knowledge_gaps:
+                recommendations.append(f"⚠️ Priority areas to study: {', '.join(session.knowledge_gaps[:3])}")
+            recommendations.append(f"📚 Review {session.topic} fundamentals")
+            recommendations.append("💡 Practice explaining technical concepts out loud")
+        
+        return "\n".join(f"{i+1}. {r}" for i, r in enumerate(recommendations))
     
     # ==================== HELPER METHODS ====================
     

@@ -1,23 +1,23 @@
 # Core Application
-gradio==5.41.0
+gradio==4.44.0
 python-dotenv==1.0.1
 rich==13.7.1
 typing-extensions==4.12.2
 
 # AI & LLM Framework
-langchain==0.2.11
-langchain-community==0.2.10
-langchain-core==0.2.23
-langchain-ollama==0.1.1
-ollama==0.6.1
+langchain>=0.2.11
+langchain-community>=0.2.10
 
 # Data Validation
-pydantic==2.11.7
-pydantic-core==2.33.2
+pydantic>=2.0.0
 
 # Networking
-httpx==0.27.0
-requests==2.32.3
+httpx>=0.27.0
+requests>=2.31.0
 
-# Testing & Development
-pytest==7.4.3
+# HuggingFace Cloud
+huggingface-hub>=0.23.0
+langchain-huggingface>=0.1.0
+
+# Semantic Similarity (for answer relevance checking)
+sentence-transformers>=2.2.0

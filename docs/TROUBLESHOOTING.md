@@ -1,45 +1,68 @@
 # 🔧 Troubleshooting Guide
 
-> **Last Updated:** 2025-12-07
+> **Last Updated:** 2025-12-08
 
-## 🤖 Ollama & Model Issues
+## 🌐 HuggingFace API Issues
 
-### "LLM connection failed" / "Connection refused"
-*   **Cause:** The Ollama service is not running.
-*   **Fix:** Open a separate terminal and run `ollama serve`. Ensure it is listening on port 11434.
+### "401 Unauthorized" Error
+**Cause:** HF_TOKEN not set or invalid.
+**Fix:**
+```bash
+# Check if token is set
+echo $HF_TOKEN
 
-### "Model not found"
-*   **Cause:** You haven't downloaded the specific model required (`llama3.2:3b`).
-*   **Fix:** Run `ollama pull llama3.2:3b`.
+# Set token
+export HF_TOKEN="hf_your_token_here"
+```
 
-### Slow Responses / High Latency
-*   **Cause:** Your system might be running on CPU only, or RAM is insufficient.
-*   **Fix:** Ensure you have at least 4GB of free RAM. If you have an NVIDIA GPU, ensure CUDA drivers are installed so Ollama can use it.
+### "Model Loading" Takes Forever
+**Cause:** First request to a model triggers warmup.
+**Fix:** Wait 30-60 seconds for initial model load. Subsequent requests are faster.
 
----
-
-## 🌐 Web Interface Issues
-
-### Interface doesn't load
-*   **Cause:** Port 7860 might be blocked by a firewall or another application.
-*   **Fix:** The application logs will show the URL. Try accessing `http://127.0.0.1:7860` specifically.
-
-### "Queue is full"
-*   **Cause:** Too many requests are being processed simultaneously.
-*   **Fix:** The system handles concurrent requests, but local hardwar limits may apply. Wait a moment and try again.
+### "Rate Limited" Error
+**Cause:** Free tier has request limits (~300 requests/hour).
+**Fix:** Wait 1 minute, or upgrade to HuggingFace Pro.
 
 ---
 
-## 🧠 Brain / Memory Issues
+## 🖥️ Local Deployment Issues
 
-### "Database locked"
-*   **Cause:** Multiple instances of the application might be trying to write to `data/memory/reasoning_bank.db`.
-*   **Fix:** Ensure only one instance of `python main.py` is running.
+### Port 7860 Already in Use
+**Cause:** Another application using the port.
+**Fix:** The app auto-finds next available port (7861, 7862, etc.). Check console output.
 
-### Resetting the AI's Brain
-*   **Goal:** You want to clear all learned strategies and start fresh.
-*   **Action:** Delete the contents of the `data/memory/` directory (but keep the directory itself).
-    ```bash
-    rm data/memory/*.db data/memory/*.json
-    ```
-    The system will recreate them automatically on next run.
+### Slow Response Times
+**Cause:** Cold start or network latency.
+**Fix:**
+- Ensure stable internet connection
+- First response may take longer due to model loading
+
+### ImportError: No module named 'sentence_transformers'
+**Fix:**
+```bash
+pip install sentence-transformers
+```
+
+---
+
+## 🎯 Evaluation Issues
+
+### Scores Seem Too Low
+**Possible Causes:**
+1. Answer is off-topic (semantic check triggered)
+2. Missing structure (no bullet points, examples)
+3. Too brief (< 50 words)
+
+**Fix:** Provide comprehensive, structured answers with examples.
+
+### "Answer does not appear to address the question"
+**Cause:** Semantic similarity below 0.25 threshold.
+**Fix:** Ensure your answer directly addresses the question asked.
+
+---
+
+## 📞 Getting Help
+
+1. Check the [GitHub Issues](https://github.com/VIKAS9793/ai-interviewer-langchain/issues)
+2. Verify HuggingFace API status: https://status.huggingface.co
+3. Check `logs/` directory for detailed error messages

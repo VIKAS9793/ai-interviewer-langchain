@@ -2,28 +2,58 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.2] - 2025-12-08
+
+### 🧹 Codebase Cleanup
+*   Removed all Ollama/local-first references
+*   Updated all documentation for cloud-first architecture
+*   Standardized model references to HuggingFace IDs
+
+---
+
+## [2.2.1] - 2025-12-08
+
+### 🎯 Hybrid Evaluation Strategy
+*   **Dual-Model Architecture:** LLaMA-3 for questions, Qwen2.5-32B for evaluation
+*   **Prometheus-Style Rubrics:** 1-5 scoring scale with explicit criteria
+*   **Rebalanced Weights:** 60% LLM / 40% Heuristic merge
+*   **Depth Bonus:** Extra points for comprehensive 150+ word structured answers
+
+---
+
+## [2.2.0] - 2025-12-08
+
+### ✨ Enhanced Evaluation
+*   **AI Internal Monologue:** Collapsible display of reasoning chain
+*   **Knowledge Grounding:** Answer verification against authoritative sources
+*   **Semantic Relevance Checking:** Embedding-based off-topic detection
+*   **Semantic Caching:** LRU caches for embeddings and similarity scores
+
+---
+
+## [2.1.0] - 2025-12-07
+
+### ☁️ Cloud-First Deployment
+*   HuggingFace Spaces deployment
+*   HuggingFace Inference API integration
+*   Multi-model support (LLaMA, Mistral, Qwen)
+*   Gradio UI with progress tracking
+
+---
+
 ## [2.0.0] - 2025-12-07
 
-### 🚀 Major Release: The "Hybrid Architecture" Update
+### 🚀 Major Release: Autonomous Agent Architecture
 
-This release marks a fundamental shift from a simple LLM wrapper to a true **Autonomous Agent**. We have implemented a hybrid architecture inspired by cutting-edge research in agentic AI.
+This release marks a fundamental shift from a simple LLM wrapper to a true **Autonomous Agent**.
 
 ### ✨ New Features
-*   **ReasoningBank (Memory System):** Implemented a persistent memory system that allows the agent to learn strategies from past interviews.
-    *   *Citation:* "ReasoningBank: Scaling Agent Self-Evolving with Reasoning Memory" (arXiv:2509.25140)
-*   **ReflectAgent (Critic):** Added a self-reflection loop that evaluates question fairness and scoring consistency before finalizing decisions.
-    *   *Citation:* "MUSE: The Reflect Agent" (arXiv:2510.08002)
-*   **Metacognitive System:** Enabled self-assessment capabilities where the agent tracks its own proficiency in different topics.
-    *   *Citation:* "Intrinsic Metacognitive Learning" (arXiv:2506.05109)
-*   **Shadow Mode Integration:** New modules operate in a robust "Shadow Mode" to provide value without risking system stability.
+*   **ReasoningBank (Memory System):** Persistent memory for learning strategies
+*   **ReflectAgent (Critic):** Self-reflection loop for fairness evaluation
+*   **Metacognitive System:** Self-assessment and proficiency tracking
+*   **AI Guardrails:** Responsible AI with bias detection
 
 ### 🛠️ Improvements
-*   **Architecture Overhaul:** Refactored entire codebase into a clean `src/` modular structure. Removed all legacy spaghetti code.
-*   **Centralized Data:** All persistent data now lives in `data/memory/` for easier management.
-*   **Dependency Locking:** `requirements.txt` is now strictly pinned for production stability.
-*   **Documentation:** Complete documentation rewrite including ADRs, Setup Guide, and Architecture diagrams.
-
-### 🗑️ Removals
-*   Removed `enhanced_main.py` (consolidated into `main.py`).
-*   Removed `legacy/` directory.
-*   Deleted unused utility scripts (`connection_pool.py`, `health_check.py`) to reduce bloat.
+*   Clean `src/` modular structure
+*   Centralized `data/memory/` storage
+*   Pinned dependencies for stability

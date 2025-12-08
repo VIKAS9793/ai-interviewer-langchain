@@ -9,10 +9,10 @@ from typing import Dict, List, Any
 class Config:
     """Configuration class for AI Interviewer"""
     
-    # LLM Settings
-    OLLAMA_MODEL = "llama3.2:3b"
-    OLLAMA_TEMPERATURE = 0.7
-    OLLAMA_BASE_URL = "http://localhost:11434"
+    # HuggingFace Cloud LLM Settings
+    DEFAULT_MODEL = "meta-llama/Meta-Llama-3-8B-Instruct"
+    MODEL_TEMPERATURE = 0.4
+    MAX_NEW_TOKENS = 512
     
     # Interview Settings
     MAX_QUESTIONS = 5
@@ -50,6 +50,12 @@ class Config:
     LOG_LEVEL = "INFO"
     LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     
+    # Evaluation Model Settings (Dual-model architecture)
+    # Use Qwen2.5 for evaluation - better calibrated scoring
+    EVALUATION_MODEL = "Qwen/Qwen2.5-32B-Instruct"
+    EVALUATION_TEMPERATURE = 0.1  # Low temp for consistent scoring
+    EVALUATION_SCALE = 5  # 1-5 scale (more reliable than 1-10)
+    
     @classmethod
     def get_topic_mapping(cls) -> Dict[str, str]:
         """Get mapping from display names to internal names"""
@@ -80,17 +86,13 @@ class Config:
             "warnings": []
         }
         
-        # Validate LLM settings
-        if not cls.OLLAMA_MODEL or not isinstance(cls.OLLAMA_MODEL, str):
-            validation_results["errors"].append("OLLAMA_MODEL must be a non-empty string")
+        # Validate LLM settings (HuggingFace Cloud)
+        if not cls.DEFAULT_MODEL or not isinstance(cls.DEFAULT_MODEL, str):
+            validation_results["errors"].append("DEFAULT_MODEL must be a non-empty string")
             validation_results["valid"] = False
         
-        if not isinstance(cls.OLLAMA_TEMPERATURE, (int, float)) or not (0.0 <= cls.OLLAMA_TEMPERATURE <= 2.0):
-            validation_results["errors"].append("OLLAMA_TEMPERATURE must be a number between 0.0 and 2.0")
-            validation_results["valid"] = False
-        
-        if not cls.OLLAMA_BASE_URL or not isinstance(cls.OLLAMA_BASE_URL, str):
-            validation_results["errors"].append("OLLAMA_BASE_URL must be a non-empty string")
+        if not isinstance(cls.MODEL_TEMPERATURE, (int, float)) or not (0.0 <= cls.MODEL_TEMPERATURE <= 2.0):
+            validation_results["errors"].append("MODEL_TEMPERATURE must be a number between 0.0 and 2.0")
             validation_results["valid"] = False
         
         # Validate interview settings
@@ -126,11 +128,11 @@ class Config:
     def get_config_summary(cls) -> Dict[str, Any]:
         """Get a summary of current configuration"""
         return {
-            "llm_model": cls.OLLAMA_MODEL,
-            "llm_temperature": cls.OLLAMA_TEMPERATURE,
+            "llm_model": cls.DEFAULT_MODEL,
+            "llm_temperature": cls.MODEL_TEMPERATURE,
+            "evaluation_model": cls.EVALUATION_MODEL,
             "max_questions": cls.MAX_QUESTIONS,
             "available_topics": len(cls.AVAILABLE_TOPICS),
-            "gradio_port": cls.GRADIO_SERVER_PORT,
             "evaluation_dimensions": len(cls.EVALUATION_WEIGHTS)
         }
 

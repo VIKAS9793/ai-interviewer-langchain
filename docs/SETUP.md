@@ -1,28 +1,41 @@
 # 🛠️ Setup & Installation Guide
 
-> **Last Updated:** 2025-12-07
-> **Version:** 2.0.0
+> **Last Updated:** 2025-12-08
+> **Version:** 2.2.1 (Cloud-First)
 
 ## 📋 Prerequisites
 
-Before you begin, ensure you have the following installed:
+1. **Python 3.11+**: [Download Here](https://www.python.org/downloads/)
+2. **HuggingFace Account**: [Sign Up Here](https://huggingface.co/join)
+3. **HuggingFace API Token**: [Get Token](https://huggingface.co/settings/tokens)
 
-1.  **Python 3.11+**: [Download Here](https://www.python.org/downloads/)
-2.  **Git**: [Download Here](https://git-scm.com/downloads)
-3.  **Ollama**: [Download Here](https://ollama.ai/)
+> [!NOTE]
+> This application runs on **HuggingFace Spaces** or locally with the HuggingFace Inference API. No local GPU or Ollama required.
 
 ---
 
-## 💻 Installation Steps
+## ☁️ Option 1: HuggingFace Spaces (Recommended)
+
+The easiest way to use the AI Interviewer:
+
+1. Visit: **https://huggingface.co/spaces/Vikas9793/ai-interviewer**
+2. Enter your name and select a topic
+3. Start your interview!
+
+No installation required.
+
+---
+
+## 💻 Option 2: Local Installation
 
 ### 1. Clone the Repository
 ```bash
 git clone https://github.com/VIKAS9793/ai-interviewer-langchain.git
 cd ai-interviewer-langchain
+git checkout cloud  # Use cloud branch
 ```
 
 ### 2. Set Up Virtual Environment
-It is recommended to use a virtual environment to manage dependencies.
 
 **Windows:**
 ```powershell
@@ -37,45 +50,42 @@ source venv/bin/activate
 ```
 
 ### 3. Install Dependencies
-We use a strictly pinned dependency list for stability.
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Configure AI Model
-The system uses `llama3.2:3b` by default for the best balance of speed and reasoning.
-
+### 4. Configure API Token
 ```bash
-# Pull the model
-ollama pull llama3.2:3b
+# Windows (PowerShell)
+$env:HF_TOKEN = "your_huggingface_token"
 
-# Verify it's ready
-ollama list
+# macOS / Linux
+export HF_TOKEN="your_huggingface_token"
 ```
 
----
-
-## 🚀 Running the Application
-
-Start the autonomous interviewer:
+### 5. Run the Application
 ```bash
 python main.py
 ```
 
-The web interface will launch automatically at:
-`http://localhost:7860`
+The web interface launches at: `http://localhost:7860`
 
 ---
 
-## ⚠️ Common Configuration Issues
+## ⚠️ Common Issues
 
-*   **Port Conflicts:** If port 7860 is taken, the app will try to find the next available port (e.g., 7861). Check the console output for the actual URL.
-*   **Ollama Connection:** Ensure Ollama is running (`ollama serve`). The app connects to `localhost:11434`.
+| Issue | Solution |
+|-------|----------|
+| Model loading slow | First request may take 30-60s for model warmup |
+| 401 Unauthorized | Check HF_TOKEN is set correctly |
+| Rate limited | Wait 1 minute or upgrade HuggingFace account |
+| Port 7860 in use | App auto-finds next available port |
 
 ---
 
 ## 🧪 Verification
-To verify your installation is correct, you can run the test suite:
+
+Test your installation:
 ```bash
-pytest tests/test_production.py
+pytest tests/ -v
 ```

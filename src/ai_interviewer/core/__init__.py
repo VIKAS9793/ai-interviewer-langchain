@@ -58,6 +58,14 @@ from .metacognitive import (
     Intention
 )
 
+# Context Engineering (CE)
+from .context_engineer import (
+    ContextEngineer,
+    KnowledgeGrounding,
+    InterviewContext as CEInterviewContext,
+    ContextWindow
+)
+
 __all__ = [
     # Autonomous Core
     "AutonomousReasoningEngine",
@@ -94,5 +102,11 @@ __all__ = [
     "Belief",
     "Desire",
     "Intention",
+    
+    # Context Engineering
+    "ContextEngineer",
+    "KnowledgeGrounding",
+    "CEInterviewContext",
+    "ContextWindow",
 ]
 
