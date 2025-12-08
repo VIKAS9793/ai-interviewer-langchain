@@ -33,6 +33,7 @@ from .autonomous_reasoning_engine import (
 
 
 from .reflect_agent import ReflectAgent
+from .context_engineer import KnowledgeGrounding
 
 logger = logging.getLogger(__name__)
 
@@ -110,6 +111,13 @@ class AutonomousInterviewer:
             self.reflect_agent = ReflectAgent()
         except Exception as e:
             logger.warning(f"ReflectAgent failed to init: {e}")
+        
+        # Knowledge Grounding for answer verification
+        self.knowledge_grounding = None
+        try:
+            self.knowledge_grounding = KnowledgeGrounding()
+        except Exception as e:
+            logger.warning(f"KnowledgeGrounding failed to init: {e}")
 
         logger.info("🤖 Autonomous Interviewer initialized")
     
@@ -391,8 +399,21 @@ class AutonomousInterviewer:
         # Try LLM evaluation for deeper insights
         llm_eval = self._llm_evaluation(question, answer, topic, session)
         
+        # Knowledge Grounding verification
+        grounding_result = None
+        if self.knowledge_grounding:
+            try:
+                grounding_result = self.knowledge_grounding.verify_answer(topic, question, answer)
+                logger.info(f"📚 Grounding: {grounding_result.get('accuracy_assessment', 'unknown')}")
+            except Exception as e:
+                logger.warning(f"Knowledge grounding failed: {e}")
+        
         # Merge evaluations with reasoning
         merged_eval = self._merge_evaluations(heuristic_eval, llm_eval, thought_chain)
+        
+        # Add grounding info to merged evaluation
+        if grounding_result:
+            merged_eval["grounding"] = grounding_result
         
         # Extract insights for learning
         merged_eval["knowledge_insights"] = self._extract_knowledge_insights(
