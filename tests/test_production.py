@@ -38,7 +38,7 @@ class TestAutonomousReasoningEngine(unittest.TestCase):
     """Tests for Chain-of-Thought Reasoning Engine"""
     
     def setUp(self):
-        self.engine = AutonomousReasoningEngine(model_name="llama3.2:3b")
+        self.engine = AutonomousReasoningEngine(model_name="meta-llama/Meta-Llama-3-8B-Instruct")
         self.context = InterviewContext(
             session_id="test123",
             candidate_name="Test User",
@@ -50,7 +50,7 @@ class TestAutonomousReasoningEngine(unittest.TestCase):
     def test_engine_initialization(self):
         """Test engine initializes correctly"""
         self.assertIsNotNone(self.engine)
-        self.assertEqual(self.engine.model_name, "llama3.2:3b")
+        self.assertEqual(self.engine.model_name, "meta-llama/Meta-Llama-3-8B-Instruct")
         self.assertEqual(len(self.engine.thought_history), 0)
     
     def test_think_before_acting_returns_thought_chain(self):
@@ -125,7 +125,7 @@ class TestAutonomousInterviewer(unittest.TestCase):
     """Tests for Main Interview Agent"""
     
     def setUp(self):
-        self.interviewer = AutonomousInterviewer(model_name="llama3.2:3b")
+        self.interviewer = AutonomousInterviewer(model_name="meta-llama/Meta-Llama-3-8B-Instruct")
     
     def test_interviewer_initialization(self):
         """Test interviewer initializes correctly"""
@@ -203,7 +203,7 @@ class TestAutonomousFlowController(unittest.TestCase):
     def setUp(self):
         self.controller = AutonomousFlowController(
             max_concurrent_sessions=5,
-            model_name="llama3.2:3b"
+            model_name="meta-llama/Meta-Llama-3-8B-Instruct"
         )
     
     def test_controller_initialization(self):

@@ -81,7 +81,7 @@ class EnhancedInterviewApp:
         # Initialize autonomous flow controller
         self.flow_controller = AutonomousFlowController(
             max_concurrent_sessions=20,
-            model_name="llama3.2:3b"
+            model_name="meta-llama/Meta-Llama-3-8B-Instruct"
         )
         
         # Initialize ResponsibleAI guardrails

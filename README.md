@@ -13,14 +13,14 @@ license: mit
 
 # 🤖 Autonomous AI Technical Interviewer
 
-A self-thinking AI interview system with Chain-of-Thought reasoning, responsible AI guardrails, and persistent memory.
+A self-thinking AI interview system with Chain-of-Thought reasoning, hybrid evaluation, and responsible AI guardrails.
 
 ## ✨ Features
 
-- **🧠 Self-Thinking:** Chain-of-Thought reasoning before every question
-- **📊 Logical Reasoning:** Multi-step analysis of responses
-- **💪 Self-Resilient:** Graceful error recovery
-- **🎭 Human-Like:** Natural, adaptive conversation
+- **🧠 Chain-of-Thought:** Self-reasoning before every question
+- **📊 Hybrid Evaluation:** Dual-model scoring (LLaMA + Qwen2.5)
+- **🎯 Semantic Relevance:** Embedding-based answer checking
+- **🔍 AI Internal Monologue:** Transparent decision-making display
 - **🛡️ AI Guardrails:** Fair, unbiased, explainable decisions
 
 ## 🚀 Usage
@@ -29,13 +29,21 @@ A self-thinking AI interview system with Chain-of-Thought reasoning, responsible
 2. Select an interview topic
 3. Click "Start Enhanced Interview"
 4. Answer 5 adaptive questions
-5. Receive comprehensive feedback
+5. Receive comprehensive feedback with detailed scoring
 
 ## ⚙️ Configuration
 
-This Space requires a **Hugging Face API Token** (`HF_TOKEN`) to access the Meta-Llama-3-8B-Instruct model.
+This Space requires a **Hugging Face API Token** (`HF_TOKEN`) to access models.
 
 Add your token in the Space **Settings** → **Repository Secrets** → `HF_TOKEN`
+
+## 🔧 Models Used
+
+| Purpose | Model |
+|---------|-------|
+| Questions | Meta-Llama-3-8B-Instruct |
+| Evaluation | Qwen2.5-32B-Instruct |
+| Embeddings | all-MiniLM-L6-v2 |
 
 ## 📚 Topics Available
 

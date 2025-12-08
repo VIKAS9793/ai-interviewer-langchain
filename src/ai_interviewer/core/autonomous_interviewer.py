@@ -199,7 +199,7 @@ class AutonomousInterviewer:
     4. HUMAN-LIKE: Natural conversation, empathy, adaptability
     """
     
-    def __init__(self, model_name: str = "llama3.2:3b"):
+    def __init__(self, model_name: str = "meta-llama/Meta-Llama-3-8B-Instruct"):
         self.model_name = model_name
         self.reasoning_engine = AutonomousReasoningEngine(model_name)
         self.active_sessions: Dict[str, InterviewSession] = {}

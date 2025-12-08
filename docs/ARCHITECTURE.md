@@ -12,6 +12,33 @@ An **Autonomous AI Technical Interviewer** with human-like capabilities, deploye
 | **Knowledge Grounding** | Answer verification against authoritative sources |
 | **AI Guardrails** | Fair, unbiased, explainable decisions |
 
+## System Architecture
+
+```mermaid
+flowchart TB
+    subgraph UI["Gradio UI"]
+        A[User Input] --> B[Interview Controller]
+    end
+    
+    subgraph Core["Core Processing"]
+        B --> C[Autonomous Interviewer]
+        C --> D[Reasoning Engine]
+        C --> E[Evaluation Engine]
+    end
+    
+    subgraph Models["HuggingFace Models"]
+        D --> F["LLaMA-3-8B<br/>Questions"]
+        E --> G["Qwen2.5-32B<br/>Evaluation"]
+        E --> H["MiniLM<br/>Embeddings"]
+    end
+    
+    subgraph Safety["AI Safety"]
+        C --> I[AI Guardrails]
+        I --> J[Bias Detection]
+        I --> K[Fairness Check]
+    end
+```
+
 ## Quick Start
 
 **Live Demo:** https://huggingface.co/spaces/Vikas9793/ai-interviewer

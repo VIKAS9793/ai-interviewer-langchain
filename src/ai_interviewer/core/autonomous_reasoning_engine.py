@@ -96,7 +96,7 @@ class AutonomousReasoningEngine:
     5. Contextual memory and learning
     """
     
-    def __init__(self, model_name: str = "llama3.2:3b", max_retries: int = 3):
+    def __init__(self, model_name: str = "meta-llama/Meta-Llama-3-8B-Instruct", max_retries: int = 3):
         self.model_name = model_name
         self.max_retries = max_retries
         self.thought_history: deque = deque(maxlen=100)
