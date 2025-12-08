@@ -18,3 +18,6 @@ requests>=2.31.0
 # HuggingFace Cloud
 huggingface-hub>=0.23.0
 langchain-huggingface>=0.1.0
+
+# Semantic Similarity (for answer relevance checking)
+sentence-transformers>=2.2.0

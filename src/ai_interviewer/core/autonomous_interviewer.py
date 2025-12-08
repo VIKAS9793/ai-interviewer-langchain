@@ -38,6 +38,64 @@ from .context_engineer import KnowledgeGrounding
 logger = logging.getLogger(__name__)
 
 
+class SemanticRelevanceChecker:
+    """
+    Semantic relevance checker using Sentence Transformers.
+    Uses embedding similarity to verify answer addresses the question.
+    """
+    
+    def __init__(self):
+        self._model = None
+        self._available = True
+        
+    def _get_model(self):
+        """Lazy load the sentence transformer model"""
+        if self._model is None and self._available:
+            try:
+                from sentence_transformers import SentenceTransformer
+                # Use a small, fast model suitable for HF Spaces
+                self._model = SentenceTransformer('all-MiniLM-L6-v2')
+                logger.info("✅ SemanticRelevanceChecker: Model loaded (all-MiniLM-L6-v2)")
+            except ImportError:
+                logger.warning("sentence-transformers not installed, falling back to keyword matching")
+                self._available = False
+            except Exception as e:
+                logger.warning(f"Failed to load sentence transformer: {e}")
+                self._available = False
+        return self._model
+    
+    def compute_similarity(self, question: str, answer: str) -> float:
+        """
+        Compute semantic similarity between question and answer.
+        Returns 0.0-1.0 where higher means more relevant.
+        """
+        model = self._get_model()
+        if model is None:
+            return -1.0  # Signal that semantic check is unavailable
+        
+        try:
+            # Encode both texts
+            embeddings = model.encode([question, answer], convert_to_tensor=True)
+            
+            # Compute cosine similarity
+            from sentence_transformers.util import cos_sim
+            similarity = cos_sim(embeddings[0], embeddings[1]).item()
+            
+            return max(0.0, min(1.0, similarity))  # Clamp to [0, 1]
+        except Exception as e:
+            logger.warning(f"Semantic similarity computation failed: {e}")
+            return -1.0
+
+# Global instance for reuse
+_semantic_checker = None
+
+def get_semantic_checker() -> SemanticRelevanceChecker:
+    """Get or create the global semantic checker instance"""
+    global _semantic_checker
+    if _semantic_checker is None:
+        _semantic_checker = SemanticRelevanceChecker()
+    return _semantic_checker
+
 
 class InterviewPhase(Enum):
     """Interview phases"""
@@ -490,11 +548,26 @@ class AutonomousInterviewer:
         }
     
     def _check_answer_relevance(self, question: str, answer: str) -> float:
-        """Check if answer is relevant to the question asked"""
+        """
+        Check if answer is relevant to the question asked.
+        Uses semantic similarity (embedding-based) with fallback to keyword matching.
+        """
         if not question:
             return 1.0  # No question to check against
         
-        # Extract key terms from question (simple heuristic)
+        # Try semantic similarity first (embedding-based)
+        semantic_checker = get_semantic_checker()
+        semantic_score = semantic_checker.compute_similarity(question, answer)
+        
+        if semantic_score >= 0:  # Semantic check succeeded
+            logger.info(f"📊 Semantic similarity: {semantic_score:.2f}")
+            # Semantic similarity threshold: below 0.3 is definitely off-topic
+            if semantic_score < 0.25:
+                logger.warning(f"⚠️ Answer appears OFF-TOPIC (semantic: {semantic_score:.2f})")
+            return semantic_score
+        
+        # Fallback to keyword matching if semantic check unavailable
+        logger.info("📊 Using keyword-based relevance (semantic unavailable)")
         question_lower = question.lower()
         answer_lower = answer.lower()
         
@@ -514,7 +587,7 @@ class AutonomousInterviewer:
         relevance_ratio = len(overlap) / len(question_words)
         
         # Boost for key technical terms from question appearing in answer
-        technical_terms = [w for w in question_words if len(w) > 5]  # Longer words are likely technical
+        technical_terms = [w for w in question_words if len(w) > 5]
         technical_overlap = sum(1 for term in technical_terms if term in answer_lower)
         technical_boost = min(technical_overlap * 0.2, 0.4) if technical_terms else 0
         
