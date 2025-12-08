@@ -270,6 +270,29 @@ class AutonomousInterviewer:
                 logger.error(f"Failed to initialize Cloud LLM: {e}")
         return self._llm
     
+    def _get_evaluation_llm(self) -> HuggingFaceEndpoint:
+        """
+        Get dedicated LLM for evaluation (Qwen2.5 for better calibration).
+        Uses low temperature for consistent scoring.
+        """
+        try:
+            from ..utils.config import Config
+            token = os.environ.get("HF_TOKEN")
+            
+            eval_llm = HuggingFaceEndpoint(
+                repo_id=Config.EVALUATION_MODEL,
+                task="text-generation",
+                max_new_tokens=512,
+                top_k=30,
+                temperature=Config.EVALUATION_TEMPERATURE,
+                huggingfacehub_api_token=token
+            )
+            logger.info(f"📊 Evaluation LLM ready: {Config.EVALUATION_MODEL}")
+            return eval_llm
+        except Exception as e:
+            logger.warning(f"Evaluation LLM unavailable, using primary LLM: {e}")
+            return self._get_llm()
+    
     # ==================== INTERVIEW LIFECYCLE ====================
     
     def start_interview(self, topic: str, candidate_name: str) -> Dict[str, Any]:
@@ -567,36 +590,44 @@ class AutonomousInterviewer:
                 "warning": "Answer does not appear to address the question asked"
             }
         
-        # Length-based scoring
+        # Length-based scoring (BOOSTED for comprehensive answers)
         word_count = len(answer.split())
-        length_score = min(word_count / 30, 1.0) * 4  # Max 4 points
+        # More generous: 100+ words gets full points, scaled linearly
+        length_score = min(word_count / 50, 1.0) * 5  # Max 5 points (was 4)
         
-        # Keyword matching
+        # Keyword matching (topic relevance)
         keywords = self._get_topic_keywords(topic)
         keyword_count = sum(1 for kw in keywords if kw.lower() in answer.lower())
         keyword_score = min(keyword_count * 0.8, 3.0)  # Max 3 points
         
-        # Structure indicators
+        # Structure indicators (BOOSTED)
         structure_score = 0
-        if any(word in answer.lower() for word in ["first", "second", "because", "therefore"]):
-            structure_score += 1
-        if any(char in answer for char in ["1.", "2.", "-", "•"]):
-            structure_score += 1
+        if any(word in answer.lower() for word in ["first", "second", "because", "therefore", "however"]):
+            structure_score += 1.5
+        if any(char in answer for char in ["1.", "2.", "3.", "-", "•", ":"]):
+            structure_score += 1.5
+        structure_score = min(structure_score, 3.0)  # Max 3 points (was 2)
         
-        # Example usage
+        # Example usage and practical application
         example_score = 0
-        if any(word in answer.lower() for word in ["example", "for instance", "such as", "like"]):
-            example_score = 1.5
+        if any(word in answer.lower() for word in ["example", "for instance", "such as", "like", "consider"]):
+            example_score = 2.0  # Was 1.5
+        
+        # DEPTH BONUS: Comprehensive answers deserve extra credit
+        depth_bonus = 0
+        if word_count > 150 and structure_score > 1:
+            depth_bonus = 1.5  # Bonus for truly comprehensive answers
         
         # Apply relevance penalty
         relevance_multiplier = max(relevance_score, 0.3)
-        total_score = min((length_score + keyword_score + structure_score + example_score) * relevance_multiplier, 10)
+        base_score = length_score + keyword_score + structure_score + example_score + depth_bonus
+        total_score = min(base_score * relevance_multiplier, 10)
         
         return {
             "score": round(total_score, 1),
             "technical_accuracy": min(keyword_score / 3, 1.0) * relevance_multiplier,
-            "completeness": min(length_score / 4, 1.0),
-            "clarity": min((structure_score + 0.5) / 2.5, 1.0),
+            "completeness": min(length_score / 5, 1.0),
+            "clarity": min((structure_score + 0.5) / 3.5, 1.0),
             "relevance": relevance_score,
             "source": "heuristic",
             "details": {
@@ -604,6 +635,7 @@ class AutonomousInterviewer:
                 "keywords_found": keyword_count,
                 "has_structure": structure_score > 0,
                 "has_examples": example_score > 0,
+                "depth_bonus": depth_bonus > 0,
                 "relevance_check": relevance_score
             }
         }
@@ -656,50 +688,82 @@ class AutonomousInterviewer:
     
     def _llm_evaluation(self, question: str, answer: str, 
                        topic: str, session: InterviewSession) -> Optional[Dict[str, Any]]:
-        """LLM-based evaluation for nuanced assessment"""
+        """
+        LLM-based evaluation using Prometheus-style rubric scoring.
+        Uses dedicated evaluation LLM (Qwen2.5) with 1-5 scale for reliability.
+        """
         try:
-            llm = self._get_llm()
+            # Use dedicated evaluation LLM for better calibration
+            llm = self._get_evaluation_llm()
             if not llm:
                 return None
             
+            # Prometheus-style rubric prompt for reliable scoring
             eval_prompt = PromptTemplate(
                 input_variables=["question", "answer", "topic", "context"],
-                template="""You are a senior technical interviewer evaluating a candidate's answer.
+                template="""You are an expert technical interviewer. Evaluate the candidate's answer using the scoring rubric below.
 
+### INTERVIEW CONTEXT
 TOPIC: {topic}
 QUESTION: {question}
-ANSWER: {answer}
-CONTEXT: {context}
+CANDIDATE'S ANSWER: {answer}
+SESSION INFO: {context}
 
-Evaluate this answer on these dimensions (1-10):
-1. Technical Accuracy: How technically correct is the response?
-2. Depth of Understanding: Does the candidate truly understand the concepts?
-3. Communication Quality: Is the answer clear and well-structured?
-4. Practical Application: Can they apply this knowledge?
+### SCORING RUBRIC (Use this exactly)
 
-Also identify:
-- 2-3 key strengths demonstrated
-- 2-3 areas for improvement
-- Any knowledge gaps revealed
+Score 5 - EXCEPTIONAL:
+- Comprehensive coverage of all key concepts
+- Technically accurate with no errors
+- Well-structured with clear examples
+- Demonstrates deep understanding
+
+Score 4 - GOOD:
+- Covers main concepts correctly
+- Minor gaps but no major errors
+- Clear explanation and good structure
+- Shows solid understanding
+
+Score 3 - ADEQUATE:
+- Addresses the question but lacks depth
+- Some correct points, minor errors possible
+- Could be better organized
+- Basic understanding demonstrated
+
+Score 2 - LIMITED:
+- Partially relevant to the question
+- Significant gaps or errors present
+- Lacks structure or clarity
+- Surface-level understanding only
+
+Score 1 - POOR:
+- Does not address the question
+- Incorrect or irrelevant information
+- Minimal effort or off-topic
+- No understanding demonstrated
+
+### YOUR EVALUATION
+
+Analyze the answer step-by-step, then provide your assessment.
 
 Respond in JSON format:
 {{
-    "score": <overall score 1-10>,
+    "score": <1-5 based on rubric above>,
     "technical_accuracy": <0.0-1.0>,
     "understanding_depth": <0.0-1.0>,
     "communication": <0.0-1.0>,
     "practical_application": <0.0-1.0>,
-    "strengths": ["strength1", "strength2"],
-    "improvements": ["area1", "area2"],
-    "knowledge_gaps": ["gap1"],
-    "brief_feedback": "One sentence summary"
+    "strengths": ["specific strength 1", "specific strength 2"],
+    "improvements": ["specific area to improve 1", "specific area to improve 2"],
+    "brief_feedback": "Actionable one-sentence feedback for the candidate"
 }}"""
             )
             
             context = f"Question {session.question_number}/{session.max_questions}"
             if session.performance_history:
+                # Convert existing scores to 1-5 scale for context
                 avg = sum(session.performance_history) / len(session.performance_history)
-                context += f", Average so far: {avg:.1f}/10"
+                avg_scaled = avg / 2  # Convert 1-10 to 1-5 scale
+                context += f", Average so far: {avg_scaled:.1f}/5"
             
             chain = eval_prompt | llm
             response = chain.invoke({
@@ -714,7 +778,8 @@ Respond in JSON format:
             json_end = response.rfind('}') + 1
             if json_start != -1 and json_end > json_start:
                 evaluation = json.loads(response[json_start:json_end])
-                evaluation["source"] = "llm"
+                evaluation["source"] = "llm_qwen"
+                evaluation["scale"] = 5  # Mark as 1-5 scale
                 return evaluation
             
             return None
@@ -726,23 +791,39 @@ Respond in JSON format:
     def _merge_evaluations(self, heuristic: Dict[str, Any],
                           llm_eval: Optional[Dict[str, Any]],
                           thought_chain: ThoughtChain) -> Dict[str, Any]:
-        """Merge heuristic and LLM evaluations intelligently"""
+        """
+        Merge heuristic and LLM evaluations intelligently.
+        
+        Uses 60/40 weighting (LLM/Heuristic) with scale normalization.
+        LLM uses 1-5 scale, heuristic uses 1-10 scale.
+        Final output is 1-10 scale for UI consistency.
+        """
         if llm_eval is None:
-            # Only heuristic available
+            # Only heuristic available - use as-is (already 1-10 scale)
             return {
                 **heuristic,
-                "confidence": 0.6,
-                "evaluation_method": "heuristic_only"
+                "confidence": 0.5,  # Lower confidence without LLM
+                "evaluation_method": "heuristic_only",
+                "scale": 10
             }
         
-        # Weighted merge (prefer LLM but use heuristic as sanity check)
-        llm_weight = 0.7
-        heuristic_weight = 0.3
+        # Rebalanced weights (60/40 - more trust in improved heuristics)
+        llm_weight = 0.6
+        heuristic_weight = 0.4
         
+        # Get scores with scale normalization
+        # LLM returns 1-5 scale, convert to 1-10
+        llm_score = llm_eval.get("score", 3) * 2  # 1-5 -> 2-10
+        heuristic_score = heuristic.get("score", 5)  # Already 1-10
+        
+        # Weighted merge
         merged_score = (
-            llm_eval.get("score", 5) * llm_weight +
-            heuristic.get("score", 5) * heuristic_weight
+            llm_score * llm_weight +
+            heuristic_score * heuristic_weight
         )
+        
+        # Confidence based on evaluation method
+        confidence = 0.85 if llm_eval.get("source") == "llm_qwen" else 0.75
         
         return {
             "score": round(merged_score, 1),
@@ -751,13 +832,17 @@ Respond in JSON format:
             "communication": llm_eval.get("communication", heuristic.get("clarity", 0.5)),
             "practical_application": llm_eval.get("practical_application", 0.5),
             "completeness": heuristic.get("completeness", 0.5),
+            "relevance": heuristic.get("relevance", 1.0),
             "strengths": llm_eval.get("strengths", ["Good attempt"]),
             "improvements": llm_eval.get("improvements", ["More detail needed"]),
             "knowledge_gaps": llm_eval.get("knowledge_gaps", []),
             "brief_feedback": llm_eval.get("brief_feedback", ""),
-            "confidence": 0.85,
-            "evaluation_method": "merged",
-            "reasoning_approach": thought_chain.conclusion
+            "confidence": confidence,
+            "evaluation_method": "merged_hybrid",
+            "reasoning_approach": thought_chain.conclusion,
+            "scale": 10,
+            "llm_raw_score": llm_eval.get("score", 3),
+            "heuristic_raw_score": heuristic.get("score", 5)
         }
     
     # ==================== HUMAN-LIKE INTERACTIONS ====================

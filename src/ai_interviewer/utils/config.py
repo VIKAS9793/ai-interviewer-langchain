@@ -50,6 +50,12 @@ class Config:
     LOG_LEVEL = "INFO"
     LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     
+    # Evaluation Model Settings (Dual-model architecture)
+    # Use Qwen2.5 for evaluation - better calibrated scoring
+    EVALUATION_MODEL = "Qwen/Qwen2.5-32B-Instruct"
+    EVALUATION_TEMPERATURE = 0.1  # Low temp for consistent scoring
+    EVALUATION_SCALE = 5  # 1-5 scale (more reliable than 1-10)
+    
     @classmethod
     def get_topic_mapping(cls) -> Dict[str, str]:
         """Get mapping from display names to internal names"""
