@@ -1,5 +1,5 @@
 # Core Application
-gradio==6.0.2
+gradio>=5.0.0,<6.0.0
 python-dotenv==1.0.1
 rich==13.7.1
 typing-extensions==4.12.2
