@@ -273,7 +273,8 @@ class AutonomousInterviewer:
                 "evaluation_approach": eval_thought.conclusion,
                 "question_approach": next_question_result.get("approach"),
                 "adaptations_made": next_question_result.get("adaptations", []),
-                "confidence": next_question_result.get("confidence", 0.7)
+                "confidence": next_question_result.get("confidence", 0.7),
+                "thought_chain_id": next_question_result.get("thought_chain_id", "N/A")
             },
             "progress": {
                 "completed": session.question_number - 1,
