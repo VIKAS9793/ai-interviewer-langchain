@@ -639,41 +639,32 @@ class EnhancedInterviewApp:
             css=enhanced_css
         ) as interface:
             
-            # Enhanced header
+            # Header
             gr.HTML("""
             <div class="enhanced-header">
-                <h1 style="margin:0; font-size: 2.5rem; font-weight: 800;">🧠 Enhanced AI Technical Interviewer</h1>
-                <p style="margin: 0.5rem 0 0 0; font-size: 1.2rem; opacity: 0.95;">Autonomous Learning-Based Adaptive Intelligence System</p>
-                <p style="margin: 0.5rem 0 0 0; font-size: 1rem; opacity: 0.8;">Powered by Advanced AI Agents & Offline Optimization</p>
+                <h1 style="margin:0; font-size: 2.5rem; font-weight: 800;">🧠 AI Technical Interviewer</h1>
+                <p style="margin: 0.5rem 0 0 0; font-size: 1.1rem; opacity: 0.9;">Hybrid LLM Evaluation • Chain-of-Thought Reasoning • HuggingFace Cloud</p>
             </div>
             """)
             
-            # Learning features showcase
+            # Feature showcase - simplified and cloud-first
             gr.HTML("""
             <div class="learning-features">
                 <div class="learning-feature">
-                    <h4>🧠 Adaptive Learning</h4>
-                    <p>System learns from each interview and improves over time</p>
+                    <h4>🧠 Chain-of-Thought</h4>
+                    <p>AI reasons through each question and answer</p>
                 </div>
                 <div class="learning-feature">
-                    <h4>📊 Performance Analysis</h4>
-                    <p>Real-time difficulty adjustment based on performance</p>
+                    <h4>📊 Hybrid Evaluation</h4>
+                    <p>LLM + Heuristic scoring for accurate feedback</p>
                 </div>
                 <div class="learning-feature">
-                    <h4>🎯 Knowledge Tracking</h4>
-                    <p>Identifies strengths and knowledge gaps automatically</p>
+                    <h4>🎯 Semantic Analysis</h4>
+                    <p>Embedding-based relevance checking</p>
                 </div>
                 <div class="learning-feature">
-                    <h4>⚡ Offline Optimization</h4>
-                    <p>Cached responses and optimized performance</p>
-                </div>
-                <div class="learning-feature">
-                    <h4>🔄 Concurrent Processing</h4>
-                    <p>Handles multiple interviews simultaneously</p>
-                </div>
-                <div class="learning-feature">
-                    <h4>🔒 Privacy First</h4>
-                    <p>Everything runs locally with advanced security</p>
+                    <h4>🛡️ AI Guardrails</h4>
+                    <p>Fair, unbiased, explainable decisions</p>
                 </div>
             </div>
             """)
@@ -758,32 +749,23 @@ class EnhancedInterviewApp:
                 with gr.Column(scale=2):
                     interview_display = gr.Markdown(
                         """
-                        ### 👋 Welcome to Enhanced AI Technical Interviewer!
+                        ### 👋 AI Technical Interviewer
                         
-                        **Experience the future of AI-powered interviews with autonomous learning capabilities.**
+                        **Powered by Qwen2.5 + LLaMA 3 on HuggingFace Cloud**
                         
-                        #### 🧠 How Enhanced Learning Works:
-                        1. **Enter your name** and select your **interview topic**
-                        2. **Click "Start Enhanced Interview"** to begin
-                        3. **Answer 5 adaptive questions** - each one intelligently tailored to your responses
-                        4. **Receive comprehensive feedback** with learning insights and recommendations
+                        #### How It Works:
+                        1. Enter your name and select topic
+                        2. Click "Start Interview"
+                        3. Answer 5 questions
+                        4. Get detailed feedback with scores
                         
-                        #### 🚀 Enhanced Features:
-                        - **🧠 Adaptive Learning:** System learns from every interview and improves
-                        - **📊 Performance Analysis:** Real-time difficulty adjustment based on your performance
-                        - **🎯 Knowledge Tracking:** Automatically identifies your strengths and knowledge gaps
-                        - **⚡ Offline Optimization:** Cached responses for faster, more efficient processing
-                        - **🔄 Concurrent Processing:** Handles multiple interviews simultaneously
-                        - **🔒 Privacy First:** Everything runs locally on your machine
+                        #### Key Features:
+                        - **Hybrid Scoring:** LLM + Heuristic (60/40)
+                        - **Chain-of-Thought:** See AI reasoning
+                        - **Semantic Check:** Embedding-based relevance
+                        - **Fair Evaluation:** AI guardrails built-in
                         
-                        #### 📚 Available Topics:
-                        - **JavaScript/Frontend:** React, DOM manipulation, ES6+, async programming
-                        - **Python/Backend:** Django/Flask, APIs, databases, server architecture  
-                        - **Machine Learning:** Algorithms, model selection, data preprocessing
-                        - **System Design:** Scalability, architecture patterns, distributed systems
-                        - **Data Structures & Algorithms:** Complexity analysis, problem solving
-                        
-                        **Ready to experience the future of AI interviews? Let's begin! 🎯**
+                        **Ready? Let's begin! 🎯**
                         """,
                         elem_classes=["enhanced-interview-content"]
                     )
