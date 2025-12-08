@@ -29,13 +29,21 @@
 
 ---
 
-## 🚧 In Progress
 
 ### v2.2.2 - Codebase Cleanup
-- [ ] Remove all Ollama/local-first references
-- [ ] Update documentation for cloud-first
+- ✅ Removed all legacy Ollama references
+- ✅ Updated documentation for cloud-first
+- ✅ Cleaned binary files from git history
+- ✅ Optimized UI text for cloud
 
 ---
+
+## 🚧 In Progress
+
+### v2.3 - Code Evaluation
+- Design `gr.Code` component integration
+- Research code execution limits on Spaces
+
 
 ## 🔮 Future (v2.3+)
 
