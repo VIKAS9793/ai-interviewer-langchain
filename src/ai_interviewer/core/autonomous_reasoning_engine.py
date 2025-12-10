@@ -98,7 +98,9 @@ class AutonomousReasoningEngine:
     5. Contextual memory and learning
     """
     
-    def __init__(self, model_name: str = Config.DEFAULT_MODEL, max_retries: int = 3):
+    def __init__(self, model_name: str = None, max_retries: int = 3):
+        if model_name is None:
+            model_name = Config.DEFAULT_MODEL
         self.model_name = model_name
         self.max_retries = max_retries
         self.thought_history: deque = deque(maxlen=100)

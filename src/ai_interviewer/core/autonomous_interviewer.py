@@ -203,7 +203,9 @@ class AutonomousInterviewer:
     4. HUMAN-LIKE: Natural conversation, empathy, adaptability
     """
     
-    def __init__(self, model_name: str = Config.DEFAULT_MODEL):
+    def __init__(self, model_name: str = None):
+        if model_name is None:
+            model_name = Config.DEFAULT_MODEL
         self.model_name = model_name
         self.reasoning_engine = AutonomousReasoningEngine(model_name)
         self.active_sessions: Dict[str, InterviewSession] = {}
