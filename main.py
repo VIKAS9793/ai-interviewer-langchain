@@ -832,12 +832,14 @@ class EnhancedInterviewApp:
             # Answer section
             gr.Markdown("### 💬 Your Response")
             with gr.Column(elem_classes=["answer-section"]):
-                # Input Mode Selection
+                # Input Mode Selection - DISABLED (v2.3 Rollback)
                 input_mode = gr.Radio(
                     choices=["Text Answer", "Code Editor"],
                     value="Text Answer",
                     label="Input Mode",
-                    info="Select 'Code Editor' for programming questions"
+                    info="Code Editor temporarily disabled likely due to Cloud API limits",
+                    visible=False, 
+                    interactive=False
                 )
 
                 answer_input = gr.Textbox(
@@ -853,7 +855,7 @@ class EnhancedInterviewApp:
                     value="",
                     language="python",
                     label="💻 Code Editor",
-                    interactive=True,
+                    interactive=False,
                     visible=False
                 )
                 

@@ -545,10 +545,13 @@ class AutonomousInterviewer:
         # MERGED EVALUATION LOGIC
         # ---------------------------------------------------------
         # 1. Detect if this is a code submission
+        # ROLLBACK v2.3: Disabled Code Evaluation due to API limits. Always False.
         is_code = False
         
         # Infer language from topic
         language = "python"
+        
+        static_analysis = {"valid": False, "metrics": {}} # Mock empty analysis for rollback
         if "javascript" in topic.lower() or "frontend" in topic.lower():
             language = "javascript"
         elif "sql" in topic.lower():
