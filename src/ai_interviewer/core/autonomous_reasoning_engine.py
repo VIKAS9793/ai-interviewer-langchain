@@ -96,7 +96,7 @@ class AutonomousReasoningEngine:
     5. Contextual memory and learning
     """
     
-    def __init__(self, model_name: str = "meta-llama/Meta-Llama-3-8B-Instruct", max_retries: int = 3):
+    def __init__(self, model_name: str = Config.DEFAULT_MODEL, max_retries: int = 3):
         self.model_name = model_name
         self.max_retries = max_retries
         self.thought_history: deque = deque(maxlen=100)
@@ -139,7 +139,7 @@ class AutonomousReasoningEngine:
                     logger.warning("⚠️ HF_TOKEN not found! Falling back to public endpoints (may be rate limited).")
                 
                 self._llm = HuggingFaceEndpoint(
-                    repo_id="meta-llama/Meta-Llama-3-8B-Instruct",
+                    repo_id=Config.DEFAULT_MODEL,
                     task="text-generation",
                     max_new_tokens=512,
                     top_k=50,
