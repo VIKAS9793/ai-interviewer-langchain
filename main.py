@@ -601,6 +601,43 @@ class EnhancedInterviewApp:
         /* Timer styling */
         .timer-display {
             background: var(--bg-medium) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: 'Space Grotesk', sans-serif;
+            font-variant-numeric: tabular-nums;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .timer-icon {
+            font-size: 1.1rem;
+            animation: pulse 2s infinite;
+        }
+        
+        .timer-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary-light) !important;
+        }
+
+        /* Fix Radio Button Contrast */
+        .gradio-container fieldset {
+            background: transparent !important;
+        }
+        
+        /* Unselected radio options need visible text */
+        .gradio-container label span {
+             color: var(--text-primary) !important;
+        }
+        
+        /* Force radio group background to dark and text to light */
+        .gradio-container .block.form {
+            background: var(--bg-medium) !important;
+            border-color: var(--border-color) !important;
+        }
             border: 1px solid var(--learning-color) !important;
             border-radius: 10px;
             padding: 0.75rem 1rem;
