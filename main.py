@@ -623,20 +623,32 @@ class EnhancedInterviewApp:
             color: var(--primary-light) !important;
         }
 
-        /* Fix Radio Button Contrast */
+        /* Fix Radio Button Contrast - High Specificity */
         .gradio-container fieldset {
             background: transparent !important;
         }
         
-        /* Unselected radio options need visible text */
-        .gradio-container label span {
-             color: var(--text-primary) !important;
-        }
-        
-        /* Force radio group background to dark and text to light */
+        /* Target the Radio Group Wrapper */
         .gradio-container .block.form {
             background: var(--bg-medium) !important;
             border-color: var(--border-color) !important;
+        }
+
+        /* Target ALL radio option labels */
+        .gradio-container .wrap label span {
+            color: #E2E8F0 !important; /* Force light hex for safety */
+            font-weight: 500;
+        }
+        
+        /* Specifically target unselected radio buttons */
+        .gradio-container label:not(.selected) span {
+            color: #CBD5E1 !important; /* Slightly dimmer white */
+        }
+        
+        /* Ensure checked state is also visible */
+        .gradio-container label.selected span {
+            color: #FFFFFF !important;
+            font-weight: 700;
         }
             border: 1px solid var(--learning-color) !important;
             border-radius: 10px;
