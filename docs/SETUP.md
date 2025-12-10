@@ -1,7 +1,7 @@
 # 🛠️ Setup & Installation Guide
 
-> **Last Updated:** 2025-12-08
-> **Version:** 2.2.1 (Cloud-First)
+> **Last Updated:** 2025-12-10
+> **Version:** 2.3.1 (Stability Patch)
 
 ## 📋 Prerequisites
 

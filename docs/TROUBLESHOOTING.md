@@ -19,6 +19,10 @@ export HF_TOKEN="hf_your_token_here"
 **Cause:** First request to a model triggers warmup.
 **Fix:** Wait 30-60 seconds for initial model load. Subsequent requests are faster.
 
+### "Task not supported" Error (HTTP 500)
+**Cause:** Attempting to use constrained models (Mistral/Qwen) on Free Tier for `text-generation`.
+**Fix:** The app now enforces **Single-Model Architecture**. Please **Restart** your server to clear any stale processes trying to load old models.
+
 ### "Rate Limited" Error
 **Cause:** Free tier has request limits (~300 requests/hour).
 **Fix:** Wait 1 minute, or upgrade to HuggingFace Pro.

@@ -38,22 +38,24 @@
 
 ---
 
-## 🚧 In Progress
+### v2.3 - Code Evaluation (⚠️ ROLLED BACK)
+- ❌ `gr.Code` UI Hidden (API limitations)
+- ❌ Dedicated Code Evaluation Model disabled
+- ✅ UI Contrast Fixes retained
 
-### v2.3 - Code Evaluation
-- Design `gr.Code` component integration
-- Research code execution limits on Spaces
+### v2.3.1 - System Stability (Current)
+- ✅ Enforced Single-Model Architecture (LLaMA 3)
+- ✅ Removed all unstable multi-model code
+- ✅ Dry codebase & cleanup
 
+---
 
-## 🔮 Future (v2.3+)
+## 🔮 Future (v2.4+)
 
-### v2.3 - Code Evaluation
-- `gr.Code` component for coding questions
-- LLM-based code review
-
-### v2.4 - Voice Mode
+### v2.4 - Voice Mode (Next Priority)
 - HF Whisper API for voice input
 - HF TTS for voice output
+- Turn-based voice interview flow
 
 ### v2.5 - Resume Integration
 - PDF upload with `gr.File`

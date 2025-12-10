@@ -26,9 +26,9 @@ license: mit
 ![LangChain](https://img.shields.io/badge/LangChain-Framework-1C3C3C?style=flat-square)
 ![HuggingFace](https://img.shields.io/badge/🤗_HuggingFace-API-FFD21E?style=flat-square)
 ![LLaMA](https://img.shields.io/badge/LLaMA_3-8B-0467DF?style=flat-square)
-![Qwen](https://img.shields.io/badge/Qwen_2.5-32B-7C3AED?style=flat-square)
+![Mistral](https://img.shields.io/badge/Single_Model-Architecture-10B981?style=flat-square)
 
-**Self-Thinking AI** • **Chain-of-Thought** • **Hybrid Evaluation** • **Responsible AI**
+**Self-Thinking AI** • **Chain-of-Thought** • **Autonomous Reasoning** • **Responsible AI**
 
 </div>
 
@@ -48,8 +48,8 @@ license: mit
 </td>
 <td width="50%">
 
-### 📊 Hybrid Evaluation
-- Dual-model scoring (LLaMA + Qwen2.5)
+### 📊 Autonomous Evaluation
+- Single-Model Architecture (LLaMA 3)
 - Prometheus-style 1-5 rubric
 - Semantic relevance checking
 

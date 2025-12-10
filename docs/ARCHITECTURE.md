@@ -7,7 +7,7 @@ An **Autonomous AI Technical Interviewer** with human-like capabilities, deploye
 | Feature | Description |
 |---------|-------------|
 | **Self-Thinking** | Chain-of-Thought reasoning before every action |
-| **Hybrid Evaluation** | Qwen2.5 + Heuristics with Prometheus-style rubrics |
+| **Autonomous Evaluation** | Single-Model (LLaMA 3) with Prometheus-style rubrics |
 | **Semantic Relevance** | Embedding-based answer relevance checking |
 | **Knowledge Grounding** | Answer verification against authoritative sources |
 | **AI Guardrails** | Fair, unbiased, explainable decisions |
@@ -26,9 +26,8 @@ flowchart TB
         C --> E[Evaluation Engine]
     end
     
-    subgraph Models["HuggingFace Models"]
-        D --> F["LLaMA-3-8B<br/>Questions"]
-        E --> G["Qwen2.5-32B<br/>Evaluation"]
+    subgraph Models["HuggingFace Cloud"]
+        D --> F["LLaMA-3-8B<br/>Questions & Evaluation"]
         E --> H["MiniLM<br/>Embeddings"]
     end
     
@@ -40,53 +39,20 @@ flowchart TB
 ```
 
 ## Quick Start
-
 **Live Demo:** https://huggingface.co/spaces/Vikas9793/ai-interviewer
-
-**Local Setup:**
-```bash
-# Clone and setup
-git clone https://github.com/VIKAS9793/ai-interviewer-langchain.git
-cd ai-interviewer-langchain
-pip install -r requirements.txt
-
-# Set API token
-export HF_TOKEN="your_token"
-
-# Run
-python main.py
-```
-
-## Architecture
-
-```
-src/ai_interviewer/
-├── core/
-│   ├── autonomous_interviewer.py        # Main AI interviewer agent
-│   ├── autonomous_reasoning_engine.py   # Chain-of-Thought reasoning
-│   ├── autonomous_flow_controller.py    # Session management
-│   ├── ai_guardrails.py                 # Responsible AI safety
-│   ├── context_engineer.py              # Knowledge grounding
-│   ├── reflect_agent.py                 # Self-reflection agent
-│   └── metacognitive.py                 # Self-improvement system
-├── utils/
-│   └── config.py                        # Configuration
-└── assets/
-    └── banner.jpg                       # UI Banner
-```
 
 ## Models Used
 
 | Purpose | Model | Provider |
 |---------|-------|----------|
 | Questions | Meta-Llama-3-8B-Instruct | HuggingFace |
-| Evaluation | Qwen2.5-32B-Instruct | HuggingFace |
+| Evaluation| Meta-Llama-3-8B-Instruct | HuggingFace |
 | Embeddings | all-MiniLM-L6-v2 | Sentence Transformers |
 
 ## Key Features
 
-### 1. Hybrid Evaluation Strategy
-- **LLM Scoring (60%):** Prometheus-style 1-5 rubric with Qwen2.5
+### 1. Autonomous Evaluation
+- **Single-Model Scoring (LLaMA 3):** Prometheus-style 1-5 rubric
 - **Heuristic Scoring (40%):** Length, structure, keywords, depth
 
 ### 2. Semantic Relevance Checking
