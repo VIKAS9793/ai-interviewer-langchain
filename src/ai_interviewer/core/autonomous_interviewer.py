@@ -274,30 +274,11 @@ class AutonomousInterviewer:
     def _get_evaluation_llm(self) -> HuggingFaceEndpoint:
         """
         Get dedicated LLM for evaluation.
-        Switched to Mistral-7B-Instruct-v0.3 for reliable API support.
-        (Llama-3 and Qwen2.5 were facing 'Task not supported' errors on free tier).
+        STABILITY FIX: Reusing primary LLM connection.
+        Dedicated models (Qwen/Mistral) were failing API checks on Cloud Free Tier.
         """
-        try:
-            from ..utils.config import Config
-            token = os.environ.get("HF_TOKEN")
-            
-            # Use Mistral 7B v0.3 - historically very stable on HF Inference API
-            safe_model = "mistralai/Mistral-7B-Instruct-v0.3"
-            
-            eval_llm = HuggingFaceEndpoint(
-                repo_id=safe_model,
-                task="text-generation",
-                max_new_tokens=512,
-                top_k=30,
-                temperature=Config.EVALUATION_TEMPERATURE,
-                huggingfacehub_api_token=token
-            )
-            logger.info(f"📊 Evaluation LLM ready: {safe_model}")
-            return eval_llm
-        except Exception as e:
-            logger.warning(f"Evaluation LLM unavailable, using primary LLM: {e}")
-            # If primary is also failing, this will be caught upstream
-            return self._get_llm()
+        logger.info(f"📊 Using Primary LLM for Evaluation (Stability Mode)")
+        return self._get_llm()
     
     # ==================== INTERVIEW LIFECYCLE ====================
     
