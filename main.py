@@ -221,6 +221,9 @@ class EnhancedInterviewApp:
             if not candidate_name.strip():
                 return "⚠️ Please enter your name to begin the interview.", "", self._generate_progress_html(0, 0), "", True, True
             
+            # Force Single-Model Architecture (Ignore UI input which is now a display label)
+            model_id = Config.DEFAULT_MODEL
+            
             # Set model on flow controller's interviewer
             if hasattr(self.flow_controller, 'interviewer'):
                 self.flow_controller.interviewer.set_model(model_id)
