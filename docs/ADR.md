@@ -19,20 +19,14 @@
 
 ---
 
-## 2. Dual-Model Evaluation Strategy
-
-**Status:** Accepted
-
-**Context:** LLaMA 3 (8B) is good for conversational question generation but tends to be conservative in scoring evaluations.
-
-**Decision:** Use **two different models**:
-- **LLaMA 3 (8B)** for question generation
-- **Qwen2.5 (32B)** for answer evaluation
-
+## 2. Single-Model Evaluation Strategy (Architecture Simplified)
+**Status:** Accepted (Replaces Dual-Model)
+**Context:** Multi-model inference (Mistral/Qwen) on Free Tier caused 500 errors ("Task not supported").
+**Decision:** Standardize on **Meta-LLaMA-3 (8B)** for BOTH generation and evaluation.
 **Consequences:**
-- ✅ Better calibrated scores
-- ✅ Prometheus-style rubric compatibility
-- ⚠️ Slightly higher latency (two model calls)
+- ✅ 100% API Stability (No "Task not supported" errors)
+- ✅ Simplified Architecture (DRY)
+- ⚠️ Sacrifices nuanced scoring of larger models for reliability
 
 ---
 

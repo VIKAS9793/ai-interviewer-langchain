@@ -18,6 +18,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 
+from ..utils.config import Config
+
 import os
 from langchain_huggingface import HuggingFaceEndpoint
 from langchain_core.prompts import PromptTemplate

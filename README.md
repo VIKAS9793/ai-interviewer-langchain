@@ -26,7 +26,7 @@ license: mit
 ![LangChain](https://img.shields.io/badge/LangChain-Framework-1C3C3C?style=flat-square)
 ![HuggingFace](https://img.shields.io/badge/🤗_HuggingFace-API-FFD21E?style=flat-square)
 ![LLaMA](https://img.shields.io/badge/LLaMA_3-8B-0467DF?style=flat-square)
-![Mistral](https://img.shields.io/badge/Single_Model-Architecture-10B981?style=flat-square)
+![Architecture](https://img.shields.io/badge/Single_Model-Architecture-10B981?style=flat-square)
 
 **Self-Thinking AI** • **Chain-of-Thought** • **Autonomous Reasoning** • **Responsible AI**
 

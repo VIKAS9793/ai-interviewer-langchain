@@ -12,6 +12,7 @@ from concurrent.futures import ThreadPoolExecutor
 import threading
 from queue import Queue
 
+from ..utils.config import Config
 from .autonomous_interviewer import AutonomousInterviewer, InterviewSession
 
 logger = logging.getLogger(__name__)

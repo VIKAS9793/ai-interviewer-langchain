@@ -12,7 +12,7 @@
 
 ### v2.1 - HuggingFace Spaces Deployment
 - Cloud-first architecture with HF Inference API
-- Multi-model support (LLaMA, Mistral, Qwen)
+- Multi-model support (Initial experiments - Replaced by Single-Model)
 - Gradio UI with progress tracking
 
 ### v2.2 - Enhanced Evaluation
@@ -21,8 +21,8 @@
 - ✅ Semantic Relevance Checking (Sentence Transformers)
 - ✅ Semantic Caching (LRU)
 
-### v2.2.1 - Hybrid Evaluation Strategy
-- ✅ Dual-model: LLaMA for questions, Qwen2.5 for evaluation
+### v2.2.1 - Hybrid Evaluation Strategy (Simplified to Single-Model)
+- ✅ Dual-model: (Deprecated) LLaMA + Qwen2.5 -> Now LLaMA 3 Only
 - ✅ Prometheus-style 1-5 rubric scoring
 - ✅ 60/40 LLM/Heuristic merge weights
 - ✅ Depth bonus for comprehensive answers
