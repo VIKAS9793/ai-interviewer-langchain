@@ -51,8 +51,8 @@ class Config:
     LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     
     # Evaluation Model Settings (Dual-model architecture)
-    # Use Qwen2.5 for evaluation - better calibrated scoring
-    EVALUATION_MODEL = "Qwen/Qwen2.5-32B-Instruct"
+    # STABILITY FIX: Forced to Primary LLM (LLaMA 3) due to API limits.
+    EVALUATION_MODEL = "meta-llama/Meta-Llama-3-8B-Instruct"
     EVALUATION_TEMPERATURE = 0.1  # Low temp for consistent scoring
     EVALUATION_SCALE = 5  # 1-5 scale (more reliable than 1-10)
     
