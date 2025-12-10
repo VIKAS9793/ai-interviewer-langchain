@@ -291,13 +291,16 @@ class EnhancedInterviewApp:
             logger.error(f"Error starting autonomous interview: {e}")
             return f"❌ **Error:** {str(e)}", "", self._generate_progress_html(0, 0), "🔴 **Status:** Error", True, True
     
-    def process_answer(self, answer: str) -> Tuple[str, str, str, str, bool, str]:
+    def process_answer(self, answer_text: str, answer_code: str, mode: str = "Text Answer") -> Tuple[str, str, str, str, bool, str]:
         """Process answer with autonomous reasoning and guardrails"""
         try:
+            # Determine which input to use
+            answer = answer_code if mode == "Code Editor" else answer_text
+            
             if not self.current_session:
                 return "❌ **Error:** No active session. Please start an interview.", "", self._generate_progress_html(0, 0), "🔴 **Status:** No Session", True, ""
             
-            if not answer.strip():
+            if not answer or not answer.strip():
                 elapsed = int(time.time() - self.current_session.get("start_time", time.time()))
                 q_num = self.current_session.get("question_count", 1)
                 start_ts = self.current_session.get("start_time", 0)
@@ -780,6 +783,14 @@ class EnhancedInterviewApp:
             # Answer section
             gr.Markdown("### 💬 Your Response")
             with gr.Column(elem_classes=["answer-section"]):
+                # Input Mode Selection
+                input_mode = gr.Radio(
+                    choices=["Text Answer", "Code Editor"],
+                    value="Text Answer",
+                    label="Input Mode",
+                    info="Select 'Code Editor' for programming questions"
+                )
+
                 answer_input = gr.Textbox(
                     label="📝 Your Answer",
                     placeholder="Share your thoughts, approach, and reasoning here...",
@@ -787,6 +798,27 @@ class EnhancedInterviewApp:
                     interactive=True,
                     elem_classes=["custom-input"],
                     info="💡 Enhanced Tip: The AI analyzes your response patterns and adapts accordingly!"
+                )
+                
+                code_input = gr.Code(
+                    value="",
+                    language="python",
+                    label="💻 Code Editor",
+                    interactive=True,
+                    visible=False
+                )
+                
+                # Input toggle logic
+                def toggle_input(mode):
+                    if mode == "Code Editor":
+                        return gr.update(visible=False), gr.update(visible=True)
+                    else:
+                        return gr.update(visible=True), gr.update(visible=False)
+
+                input_mode.change(
+                    fn=toggle_input,
+                    inputs=[input_mode],
+                    outputs=[answer_input, code_input]
                 )
                 
                 with gr.Row(elem_classes=["button-row"]):
@@ -816,21 +848,24 @@ class EnhancedInterviewApp:
             
             submit_btn.click(
                 fn=self.process_answer,
-                inputs=[answer_input],
+                inputs=[answer_input, code_input, input_mode],
                 outputs=[interview_display, answer_input, progress_html, system_status, submit_btn_disabled, reasoning_display]
             )
             
-            # Allow Enter key to submit
+            # Allow Enter key to submit (only works for Textbox)
             answer_input.submit(
                 fn=self.process_answer,
-                inputs=[answer_input], 
+                inputs=[answer_input, code_input, input_mode], 
                 outputs=[interview_display, answer_input, progress_html, system_status, submit_btn_disabled, reasoning_display]
             )
             
             # Clear button
+            def clear_inputs():
+                return "", ""
+            
             clear_btn.click(
-                fn=lambda: "",
-                outputs=[answer_input]
+                fn=clear_inputs,
+                outputs=[answer_input, code_input]
             )
             
             # Enhanced footer

@@ -33,6 +33,8 @@ from .autonomous_reasoning_engine import (
 
 from .reflect_agent import ReflectAgent
 from .context_engineer import KnowledgeGrounding
+from .static_analyzer import StaticCodeAnalyzer
+from src.ai_interviewer.utils.prompts import CODE_EVALUATION_PROMPT, DEFAULT_EVALUATION_PROMPT
 
 logger = logging.getLogger(__name__)
 
@@ -535,33 +537,49 @@ class AutonomousInterviewer:
         question = session.current_question
         topic = session.topic
         
-        # Heuristic evaluation (always available) - with question for relevance check
+        # MERGED EVALUATION LOGIC
+        # ---------------------------------------------------------
+        # 1. Detect if this is a code submission
+        is_code = False
+        static_analysis = StaticCodeAnalyzer.analyze(answer)
+        if static_analysis.get("valid") and static_analysis.get("metrics"):
+             # Heuristic: If it has valid metrics (complexity etc), treat as code
+             # We can refine this by checking if metrics['loc'] > 1 or similar
+             is_code = True
+             logger.info(f"💻 Code submission detected: {static_analysis['metrics']}")
+        
+        # 2. Heuristic Evaluation
         heuristic_eval = self._heuristic_evaluation(answer, topic, question)
         
-        # Try LLM evaluation for deeper insights
-        llm_eval = self._llm_evaluation(question, answer, topic, session)
+        # 3. LLM Evaluation (Code vs Text)
+        llm_eval = self._llm_evaluation(question, answer, topic, session, 
+                                      is_code=is_code, 
+                                      analysis=static_analysis)
         
-        # Knowledge Grounding verification
+        # 4. Knowledge Grounding (Skip for code usually, or apply mainly to comments?)
+        # For now, we apply it if it's text, or if we want to check code comments against docs.
+        # Let's keep it optional but log warnings.
         grounding_result = None
-        if self.knowledge_grounding:
+        if self.knowledge_grounding and not is_code: # Skip grounding for code for MVP
             try:
                 grounding_result = self.knowledge_grounding.verify_answer(topic, question, answer)
-                logger.info(f"📚 Grounding: {grounding_result.get('accuracy_assessment', 'unknown')}")
             except Exception as e:
                 logger.warning(f"Knowledge grounding failed: {e}")
-        
-        # Merge evaluations with reasoning
+
+        # 5. Merge evaluations
         merged_eval = self._merge_evaluations(heuristic_eval, llm_eval, thought_chain)
         
-        # Add grounding info to merged evaluation
         if grounding_result:
             merged_eval["grounding"] = grounding_result
-        
-        # Extract insights for learning
-        merged_eval["knowledge_insights"] = self._extract_knowledge_insights(
-            answer, topic, merged_eval
-        )
-        
+            
+        if is_code:
+            merged_eval["is_code"] = True
+            merged_eval["static_analysis"] = static_analysis.get("metrics")
+            # If static analysis failed (syntax error), override score
+            if not static_analysis.get("valid"):
+                 merged_eval["score"] = 1.0
+                 merged_eval["brief_feedback"] = f"Syntax Error: {static_analysis.get('error')}"
+
         return merged_eval
     
     def _heuristic_evaluation(self, answer: str, topic: str, question: str = "") -> Dict[str, Any]:
@@ -686,7 +704,9 @@ class AutonomousInterviewer:
         return min(relevance_ratio + technical_boost, 1.0)
     
     def _llm_evaluation(self, question: str, answer: str, 
-                       topic: str, session: InterviewSession) -> Optional[Dict[str, Any]]:
+                       topic: str, session: InterviewSession,
+                       is_code: bool = False,
+                       analysis: Dict[str, Any] = None) -> Optional[Dict[str, Any]]:
         """
         LLM-based evaluation using Prometheus-style rubric scoring.
         Uses dedicated evaluation LLM (Qwen2.5) with 1-5 scale for reliability.
@@ -697,80 +717,33 @@ class AutonomousInterviewer:
             if not llm:
                 return None
             
-            # Prometheus-style rubric prompt for reliable scoring
-            eval_prompt = PromptTemplate(
-                input_variables=["question", "answer", "topic", "context"],
-                template="""You are an expert technical interviewer. Evaluate the candidate's answer using the scoring rubric below.
-
-### INTERVIEW CONTEXT
-TOPIC: {topic}
-QUESTION: {question}
-CANDIDATE'S ANSWER: {answer}
-SESSION INFO: {context}
-
-### SCORING RUBRIC (Use this exactly)
-
-Score 5 - EXCEPTIONAL:
-- Comprehensive coverage of all key concepts
-- Technically accurate with no errors
-- Well-structured with clear examples
-- Demonstrates deep understanding
-
-Score 4 - GOOD:
-- Covers main concepts correctly
-- Minor gaps but no major errors
-- Clear explanation and good structure
-- Shows solid understanding
-
-Score 3 - ADEQUATE:
-- Addresses the question but lacks depth
-- Some correct points, minor errors possible
-- Could be better organized
-- Basic understanding demonstrated
-
-Score 2 - LIMITED:
-- Partially relevant to the question
-- Significant gaps or errors present
-- Lacks structure or clarity
-- Surface-level understanding only
-
-Score 1 - POOR:
-- Does not address the question
-- Incorrect or irrelevant information
-- Minimal effort or off-topic
-- No understanding demonstrated
-
-### YOUR EVALUATION
-
-Analyze the answer step-by-step, then provide your assessment.
-
-Respond in JSON format:
-{{
-    "score": <1-5 based on rubric above>,
-    "technical_accuracy": <0.0-1.0>,
-    "understanding_depth": <0.0-1.0>,
-    "communication": <0.0-1.0>,
-    "practical_application": <0.0-1.0>,
-    "strengths": ["specific strength 1", "specific strength 2"],
-    "improvements": ["specific area to improve 1", "specific area to improve 2"],
-    "brief_feedback": "Actionable one-sentence feedback for the candidate"
-}}"""
-            )
+            # Select prompt based on content type
+            if is_code and analysis and analysis.get("valid"):
+                # Use Code Evaluation Prompt
+                metrics = analysis.get("metrics", {})
+                prompt_text = CODE_EVALUATION_PROMPT.format(
+                    topic=topic,
+                    question=question,
+                    language=metrics.get("language", "python"),
+                    code=answer,
+                    complexity=metrics.get("cyclomatic_complexity", "N/A"),
+                    nesting=metrics.get("max_nesting_depth", "N/A")
+                )
+                logger.info("🧪 Using CODE evaluation prompt")
+            else:
+                # Use Default Text Prompt
+                prompt_text = DEFAULT_EVALUATION_PROMPT.format(
+                    topic=topic,
+                    question=question,
+                    answer=answer
+                )
+                logger.info("📝 Using DEFAULT text evaluation prompt")
             
-            context = f"Question {session.question_number}/{session.max_questions}"
-            if session.performance_history:
-                # Convert existing scores to 1-5 scale for context
-                avg = sum(session.performance_history) / len(session.performance_history)
-                avg_scaled = avg / 2  # Convert 1-10 to 1-5 scale
-                context += f", Average so far: {avg_scaled:.1f}/5"
-            
-            chain = eval_prompt | llm
-            response = chain.invoke({
-                "question": question,
-                "answer": answer,
-                "topic": topic,
-                "context": context
-            })
+            # Call LLM
+            response = llm.invoke(prompt_text)
+            # Legacy prompt construction removed. 
+            # Response is already obtained from llm.invoke(prompt_text) above.
+
             
             # Parse JSON response
             json_start = response.find('{')
