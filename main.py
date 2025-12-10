@@ -840,9 +840,111 @@ class EnhancedInterviewApp:
                     info="Use Voice for hands-free input (Chrome/Edge/Safari)"
                 )
                 
-                # Voice Controls (Hidden by default) - Using HTML buttons for direct JS integration
+                # Voice Controls (Hidden by default) - Using HTML buttons with inline JS
                 with gr.Row(visible=False) as voice_controls:
                     voice_control_html = gr.HTML('''
+                    <script>
+                    // Voice Mode v2.4 - Inline Script (ensures functions exist before buttons)
+                    (function() {
+                        // Rate limiting
+                        let lastVoiceInput = 0;
+                        const RATE_LIMIT_MS = 3000;
+                        const MAX_TRANSCRIPT_LENGTH = 2000;
+                        
+                        // Check browser support
+                        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                        if (!SpeechRecognition) {
+                            console.warn('Voice Mode: Speech Recognition not supported');
+                            window.startVoiceRecording = function() { alert('Voice not supported in this browser. Please use Chrome or Edge.'); };
+                            window.stopVoiceRecording = function() {};
+                            return;
+                        }
+                        
+                        // Initialize recognition
+                        const recognition = new SpeechRecognition();
+                        recognition.continuous = false;
+                        recognition.interimResults = false;
+                        recognition.lang = 'en-US';
+                        
+                        // Sanitize input
+                        function sanitize(text) {
+                            if (!text) return '';
+                            return text.replace(/<[^>]+>/g, '').replace(/(javascript:|on\w+=)/gi, '').substring(0, MAX_TRANSCRIPT_LENGTH).trim();
+                        }
+                        
+                        // Start listening
+                        window.startVoiceRecording = function() {
+                            const now = Date.now();
+                            if (now - lastVoiceInput < RATE_LIMIT_MS) {
+                                alert('Please wait a few seconds before recording again.');
+                                return;
+                            }
+                            lastVoiceInput = now;
+                            
+                            const status = document.getElementById('voice-status');
+                            if (status) {
+                                status.innerHTML = '🔴 <strong>Listening...</strong> Speak now';
+                                status.style.background = 'rgba(239, 68, 68, 0.2)';
+                            }
+                            
+                            try {
+                                recognition.start();
+                            } catch (e) {
+                                console.error('Recognition start error:', e);
+                                if (status) status.innerHTML = '⚠️ Error starting - try again';
+                            }
+                        };
+                        
+                        // Stop listening
+                        window.stopVoiceRecording = function() {
+                            recognition.stop();
+                            const status = document.getElementById('voice-status');
+                            if (status) {
+                                status.innerHTML = '🟢 Ready to record';
+                                status.style.background = 'rgba(34, 197, 94, 0.2)';
+                            }
+                        };
+                        
+                        // Handle result
+                        recognition.onresult = function(event) {
+                            const transcript = sanitize(event.results[0][0].transcript);
+                            const confidence = event.results[0][0].confidence;
+                            
+                            // Find Gradio textbox and update it
+                            const textbox = document.querySelector('#answer-textbox textarea');
+                            if (textbox) {
+                                textbox.value = transcript;
+                                textbox.dispatchEvent(new Event('input', { bubbles: true }));
+                            }
+                            
+                            const status = document.getElementById('voice-status');
+                            if (status) {
+                                status.innerHTML = '✅ Transcribed (' + Math.round(confidence * 100) + '% confidence)';
+                                status.style.background = 'rgba(34, 197, 94, 0.2)';
+                            }
+                        };
+                        
+                        // Handle errors
+                        recognition.onerror = function(event) {
+                            console.error('Speech error:', event.error);
+                            const status = document.getElementById('voice-status');
+                            if (status) {
+                                status.innerHTML = '⚠️ ' + event.error + ' - Try again or use text';
+                                status.style.background = 'rgba(245, 158, 11, 0.2)';
+                            }
+                        };
+                        
+                        recognition.onend = function() {
+                            const status = document.getElementById('voice-status');
+                            if (status && !status.innerHTML.includes('✅')) {
+                                status.innerHTML = '🟢 Ready to record';
+                                status.style.background = 'rgba(34, 197, 94, 0.2)';
+                            }
+                        };
+                        
+                        console.log('Voice Mode v2.4 ready');
+                    })();
+                    </script>
                     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 10px;">
                         <div id="voice-status" style="padding: 10px 20px; border-radius: 8px; background: rgba(34, 197, 94, 0.2); text-align: center; flex: 1;">
                             🟢 Click microphone to start
@@ -855,7 +957,7 @@ class EnhancedInterviewApp:
                         </button>
                         <label style="display: flex; align-items: center; gap: 5px; color: var(--text-primary);">
                             <input type="checkbox" id="speak-response-checkbox" checked style="width: 18px; height: 18px;">
-                            🔊 Speak AI Response
+                            🔊 Speak Response
                         </label>
                     </div>
                     ''')
@@ -955,139 +1057,6 @@ class EnhancedInterviewApp:
                 <p style="font-size: 0.9rem;">🧠 Chain-of-Thought Reasoning • ⚡ Semantic Evaluation • 🔄 Hybrid Scoring • 🛡️ AI Guardrails • 🎤 Voice Mode</p>
                 <p style="font-size: 0.8rem;">Built with LangChain, HuggingFace Inference API, Gradio, and Sentence Transformers</p>
             </div>
-            """)
-            
-            # Voice Mode JavaScript (v2.4 - Browser-Native Web Speech API)
-            gr.HTML("""
-            <script>
-            // Voice Mode v2.4 - Zero-Cost Browser-Native Speech API
-            (function() {
-                // Rate limiting (Anti-DoS)
-                let lastVoiceInput = 0;
-                const RATE_LIMIT_MS = 3000;
-                const MAX_TRANSCRIPT_LENGTH = 2000;
-                
-                // Check browser support
-                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                if (!SpeechRecognition) {
-                    console.warn('Voice Mode: Speech Recognition not supported in this browser');
-                    return;
-                }
-                
-                // Initialize recognition
-                const recognition = new SpeechRecognition();
-                recognition.continuous = false;
-                recognition.interimResults = false;
-                recognition.lang = 'en-US';
-                recognition.maxAlternatives = 1;
-                
-                // State
-                let isListening = false;
-                
-                // Get elements (with retry for Gradio dynamic loading)
-                function getElements() {
-                    return {
-                        textbox: document.querySelector('#answer-textbox textarea'),
-                        status: document.getElementById('voice-status'),
-                        micBtn: document.querySelector('button:has-text("🎤 Start Recording")') || 
-                                Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Start Recording')),
-                        stopBtn: Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Stop'))
-                    };
-                }
-                
-                // Sanitize input (Security)
-                function sanitizeTranscript(text) {
-                    if (!text) return '';
-                    // Remove HTML/JS tags
-                    text = text.replace(/<[^>]+>/g, '');
-                    // Remove script-like patterns
-                    text = text.replace(/(javascript:|on\w+=|<script)/gi, '');
-                    // Limit length
-                    return text.substring(0, MAX_TRANSCRIPT_LENGTH).trim();
-                }
-                
-                // Start listening
-                window.startVoiceRecording = function() {
-                    const now = Date.now();
-                    if (now - lastVoiceInput < RATE_LIMIT_MS) {
-                        alert('Please wait a few seconds before recording again.');
-                        return;
-                    }
-                    lastVoiceInput = now;
-                    
-                    const els = getElements();
-                    if (els.status) {
-                        els.status.innerHTML = '🔴 <strong>Listening...</strong> Speak now';
-                        els.status.style.background = 'rgba(239, 68, 68, 0.2)';
-                    }
-                    
-                    recognition.start();
-                    isListening = true;
-                };
-                
-                // Stop listening
-                window.stopVoiceRecording = function() {
-                    recognition.stop();
-                    isListening = false;
-                    const els = getElements();
-                    if (els.status) {
-                        els.status.innerHTML = '🟢 Ready to record';
-                        els.status.style.background = 'var(--bg-medium)';
-                    }
-                };
-                
-                // Handle result
-                recognition.onresult = function(event) {
-                    const transcript = sanitizeTranscript(event.results[0][0].transcript);
-                    const confidence = event.results[0][0].confidence;
-                    
-                    const els = getElements();
-                    if (els.textbox) {
-                        els.textbox.value = transcript;
-                        // Trigger input event for Gradio to detect change
-                        els.textbox.dispatchEvent(new Event('input', { bubbles: true }));
-                    }
-                    
-                    if (els.status) {
-                        const confPercent = Math.round(confidence * 100);
-                        els.status.innerHTML = '✅ Transcribed (' + confPercent + '% confidence)';
-                        els.status.style.background = 'rgba(34, 197, 94, 0.2)';
-                    }
-                    
-                    isListening = false;
-                };
-                
-                // Handle errors
-                recognition.onerror = function(event) {
-                    console.error('Speech recognition error:', event.error);
-                    const els = getElements();
-                    if (els.status) {
-                        els.status.innerHTML = '⚠️ Error: ' + event.error + ' - Try again or use text';
-                        els.status.style.background = 'rgba(245, 158, 11, 0.2)';
-                    }
-                    isListening = false;
-                };
-                
-                // TTS - Speak AI Response
-                window.speakResponse = function(text) {
-                    if (!('speechSynthesis' in window)) {
-                        console.warn('TTS not supported');
-                        return;
-                    }
-                    // Stop any current speech
-                    window.speechSynthesis.cancel();
-                    
-                    const utterance = new SpeechSynthesisUtterance(text);
-                    utterance.rate = 0.9;
-                    utterance.pitch = 1.0;
-                    utterance.lang = 'en-US';
-                    window.speechSynthesis.speak(utterance);
-                };
-                
-                // Log initialization
-                console.log('Voice Mode v2.4 initialized - Browser-Native STT/TTS ready');
-            })();
-            </script>
             """)
             
             # Voice Mode Toggle Logic
