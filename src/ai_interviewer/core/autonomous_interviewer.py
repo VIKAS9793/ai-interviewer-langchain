@@ -273,22 +273,25 @@ class AutonomousInterviewer:
     
     def _get_evaluation_llm(self) -> HuggingFaceEndpoint:
         """
-        Get dedicated LLM for evaluation (Qwen2.5 for better calibration).
-        Uses low temperature for consistent scoring.
+        Get dedicated LLM for evaluation (Fallback to LLaMA 3 for reliability).
+        Qwen2.5 currently has API task support issues on free tier.
         """
         try:
             from ..utils.config import Config
             token = os.environ.get("HF_TOKEN")
             
+            # Switch to LLaMA 3 8B which is reliable for text-generation
+            fallback_model = "meta-llama/Meta-Llama-3-8B-Instruct"
+            
             eval_llm = HuggingFaceEndpoint(
-                repo_id=Config.EVALUATION_MODEL,
+                repo_id=fallback_model,
                 task="text-generation",
                 max_new_tokens=512,
                 top_k=30,
                 temperature=Config.EVALUATION_TEMPERATURE,
                 huggingfacehub_api_token=token
             )
-            logger.info(f"📊 Evaluation LLM ready: {Config.EVALUATION_MODEL}")
+            logger.info(f"📊 Evaluation LLM ready: {fallback_model}")
             return eval_llm
         except Exception as e:
             logger.warning(f"Evaluation LLM unavailable, using primary LLM: {e}")
@@ -541,7 +544,17 @@ class AutonomousInterviewer:
         # ---------------------------------------------------------
         # 1. Detect if this is a code submission
         is_code = False
-        static_analysis = StaticCodeAnalyzer.analyze(answer)
+        
+        # Infer language from topic
+        language = "python"
+        if "javascript" in topic.lower() or "frontend" in topic.lower():
+            language = "javascript"
+        elif "sql" in topic.lower():
+            language = "sql"
+        elif "java" in topic.lower() and "javascript" not in topic.lower():
+            language = "java"
+            
+        static_analysis = StaticCodeAnalyzer.analyze(answer, language=language)
         if static_analysis.get("valid") and static_analysis.get("metrics"):
              # Heuristic: If it has valid metrics (complexity etc), treat as code
              # We can refine this by checking if metrics['loc'] > 1 or similar
