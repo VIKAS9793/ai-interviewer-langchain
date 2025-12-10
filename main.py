@@ -840,18 +840,25 @@ class EnhancedInterviewApp:
                     info="Use Voice for hands-free input (Chrome/Edge/Safari)"
                 )
                 
-                # Voice Controls (Hidden by default)
+                # Voice Controls (Hidden by default) - Using HTML buttons for direct JS integration
                 with gr.Row(visible=False) as voice_controls:
-                    voice_status = gr.HTML(
-                        '<div id="voice-status" style="padding: 10px; border-radius: 8px; background: var(--bg-medium); text-align: center;">🟢 Click microphone to start</div>'
-                    )
-                    mic_btn = gr.Button("🎤 Start Recording", variant="secondary", size="sm")
-                    stop_btn = gr.Button("⏹️ Stop", variant="secondary", size="sm")
-                    speak_response = gr.Checkbox(
-                        label="🔊 Speak AI Response",
-                        value=True,
-                        info="AI will read feedback aloud"
-                    )
+                    voice_control_html = gr.HTML('''
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 10px;">
+                        <div id="voice-status" style="padding: 10px 20px; border-radius: 8px; background: rgba(34, 197, 94, 0.2); text-align: center; flex: 1;">
+                            🟢 Click microphone to start
+                        </div>
+                        <button onclick="window.startVoiceRecording()" style="padding: 10px 20px; border-radius: 8px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none; cursor: pointer; font-size: 1rem; font-weight: 600;">
+                            🎤 Start Recording
+                        </button>
+                        <button onclick="window.stopVoiceRecording()" style="padding: 10px 20px; border-radius: 8px; background: #4b5563; color: white; border: none; cursor: pointer; font-size: 1rem;">
+                            ⏹️ Stop
+                        </button>
+                        <label style="display: flex; align-items: center; gap: 5px; color: var(--text-primary);">
+                            <input type="checkbox" id="speak-response-checkbox" checked style="width: 18px; height: 18px;">
+                            🔊 Speak AI Response
+                        </label>
+                    </div>
+                    ''')
                 
                 # Input Mode Selection - DISABLED (v2.3 Rollback)
                 input_mode = gr.Radio(
@@ -1077,17 +1084,8 @@ class EnhancedInterviewApp:
                     window.speechSynthesis.speak(utterance);
                 };
                 
-                // Wire up buttons after Gradio loads
-                setTimeout(function() {
-                    const els = getElements();
-                    if (els.micBtn) {
-                        els.micBtn.onclick = window.startVoiceRecording;
-                    }
-                    if (els.stopBtn) {
-                        els.stopBtn.onclick = window.stopVoiceRecording;
-                    }
-                    console.log('Voice Mode v2.4 initialized');
-                }, 2000);
+                // Log initialization
+                console.log('Voice Mode v2.4 initialized - Browser-Native STT/TTS ready');
             })();
             </script>
             """)
