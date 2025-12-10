@@ -55,6 +55,7 @@ license: mit
 
 </td>
 </tr>
+</tr>
 <tr>
 <td width="50%">
 
@@ -66,10 +67,10 @@ license: mit
 </td>
 <td width="50%">
 
-### ⚡ Cloud-Native
-- HuggingFace Spaces ready
-- No GPU required
-- Instant deployment
+### 🎤 Voice Mode (v2.4)
+- Browser-native Speech-to-Text
+- AI response read aloud
+- Zero external API calls
 
 </td>
 </tr>
@@ -83,18 +84,19 @@ license: mit
 flowchart TB
     subgraph UI["🖥️ Gradio Interface"]
         A["👤 Candidate"] --> B["Interview Controller"]
+        A2["🎤 Voice Input"] --> B
     end
     
     subgraph Core["⚙️ Core Engine"]
         B --> C["🤖 Autonomous Interviewer"]
         C --> D["🧠 Reasoning Engine<br/>Chain-of-Thought"]
-        C --> E["📊 Evaluation Engine<br/>Hybrid Scoring"]
+        C --> E["📊 Evaluation Engine<br/>Prometheus Scoring"]
         C --> F["📚 Knowledge Grounding"]
     end
     
     subgraph Models["🤗 HuggingFace Cloud"]
-        D --> G["Meta LLaMA-3-8B<br/>Question Generation"]
-        E --> H["Qwen2.5-32B<br/>Answer Evaluation"]
+        D --> G["Meta LLaMA-3-8B<br/>Single-Model Architecture"]
+        E --> G
         E --> I["MiniLM<br/>Semantic Embeddings"]
     end
     
@@ -116,7 +118,7 @@ flowchart TB
 
 ```mermaid
 pie title Scoring Distribution
-    "LLM Score (Qwen2.5)" : 60
+    "LLM Score (LLaMA 3)" : 60
     "Heuristic Score" : 40
 ```
 

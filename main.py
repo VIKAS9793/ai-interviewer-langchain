@@ -236,7 +236,7 @@ class EnhancedInterviewApp:
                 model_names = {
                     "meta-llama/Meta-Llama-3-8B-Instruct": "LLaMA 3 (8B)",
                     "mistralai/Mistral-7B-Instruct-v0.3": "Mistral (7B)",
-                    "Qwen/Qwen2.5-7B-Instruct": "Qwen 2.5 (7B)"
+                    "meta-llama/Meta-Llama-3-8B-Instruct": "LLaMA 3 (8B)"
                 }
                 model_display = model_names.get(model_id, model_id.split("/")[-1])
                 
@@ -698,7 +698,7 @@ class EnhancedInterviewApp:
             gr.HTML("""
             <div class="enhanced-header">
                 <h1 style="margin:0; font-size: 2.5rem; font-weight: 800;">🧠 AI Technical Interviewer</h1>
-                <p style="margin: 0.5rem 0 0 0; font-size: 1.1rem; opacity: 0.9;">Hybrid LLM Evaluation • Chain-of-Thought Reasoning • HuggingFace Cloud</p>
+                <p style="margin: 0.5rem 0 0 0; font-size: 1.1rem; opacity: 0.9;">Single-Model Architecture • Chain-of-Thought Reasoning • 🎤 Voice Mode</p>
             </div>
             """)
             
@@ -803,7 +803,7 @@ class EnhancedInterviewApp:
                         """
                         ### 👋 AI Technical Interviewer
                         
-                        **Powered by Qwen2.5 + LLaMA 3 on HuggingFace Cloud**
+                        **Powered by Meta LLaMA 3 (8B) on HuggingFace Cloud**
                         
                         #### How It Works:
                         1. Enter your name and select topic

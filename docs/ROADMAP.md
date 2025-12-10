@@ -50,13 +50,21 @@
 
 ---
 
-## 🔮 Future (v2.4+)
+## ✅ v2.4 - Voice Mode (Complete)
+- ✅ Browser-native Speech-to-Text (`webkitSpeechRecognition`)
+- ✅ Browser-native Text-to-Speech (`speechSynthesis`)
+- ✅ Zero external API calls (fully client-side)
+- ✅ Security: Input sanitization, rate limiting, XSS prevention
 
-### v2.4 - Voice Mode (Next Priority)
-- HF Whisper API for voice input
-- HF TTS for voice output
-- Turn-based voice interview flow
+---
 
-### v2.5 - Resume Integration
+## 🔮 Future (v2.5+)
+
+### v2.5 - Resume Integration (Next Priority)
 - PDF upload with `gr.File`
 - Personalized questions based on resume
+- Auto-extract skills for topic selection
+
+### v2.6 - Multi-Language Support
+- Interview in multiple languages
+- Language detection and switching

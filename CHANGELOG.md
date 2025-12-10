@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.0] - 2025-12-10
+
+### 🎤 Voice Mode (Browser-Native)
+*   **Speech-to-Text:** Browser `webkitSpeechRecognition` for hands-free input
+*   **Text-to-Speech:** Browser `speechSynthesis` for AI response playback
+*   **Zero External API Calls:** All voice processing in-browser (zero cost)
+*   **Security:** Input sanitization, rate limiting (3s cooldown), XSS prevention
+
+---
+
+## [2.3.1] - 2025-12-10
+
+### 🛡️ Stability Patch
+*   **Single-Model Architecture:** Consolidated all LLM calls to `meta-llama/Meta-Llama-3-8B-Instruct`
+*   **Removed Qwen/Mistral References:** Eliminated "Task not supported" API errors
+*   **Fixed NameError:** Resolved circular import in Config default arguments
+*   **UI Model Selector Removed:** Prevents user confusion with fixed architecture
+*   **Code Evaluation Rolled Back:** Disabled due to Free Tier API limitations
+
+---
+
 ## [2.2.2] - 2025-12-08
 
 ### 🧹 Codebase Cleanup

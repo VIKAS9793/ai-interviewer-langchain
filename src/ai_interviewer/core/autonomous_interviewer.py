@@ -712,7 +712,7 @@ class AutonomousInterviewer:
                        analysis: Dict[str, Any] = None) -> Optional[Dict[str, Any]]:
         """
         LLM-based evaluation using Prometheus-style rubric scoring.
-        Uses dedicated evaluation LLM (Qwen2.5) with 1-5 scale for reliability.
+        Uses LLaMA 3 (Single-Model Architecture) with 1-5 scale for reliability.
         """
         try:
             # Use dedicated evaluation LLM for better calibration
