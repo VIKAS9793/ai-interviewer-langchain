@@ -832,6 +832,27 @@ class EnhancedInterviewApp:
             # Answer section
             gr.Markdown("### 💬 Your Response")
             with gr.Column(elem_classes=["answer-section"]):
+                # Voice Mode Toggle (v2.4)
+                voice_mode = gr.Radio(
+                    choices=["Text", "Voice 🎤"],
+                    value="Text",
+                    label="Input Mode",
+                    info="Use Voice for hands-free input (Chrome/Edge/Safari)"
+                )
+                
+                # Voice Controls (Hidden by default)
+                with gr.Row(visible=False) as voice_controls:
+                    voice_status = gr.HTML(
+                        '<div id="voice-status" style="padding: 10px; border-radius: 8px; background: var(--bg-medium); text-align: center;">🟢 Click microphone to start</div>'
+                    )
+                    mic_btn = gr.Button("🎤 Start Recording", variant="secondary", size="sm")
+                    stop_btn = gr.Button("⏹️ Stop", variant="secondary", size="sm")
+                    speak_response = gr.Checkbox(
+                        label="🔊 Speak AI Response",
+                        value=True,
+                        info="AI will read feedback aloud"
+                    )
+                
                 # Input Mode Selection - DISABLED (v2.3 Rollback)
                 input_mode = gr.Radio(
                     choices=["Text Answer", "Code Editor"],
@@ -848,7 +869,8 @@ class EnhancedInterviewApp:
                     lines=5,
                     interactive=True,
                     elem_classes=["custom-input"],
-                    info="💡 Enhanced Tip: The AI analyzes your response patterns and adapts accordingly!"
+                    elem_id="answer-textbox",
+                    info="💡 Voice Mode: Click 🎤 to speak your answer!"
                 )
                 
                 code_input = gr.Code(
@@ -923,10 +945,165 @@ class EnhancedInterviewApp:
             gr.HTML("""
             <div class="footer-section">
                 <p><strong>Enhanced AI Technical Interviewer</strong> • Autonomous Learning System • Powered by Advanced AI Agents</p>
-                <p style="font-size: 0.9rem;">🧠 Chain-of-Thought Reasoning • ⚡ Semantic Evaluation • 🔄 Hybrid Scoring • 🛡️ AI Guardrails</p>
+                <p style="font-size: 0.9rem;">🧠 Chain-of-Thought Reasoning • ⚡ Semantic Evaluation • 🔄 Hybrid Scoring • 🛡️ AI Guardrails • 🎤 Voice Mode</p>
                 <p style="font-size: 0.8rem;">Built with LangChain, HuggingFace Inference API, Gradio, and Sentence Transformers</p>
             </div>
             """)
+            
+            # Voice Mode JavaScript (v2.4 - Browser-Native Web Speech API)
+            gr.HTML("""
+            <script>
+            // Voice Mode v2.4 - Zero-Cost Browser-Native Speech API
+            (function() {
+                // Rate limiting (Anti-DoS)
+                let lastVoiceInput = 0;
+                const RATE_LIMIT_MS = 3000;
+                const MAX_TRANSCRIPT_LENGTH = 2000;
+                
+                // Check browser support
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (!SpeechRecognition) {
+                    console.warn('Voice Mode: Speech Recognition not supported in this browser');
+                    return;
+                }
+                
+                // Initialize recognition
+                const recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = 'en-US';
+                recognition.maxAlternatives = 1;
+                
+                // State
+                let isListening = false;
+                
+                // Get elements (with retry for Gradio dynamic loading)
+                function getElements() {
+                    return {
+                        textbox: document.querySelector('#answer-textbox textarea'),
+                        status: document.getElementById('voice-status'),
+                        micBtn: document.querySelector('button:has-text("🎤 Start Recording")') || 
+                                Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Start Recording')),
+                        stopBtn: Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Stop'))
+                    };
+                }
+                
+                // Sanitize input (Security)
+                function sanitizeTranscript(text) {
+                    if (!text) return '';
+                    // Remove HTML/JS tags
+                    text = text.replace(/<[^>]+>/g, '');
+                    // Remove script-like patterns
+                    text = text.replace(/(javascript:|on\w+=|<script)/gi, '');
+                    // Limit length
+                    return text.substring(0, MAX_TRANSCRIPT_LENGTH).trim();
+                }
+                
+                // Start listening
+                window.startVoiceRecording = function() {
+                    const now = Date.now();
+                    if (now - lastVoiceInput < RATE_LIMIT_MS) {
+                        alert('Please wait a few seconds before recording again.');
+                        return;
+                    }
+                    lastVoiceInput = now;
+                    
+                    const els = getElements();
+                    if (els.status) {
+                        els.status.innerHTML = '🔴 <strong>Listening...</strong> Speak now';
+                        els.status.style.background = 'rgba(239, 68, 68, 0.2)';
+                    }
+                    
+                    recognition.start();
+                    isListening = true;
+                };
+                
+                // Stop listening
+                window.stopVoiceRecording = function() {
+                    recognition.stop();
+                    isListening = false;
+                    const els = getElements();
+                    if (els.status) {
+                        els.status.innerHTML = '🟢 Ready to record';
+                        els.status.style.background = 'var(--bg-medium)';
+                    }
+                };
+                
+                // Handle result
+                recognition.onresult = function(event) {
+                    const transcript = sanitizeTranscript(event.results[0][0].transcript);
+                    const confidence = event.results[0][0].confidence;
+                    
+                    const els = getElements();
+                    if (els.textbox) {
+                        els.textbox.value = transcript;
+                        // Trigger input event for Gradio to detect change
+                        els.textbox.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                    
+                    if (els.status) {
+                        const confPercent = Math.round(confidence * 100);
+                        els.status.innerHTML = '✅ Transcribed (' + confPercent + '% confidence)';
+                        els.status.style.background = 'rgba(34, 197, 94, 0.2)';
+                    }
+                    
+                    isListening = false;
+                };
+                
+                // Handle errors
+                recognition.onerror = function(event) {
+                    console.error('Speech recognition error:', event.error);
+                    const els = getElements();
+                    if (els.status) {
+                        els.status.innerHTML = '⚠️ Error: ' + event.error + ' - Try again or use text';
+                        els.status.style.background = 'rgba(245, 158, 11, 0.2)';
+                    }
+                    isListening = false;
+                };
+                
+                // TTS - Speak AI Response
+                window.speakResponse = function(text) {
+                    if (!('speechSynthesis' in window)) {
+                        console.warn('TTS not supported');
+                        return;
+                    }
+                    // Stop any current speech
+                    window.speechSynthesis.cancel();
+                    
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.rate = 0.9;
+                    utterance.pitch = 1.0;
+                    utterance.lang = 'en-US';
+                    window.speechSynthesis.speak(utterance);
+                };
+                
+                // Wire up buttons after Gradio loads
+                setTimeout(function() {
+                    const els = getElements();
+                    if (els.micBtn) {
+                        els.micBtn.onclick = window.startVoiceRecording;
+                    }
+                    if (els.stopBtn) {
+                        els.stopBtn.onclick = window.stopVoiceRecording;
+                    }
+                    console.log('Voice Mode v2.4 initialized');
+                }, 2000);
+            })();
+            </script>
+            """)
+            
+            # Voice Mode Toggle Logic
+            def toggle_voice_mode(mode):
+                if mode == "Voice 🎤":
+                    return gr.update(visible=True)
+                else:
+                    return gr.update(visible=False)
+            
+            voice_mode.change(
+                fn=toggle_voice_mode,
+                inputs=[voice_mode],
+                outputs=[voice_controls]
+            )
         
         return interface
 

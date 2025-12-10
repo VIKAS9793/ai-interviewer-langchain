@@ -55,6 +55,12 @@ class Config:
     EVALUATION_TEMPERATURE = 0.1  # Low temp for consistent scoring
     EVALUATION_SCALE = 5  # 1-5 scale (more reliable than 1-10)
     
+    # Voice Mode Settings (v2.4 - Browser-Native)
+    VOICE_ENABLED = True  # Feature flag
+    VOICE_LANG = "en-US"  # Speech recognition/synthesis language
+    VOICE_MAX_TRANSCRIPT_LENGTH = 2000  # Security: Max characters
+    VOICE_RATE_LIMIT_MS = 3000  # Anti-DoS: Minimum time between recordings
+    
     @classmethod
     def get_topic_mapping(cls) -> Dict[str, str]:
         """Get mapping from display names to internal names"""
