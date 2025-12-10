@@ -748,17 +748,14 @@ class EnhancedInterviewApp:
                         info="Choose your area of expertise"
                     )
                     
-                    # Model selector for multi-model support
-                    model_dropdown = gr.Dropdown(
+                    # Model selector - FIXED to Single Architecture
+                    # (Dropdown removed to avoid false choice)
+                    model_dropdown = gr.Textbox(
                         label="🤖 AI Model",
-                        choices=[
-                            ("Meta LLaMA 3 (8B)", "meta-llama/Meta-Llama-3-8B-Instruct"),
-                            ("Mistral (7B)", "mistralai/Mistral-7B-Instruct-v0.3"),
-                            ("Qwen 2.5 (7B)", "Qwen/Qwen2.5-7B-Instruct"),
-                        ],
-                        value="meta-llama/Meta-Llama-3-8B-Instruct",
+                        value="Meta LLaMA 3 (8B) - [Standardized]",
+                        interactive=False,
                         elem_classes=["custom-input"],
-                        info="Select AI model (different models have different strengths)"
+                        info="Optimized Single-Model Architecture"
                     )
                     
                     start_btn = gr.Button(
