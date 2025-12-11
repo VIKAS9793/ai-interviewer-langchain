@@ -250,7 +250,15 @@ class AutonomousInterviewer:
         if model_id != self.model_name:
             self.model_name = model_id
             self._llm = None  # Reset LLM to force re-initialization
-            logger.info(f"🔄 Model changed to: {model_id}")
+            logger.info(f"Model changed to: {model_id}")
+    
+    def analyze_resume(self, resume_text: str) -> Dict[str, Any]:
+        """
+        Analyze resume text and extract key information.
+        Used for Practice Mode to tailor interview questions.
+        """
+        from .resume_parser import ResumeParser
+        return ResumeParser.analyze_content(resume_text)
     
     def _get_llm(self) -> HuggingFaceEndpoint:
         """Get Cloud LLM with lazy loading"""
