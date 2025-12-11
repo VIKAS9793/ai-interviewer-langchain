@@ -1093,13 +1093,14 @@ def main():
             max_size=20
         )
         
-        # Find available port
-        port = find_available_port(7860)
-        
-        # Launch
-        print(f"\n🚀 Launching application on port {port}...")
+        # Launch with hardcoded port for HF Spaces stability
+        print(f"\n🚀 Launching application on port 7860...")
         interface.launch(
             server_name="0.0.0.0",
+            server_port=7860,
+            share=False,
+            show_error=True
+        )
             server_port=port,
             share=False,
             show_error=True,
