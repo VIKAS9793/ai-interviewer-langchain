@@ -116,6 +116,17 @@ class EnhancedInterviewApp:
         logger.info("✅ Autonomous AI Interviewer initialized")
         logger.info(f"   Autonomous features: {list(self.autonomous_features.keys())}")
     
+    # --- Code Smell Fix: Extracted helper methods for button states ---
+    @staticmethod
+    def _buttons_enabled():
+        """Return tuple to enable both start buttons (reduces duplicate code)"""
+        return gr.update(interactive=True), gr.update(interactive=True)
+    
+    @staticmethod
+    def _buttons_disabled():
+        """Return tuple to disable both start buttons during interview"""
+        return gr.update(interactive=False), gr.update(interactive=False)
+    
     def _format_reasoning_display(self, reasoning: Dict[str, Any], evaluation: Dict[str, Any]) -> str:
         """Format AI reasoning for display in the Accordion"""
         approach = reasoning.get('question_approach', 'adaptive').replace('_', ' ').title()
@@ -234,7 +245,7 @@ class EnhancedInterviewApp:
         """
         try:
             if not candidate_name or not candidate_name.strip():
-                return "⚠️ Please enter your name first.", "", self._generate_progress_html(0, 0), "waiting", gr.update(interactive=True), gr.update(interactive=True)
+                return "⚠️ Please enter your name first.", "", self._generate_progress_html(0, 0), "waiting", *self._buttons_enabled()
                 
             custom_context = {}
             
@@ -251,25 +262,25 @@ class EnhancedInterviewApp:
                 
                 # Validate file exists
                 if not os.path.exists(file_path):
-                    return f"❌ File not found: {os.path.basename(file_path)}. Please re-upload.", "", self._generate_progress_html(0, 0), "file_error", gr.update(interactive=True), gr.update(interactive=True)
+                    return f"❌ File not found: {os.path.basename(file_path)}. Please re-upload.", "", self._generate_progress_html(0, 0), "file_error", *self._buttons_enabled()
                 
                 # Security Scan
                 with open(file_path, 'rb') as f:
                     is_safe, refusal_reason = SecurityScanner.scan_file(f, file_path)
                 
                 if not is_safe:
-                     return f"❌ Security Alert: {refusal_reason}", "", self._generate_progress_html(0, 0), "security_block", gr.update(interactive=True), gr.update(interactive=True)
+                     return f"❌ Security Alert: {refusal_reason}", "", self._generate_progress_html(0, 0), "security_block", *self._buttons_enabled()
                 
                 # Parse
                 with open(file_path, 'rb') as f:
                     resume_text = ResumeParser.extract_text(f, file_path)
                 
                 if not resume_text:
-                    return "❌ Failed to extract text from resume.", "", self._generate_progress_html(0, 0), "parse_error", gr.update(interactive=True), gr.update(interactive=True)
+                    return "❌ Failed to extract text from resume.", "", self._generate_progress_html(0, 0), "parse_error", *self._buttons_enabled()
                     
                 custom_context["resume_text"] = resume_text
             else:
-                return "⚠️ Please upload a resume to start Practice Mode.", "", self._generate_progress_html(0, 0), "waiting", gr.update(interactive=True), gr.update(interactive=True)
+                return "⚠️ Please upload a resume to start Practice Mode.", "", self._generate_progress_html(0, 0), "waiting", *self._buttons_enabled()
 
             # --- 2. Process Job Description ---
             final_jd_text = ""
@@ -337,11 +348,11 @@ class EnhancedInterviewApp:
                 return welcome_msg, "", self._generate_progress_html(1, 0), "Status: In Progress", gr.update(interactive=False), gr.update(interactive=False)
 
             else:
-                 return f"Error: {result.get('message')}", "", self._generate_progress_html(0, 0), "error", gr.update(interactive=True), gr.update(interactive=True)
+                 return f"Error: {result.get('message')}", "", self._generate_progress_html(0, 0), "error", *self._buttons_enabled()
 
         except Exception as e:
             logger.error(f"Practice Mode Error: {e}")
-            return f"System Error: {str(e)}", "", self._generate_progress_html(0, 0), "error", gr.update(interactive=True), gr.update(interactive=True)
+            return f"System Error: {str(e)}", "", self._generate_progress_html(0, 0), "error", *self._buttons_enabled()
     def start_interview(self, topic: str, candidate_name: str, model_id: str = "meta-llama/Meta-Llama-3-8B-Instruct") -> Tuple[str, str, str, str, bool, bool]:
         """Start autonomous interview session with self-thinking AI"""
         try:
@@ -818,7 +829,8 @@ INFO **The AI thinks before asking each question and explains its reasoning!**""
                 button_primary_background_fill="linear-gradient(135deg, #667eea 0%, #9f7aea 100%)",
                 button_primary_text_color="white"
             ),
-            css=enhanced_css
+            css=enhanced_css,
+            fill_width=True  # UI: Maximize screen utilization
         ) as interface:
             
             # Header (Simple & Clean)
