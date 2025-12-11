@@ -119,13 +119,13 @@ class EnhancedInterviewApp:
     # --- Code Smell Fix: Extracted helper methods for button states ---
     @staticmethod
     def _buttons_enabled():
-        """Return tuple to enable both start buttons (reduces duplicate code)"""
-        return gr.update(interactive=True), gr.update(interactive=True)
+        """Return tuple to enable both start buttons and show tabs (reduces duplicate code)"""
+        return gr.update(interactive=True), gr.update(interactive=True), gr.update(visible=True)
     
     @staticmethod
     def _buttons_disabled():
-        """Return tuple to disable both start buttons during interview"""
-        return gr.update(interactive=False), gr.update(interactive=False)
+        """Return tuple to disable both start buttons and hide tabs during interview"""
+        return gr.update(interactive=False), gr.update(interactive=False), gr.update(visible=False)
     
     def _format_reasoning_display(self, reasoning: Dict[str, Any], evaluation: Dict[str, Any]) -> str:
         """Format AI reasoning for display in the Accordion"""
@@ -345,7 +345,7 @@ class EnhancedInterviewApp:
 
 {result.get('first_question', 'Ready to begin?')}
 """
-                return welcome_msg, "", self._generate_progress_html(1, 0), "Status: In Progress", gr.update(interactive=False), gr.update(interactive=False)
+                return welcome_msg, "", self._generate_progress_html(1, 0), "Status: In Progress", *self._buttons_disabled()
 
             else:
                  return f"Error: {result.get('message')}", "", self._generate_progress_html(0, 0), "error", *self._buttons_enabled()
@@ -357,7 +357,7 @@ class EnhancedInterviewApp:
         """Start autonomous interview session with self-thinking AI"""
         try:
             if not candidate_name.strip():
-                return "WARN Please enter your name to begin the interview.", "", self._generate_progress_html(0, 0), "", True, True
+                return "WARN Please enter your name to begin the interview.", "", self._generate_progress_html(0, 0), "", *self._buttons_enabled()
             
             # Force Single-Model Architecture (Ignore UI input which is now a display label)
             model_id = Config.DEFAULT_MODEL
@@ -423,14 +423,14 @@ INFO **The AI thinks before asking each question and explains its reasoning!**""
                 status_msg = f"🟢 **Status:** Autonomous Interview Active - Question 1/5"
                 progress_html = self._generate_progress_html(1, 0, self.current_session["start_time"])
                 
-                return welcome_msg, "", progress_html, status_msg, False, False
+                return welcome_msg, "", progress_html, status_msg, *self._buttons_disabled()
             else:
                 error_msg = result.get('message', 'Failed to start interview')
-                return f"❌ **Error:** {error_msg}", "", self._generate_progress_html(0, 0), "🔴 **Status:** Error", True, True
+                return f"❌ **Error:** {error_msg}", "", self._generate_progress_html(0, 0), "🔴 **Status:** Error", *self._buttons_enabled()
             
         except Exception as e:
             logger.error(f"Error starting autonomous interview: {e}")
-            return f"❌ **Error:** {str(e)}", "", self._generate_progress_html(0, 0), "🔴 **Status:** Error", True, True
+            return f"❌ **Error:** {str(e)}", "", self._generate_progress_html(0, 0), "🔴 **Status:** Error", *self._buttons_enabled()
     
     def process_answer(self, answer_text: str, answer_code: str, mode: str = "Text Answer") -> Tuple[str, str, str, str, bool, str]:
         """Process answer with autonomous reasoning and guardrails"""
@@ -1161,14 +1161,14 @@ INFO **The AI thinks before asking each question and explains its reasoning!**""
             start_btn.click(
                 fn=self.start_interview,
                 inputs=[topic_dropdown, candidate_name],
-                outputs=[interview_display, answer_input, progress_html, system_status, start_btn, start_practice_btn]
+                outputs=[interview_display, answer_input, progress_html, system_status, start_btn, start_practice_btn, mode_tabs]
             )
             
             # Tab 2: Practice Mode
             start_practice_btn.click(
                 fn=self._start_practice_mode,
                 inputs=[resume_upload, jd_text, jd_url, practice_name],
-                outputs=[interview_display, answer_input, progress_html, system_status, start_btn, start_practice_btn]
+                outputs=[interview_display, answer_input, progress_html, system_status, start_btn, start_practice_btn, mode_tabs]
             )
             
             # Handle Enter key on Textbox
