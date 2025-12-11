@@ -65,6 +65,10 @@
 - ✅ Auto-suggest topic from resume
 - ✅ 11 bug fixes, security & stability improvements
 
+### v2.5.1 - Critical Hotfixes (2025-12-11)
+- ✅ **Gradio Downgrade Strategy:** Reverted to 4.44.0 + Pinned Pydantic
+- ✅ **Dependency Resolution:** Torch 2.3.1 + Triton < 3 for Whisper compatibility
+
 ---
 
 ## 🔮 Future (v2.6+)

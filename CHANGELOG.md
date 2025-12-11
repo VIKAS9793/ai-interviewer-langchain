@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.5.1] - 2025-12-11
+
+### 🔥 Hotfix Release
+*   **Downgraded Gradio to 4.44.0:** Resolved critical `TypeError: argument of type 'bool' is not iterable` caused by Gradio 5 schema parsing bug.
+*   **Downgraded Torch to 2.3.1:** Resolved dependency conflict between `torch 2.5.1` (requires Triton 3.1) and `openai-whisper` (requires Triton < 3).
+*   **Patched `main.py`:** Refactored boolean return values to explicit `gr.update()` objects for compatibility.
+
+---
+
 ## [2.5.0] - 2025-12-11
 
 ### 🎯 Practice Mode (Resume-Based Interviews)
