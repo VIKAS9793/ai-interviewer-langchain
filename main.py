@@ -327,7 +327,8 @@ class EnhancedInterviewApp:
 
 **Analysis:**
 *   **Skills Detected:** {', '.join(analysis.get('found_skills', []))}
-*   **Level:** {analysis.get('level', 'Mid')}
+
+> ⚠️ **Beta Notice:** Evaluation scoring is optimized for technical interviews. Business/PM interview evaluation improvements coming in v3.0 with Gemini integration.
 
 {result.get('greeting', 'Hello!')}
 
