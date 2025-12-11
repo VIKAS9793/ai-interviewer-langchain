@@ -106,9 +106,15 @@ class AutonomousFlowController:
                 self.metrics["self_recoveries"] += 1
             return {
                 "status": "error",
-                "message": f"Processing failed: {str(e)}",
-                "error_code": "PROCESS_ERROR"
+                "message": f"Processing error: {str(e)}",
+                "evaluation": {"score": 0},
+                "feedback": "System error occurred."
             }
+
+    def analyze_resume(self, resume_text: str) -> Dict[str, Any]:
+        """Delegate resume analysis to interviewer"""
+        return self.interviewer.analyze_resume(resume_text)
+
     
     def _update_metrics(self, processing_time: float):
         """Update performance metrics"""

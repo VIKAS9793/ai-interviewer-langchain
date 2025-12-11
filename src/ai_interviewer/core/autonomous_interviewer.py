@@ -286,9 +286,10 @@ class AutonomousInterviewer:
     
     # ==================== INTERVIEW LIFECYCLE ====================
     
-    def start_interview(self, topic: str, candidate_name: str) -> Dict[str, Any]:
+    def start_interview(self, topic: str, candidate_name: str, custom_context: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
         """
-        Start a new interview session with autonomous reasoning
+        Start a new interview session with autonomous reasoning.
+        custom_context: Optional dict with keys 'resume_text' and 'job_description' for tailored interviews.
         """
         session_id = str(uuid.uuid4())[:8]
         
@@ -300,6 +301,13 @@ class AutonomousInterviewer:
         )
         
         self.active_sessions[session_id] = session
+        
+        # Store custom context for specialized functionality
+        if custom_context:
+            session.metadata["resume_context"] = custom_context
+            # Override topic if provided in context (optional)
+            if custom_context.get("topic"):
+                session.topic = custom_context["topic"]
         
         # AUTONOMOUS: Think before greeting
         context = self._build_context(session)

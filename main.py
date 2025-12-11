@@ -47,6 +47,9 @@ try:
     from src.ai_interviewer.core import AutonomousFlowController
     from src.ai_interviewer.core.ai_guardrails import ResponsibleAI
     from src.ai_interviewer.utils.config import Config
+    from src.ai_interviewer.core.resume_parser import ResumeParser
+    from src.ai_interviewer.security.scanner import SecurityScanner
+    from src.ai_interviewer.utils.url_scraper import URLScraper
     AUTONOMOUS_SYSTEM_AVAILABLE = True
 except ImportError as e:
     print(f"Warning: Could not import autonomous modules: {e}")
@@ -215,11 +218,100 @@ class EnhancedInterviewApp:
         </div>
         """
         
+    def _start_practice_mode(self, resume_file, jd_text, jd_url, candidate_name):
+        """
+        Handle Practice Mode initialization:
+        1. Scan/Parse Resume
+        2. Fetch JD
+        3. Analyze Context
+        4. Start Interview
+        """
+        try:
+            if not candidate_name or not candidate_name.strip():
+                return "⚠️ Please enter your name first.", "", self._generate_progress_html(0, 0), "waiting", True, True
+                
+            custom_context = {}
+            
+            # --- 1. Process Resume ---
+            if resume_file:
+                # Security Scan
+                # resume_file is a temp path string in Gradio, open it
+                with open(resume_file.name, 'rb') as f:
+                    is_safe, refusal_reason = SecurityScanner.scan_file(f, resume_file.name)
+                
+                if not is_safe:
+                     return f"❌ Security Alert: {refusal_reason}", "", self._generate_progress_html(0, 0), "security_block", True, True
+                
+                # Parse
+                with open(resume_file.name, 'rb') as f:
+                    resume_text = ResumeParser.extract_text(f, resume_file.name)
+                
+                if not resume_text:
+                    return "❌ Failed to extract text from resume.", "", self._generate_progress_html(0, 0), "parse_error", True, True
+                    
+                custom_context["resume_text"] = resume_text
+            else:
+                return "⚠️ Please upload a resume to start Practice Mode.", "", self._generate_progress_html(0, 0), "waiting", True, True
+
+            # --- 2. Process Job Description ---
+            final_jd_text = ""
+            if jd_url and jd_url.strip():
+                scraped_text = URLScraper.extract_text(jd_url)
+                if scraped_text:
+                    final_jd_text += f"\n\n[From URL]: {scraped_text}"
+            
+            if jd_text and jd_text.strip():
+                final_jd_text += f"\n\n[User Input]: {jd_text}"
+                
+            if final_jd_text:
+                custom_context["job_description"] = final_jd_text
+            
+            # --- 3. Analyze & Start ---
+            # Analyze resume to determine topic/level if not explicit
+            analysis = self.flow_controller.analyze_resume(custom_context["resume_text"])
+            
+            # Determine topic
+            topic = analysis.get("topic", "General Technical Interview")
+            if "job_description" in custom_context:
+                topic = "Role-Specific Interview"
+            
+            custom_context["topic"] = topic
+            custom_context["analysis"] = analysis
+            
+            # Start
+            result = self.flow_controller.start_interview(topic, candidate_name, custom_context=custom_context)
+            
+            if result['status'] == 'started':
+                self.current_session = result['session_id']
+                self.interview_history = []
+                
+                # Format Welcome Message
+                welcome_msg = f"""### Practice Session Started
+                
+**Target Role:** {topic}
+**Candidate:** {candidate_name}
+
+**Analysis:**
+*   **Skills Detected:** {', '.join(analysis.get('skills', []))}
+*   **Level:** {analysis.get('level', 'Mid')}
+
+{result.get('greeting', 'Hello!')}
+
+{result.get('first_question', 'Ready to begin?')}
+"""
+                return welcome_msg, "", self._generate_progress_html(1, 0), "Status: In Progress", False, False
+
+            else:
+                 return f"Error: {result.get('message')}", "", self._generate_progress_html(0, 0), "error", True, True
+
+        except Exception as e:
+            logger.error(f"Practice Mode Error: {e}")
+            return f"System Error: {str(e)}", "", self._generate_progress_html(0, 0), "error", True, True
     def start_interview(self, topic: str, candidate_name: str, model_id: str = "meta-llama/Meta-Llama-3-8B-Instruct") -> Tuple[str, str, str, str, bool, bool]:
         """Start autonomous interview session with self-thinking AI"""
         try:
             if not candidate_name.strip():
-                return "⚠️ Please enter your name to begin the interview.", "", self._generate_progress_html(0, 0), "", True, True
+                return "WARN Please enter your name to begin the interview.", "", self._generate_progress_html(0, 0), "", True, True
             
             # Force Single-Model Architecture (Ignore UI input which is now a display label)
             model_id = Config.DEFAULT_MODEL
@@ -256,7 +348,7 @@ class EnhancedInterviewApp:
                 greeting = result.get("greeting", f"Welcome, {candidate_name}!")
                 
                 # Enhanced welcome with autonomous features
-                welcome_msg = f"""## 🤖 Autonomous AI Interview Started!
+                welcome_msg = f"""## Autonomous AI Interview Started!
 
 **Candidate:** {candidate_name}  
 **Topic:** {topic}  
@@ -266,13 +358,13 @@ class EnhancedInterviewApp:
 
 ---
 
-### 🧠 Autonomous Features Active:
-- **🤔 Self-Thinking:** Chain-of-Thought reasoning before every action
-- **📊 Logical Reasoning:** Multi-step analysis of your responses
-- **💪 Self-Resilient:** Graceful error recovery
-- **🎭 Human-Like:** Natural, adaptive conversation
-- **🛡️ AI Guardrails:** Fair, unbiased, explainable decisions
-- **📋 Accountability:** Complete audit trail
+### Autonomous Features Active:
+- **Self-Thinking:** Chain-of-Thought reasoning before every action
+- **Logical Reasoning:** Multi-step analysis of your responses
+- **Self-Resilient:** Graceful error recovery
+- **Human-Like:** Natural, adaptive conversation
+- **AI Guardrails:** Fair, unbiased, explainable decisions
+- **Accountability:** Complete audit trail
 
 ---
 
@@ -280,7 +372,7 @@ class EnhancedInterviewApp:
 
 {first_question}
 
-💡 **The AI thinks before asking each question and explains its reasoning!**"""
+INFO **The AI thinks before asking each question and explains its reasoning!**"""
 
                 status_msg = f"🟢 **Status:** Autonomous Interview Active - Question 1/5"
                 progress_html = self._generate_progress_html(1, 0, self.current_session["start_time"])
@@ -694,84 +786,91 @@ class EnhancedInterviewApp:
             css=enhanced_css
         ) as interface:
             
-            # Header
-            gr.HTML("""
-            <div class="enhanced-header">
-                <h1 style="margin:0; font-size: 2.5rem; font-weight: 800;">🧠 AI Technical Interviewer</h1>
-                <p style="margin: 0.5rem 0 0 0; font-size: 1.1rem; opacity: 0.9;">Single-Model Architecture • Chain-of-Thought Reasoning • 🎤 Voice Mode</p>
-            </div>
-            """)
+            # Header (Simple & Clean)
+            gr.HTML(
+                '<div class="enhanced-header">'
+                '<h1 style="margin:0; font-size: 2.5rem; font-weight: 800;">AI Technical Interviewer</h1>'
+                '<p style="margin: 0.5rem 0 0 0; font-size: 1.1rem; opacity: 0.9;">Single-Model Architecture | Chain-of-Thought Reasoning | Voice Mode</p>'
+                '</div>'
+            )
             
-            # Feature showcase - simplified and cloud-first
-            gr.HTML("""
-            <div class="learning-features">
-                <div class="learning-feature">
-                    <h4>🧠 Chain-of-Thought</h4>
-                    <p>AI reasons through each question and answer</p>
-                </div>
-                <div class="learning-feature">
-                    <h4>📊 Hybrid Evaluation</h4>
-                    <p>LLM + Heuristic scoring for accurate feedback</p>
-                </div>
-                <div class="learning-feature">
-                    <h4>🎯 Semantic Analysis</h4>
-                    <p>Embedding-based relevance checking</p>
-                </div>
-                <div class="learning-feature">
-                    <h4>🛡️ AI Guardrails</h4>
-                    <p>Fair, unbiased, explainable decisions</p>
-                </div>
-            </div>
-            """)
-            
-            # Main interface
-            with gr.Row():
-                # Left panel - Controls
-                with gr.Column(scale=1, min_width=300):
-                    gr.Markdown("### 🎯 Enhanced Interview Setup")
+            # --- Tabbed Interface (Clean & Focused) ---
+            with gr.Tabs() as mode_tabs:
+                
+                # --- TAB 1: Topic Interview ---
+                with gr.Tab("Technical Interviewer"):
+                    with gr.Row():
+                        with gr.Column(scale=1, min_width=300):
+                            candidate_name = gr.Textbox(
+                                label="Name",
+                                placeholder="Candidate Name",
+                                elem_classes=["custom-input"]
+                            )
+                            
+                            topic_dropdown = gr.Dropdown(
+                                label="Topic",
+                                choices=[
+                                    "JavaScript/Frontend Development",
+                                    "Python/Backend Development", 
+                                    "Machine Learning/AI",
+                                    "System Design",
+                                    "Data Structures & Algorithms"
+                                ],
+                                value="JavaScript/Frontend Development",
+                                elem_classes=["custom-input"]
+                            )
+                            
+                            start_btn = gr.Button(
+                                "Start Interview", 
+                                variant="primary", 
+                                size="lg",
+                                elem_classes=["enhanced-btn"]
+                            )
+                
+                # --- TAB 2: Practice Mode ---
+                with gr.Tab("Practice Mode"):
+                    gr.Markdown("#### Resume & JD Simulation")
                     
-                    candidate_name = gr.Textbox(
-                        label="👤 Your Name",
-                        placeholder="Enter your full name",
-                        elem_classes=["custom-input"],
-                        info="This will appear in your enhanced interview report"
-                    )
+                    with gr.Row():
+                        with gr.Column():
+                            practice_name = gr.Textbox(
+                                label="Name",
+                                placeholder="Candidate Name",
+                                elem_classes=["custom-input"]
+                            )
+                            
+                            resume_upload = gr.File(
+                                label="Resume (PDF/DOCX)",
+                                file_types=[".pdf", ".docx"],
+                                file_count="single",
+                                elem_classes=["custom-input"]
+                            )
+                        
+                        with gr.Column():
+                            jd_url = gr.Textbox(
+                                label="JD URL",
+                                placeholder="https://...",
+                                elem_classes=["custom-input"]
+                            )
+                            
+                            jd_text = gr.Textbox(
+                                label="Or Paste JD",
+                                placeholder="Job Description Text...",
+                                lines=3,
+                                elem_classes=["custom-input"]
+                            )
                     
-                    topic_dropdown = gr.Dropdown(
-                        label="📚 Interview Topic",
-                        choices=[
-                            "JavaScript/Frontend Development",
-                            "Python/Backend Development", 
-                            "Machine Learning/AI",
-                            "System Design",
-                            "Data Structures & Algorithms"
-                        ],
-                        value="JavaScript/Frontend Development",
-                        elem_classes=["custom-input"],
-                        info="Choose your area of expertise"
-                    )
-                    
-                    # Model selector - FIXED to Single Architecture
-                    # (Dropdown removed to avoid false choice)
-                    model_dropdown = gr.Textbox(
-                        label="🤖 AI Model",
-                        value="Meta LLaMA 3 (8B) - [Standardized]",
-                        interactive=False,
-                        elem_classes=["custom-input"],
-                        info="Optimized Single-Model Architecture"
-                    )
-                    
-                    start_btn = gr.Button(
-                        "🚀 Start Enhanced Interview", 
+                    start_practice_btn = gr.Button(
+                        "Analyze & Start Practice", 
                         variant="primary", 
                         size="lg",
                         elem_classes=["enhanced-btn"]
                     )
-                    
-                    # System status
-                    gr.Markdown("### 📊 Interview Progress")
-                    
-                    # Progress bar HTML component
+
+            # Shared Status Section
+            with gr.Row():
+                with gr.Column():
+                     # Progress bar HTML component
                     progress_html = gr.HTML(
                         """
                         <div class="progress-container">
@@ -784,7 +883,7 @@ class EnhancedInterviewApp:
                             </div>
                         </div>
                         <div class="timer-display">
-                            <span class="timer-icon">⏱️</span>
+                            <span class="timer-icon">&#9201;</span>
                             <span style="color: var(--text-secondary);">Elapsed:</span>
                             <span class="timer-value">00:00</span>
                         </div>
@@ -793,32 +892,15 @@ class EnhancedInterviewApp:
                     )
                     
                     system_status = gr.Markdown(
-                        "🟡 **Status:** Ready to Start",
+                        "🟡 **Status:** Ready",
                         elem_classes=["system-status"]
                     )
+            
+            # Right panel - Interview content
                 
                 # Right panel - Interview content
-                with gr.Column(scale=2):
                     interview_display = gr.Markdown(
-                        """
-                        ### 👋 AI Technical Interviewer
-                        
-                        **Powered by Meta LLaMA 3 (8B) on HuggingFace Cloud**
-                        
-                        #### How It Works:
-                        1. Enter your name and select topic
-                        2. Click "Start Interview"
-                        3. Answer 5 questions
-                        4. Get detailed feedback with scores
-                        
-                        #### Key Features:
-                        - **Hybrid Scoring:** LLM + Heuristic (60/40)
-                        - **Chain-of-Thought:** See AI reasoning
-                        - **Semantic Check:** Embedding-based relevance
-                        - **Fair Evaluation:** AI guardrails built-in
-                        
-                        **Ready? Let's begin! 🎯**
-                        """,
+                        "### AI Technical Interviewer\n\n**Powered by Meta LLaMA 3 (8B)**\n\n#### Instructions\n1. **Setup**: Enter name & topic (or upload resume)\n2. **Start**: Click the launch button\n3. **Speak**: Use Voice Mode for hands-free",
                         elem_classes=["enhanced-interview-content"]
                     )
                     
@@ -881,9 +963,10 @@ class EnhancedInterviewApp:
                             }
                             lastVoiceInput = now;
                             
+                            
                             const status = document.getElementById('voice-status');
                             if (status) {
-                                status.innerHTML = '🔴 <strong>Listening...</strong> Speak now';
+                                status.innerHTML = 'DOT <strong>Listening...</strong> Speak now';
                                 status.style.background = 'rgba(239, 68, 68, 0.2)';
                             }
                             
@@ -891,7 +974,7 @@ class EnhancedInterviewApp:
                                 recognition.start();
                             } catch (e) {
                                 console.error('Recognition start error:', e);
-                                if (status) status.innerHTML = '⚠️ Error starting - try again';
+                                if (status) status.innerHTML = 'WARN Error starting - try again';
                             }
                         };
                         
@@ -900,7 +983,7 @@ class EnhancedInterviewApp:
                             recognition.stop();
                             const status = document.getElementById('voice-status');
                             if (status) {
-                                status.innerHTML = '🟢 Ready to record';
+                                status.innerHTML = 'READY Ready to record';
                                 status.style.background = 'rgba(34, 197, 94, 0.2)';
                             }
                         };
@@ -919,7 +1002,7 @@ class EnhancedInterviewApp:
                             
                             const status = document.getElementById('voice-status');
                             if (status) {
-                                status.innerHTML = '✅ Transcribed (' + Math.round(confidence * 100) + '% confidence)';
+                                status.innerHTML = 'OK Transcribed (' + Math.round(confidence * 100) + '% confidence)';
                                 status.style.background = 'rgba(34, 197, 94, 0.2)';
                             }
                         };
@@ -929,15 +1012,15 @@ class EnhancedInterviewApp:
                             console.error('Speech error:', event.error);
                             const status = document.getElementById('voice-status');
                             if (status) {
-                                status.innerHTML = '⚠️ ' + event.error + ' - Try again or use text';
+                                status.innerHTML = 'WARN ' + event.error + ' - Try again or use text';
                                 status.style.background = 'rgba(245, 158, 11, 0.2)';
                             }
                         };
                         
                         recognition.onend = function() {
                             const status = document.getElementById('voice-status');
-                            if (status && !status.innerHTML.includes('✅')) {
-                                status.innerHTML = '🟢 Ready to record';
+                            if (status && !status.innerHTML.includes('OK')) {
+                                status.innerHTML = 'READY Ready to record';
                                 status.style.background = 'rgba(34, 197, 94, 0.2)';
                             }
                         };
@@ -947,17 +1030,17 @@ class EnhancedInterviewApp:
                     </script>
                     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 10px;">
                         <div id="voice-status" style="padding: 10px 20px; border-radius: 8px; background: rgba(34, 197, 94, 0.2); text-align: center; flex: 1;">
-                            🟢 Click microphone to start
+                            READY Click microphone to start
                         </div>
                         <button onclick="window.startVoiceRecording()" style="padding: 10px 20px; border-radius: 8px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none; cursor: pointer; font-size: 1rem; font-weight: 600;">
-                            🎤 Start Recording
+                            Start Recording
                         </button>
                         <button onclick="window.stopVoiceRecording()" style="padding: 10px 20px; border-radius: 8px; background: #4b5563; color: white; border: none; cursor: pointer; font-size: 1rem;">
-                            ⏹️ Stop
+                            Stop
                         </button>
                         <label style="display: flex; align-items: center; gap: 5px; color: var(--text-primary);">
                             <input type="checkbox" id="speak-response-checkbox" checked style="width: 18px; height: 18px;">
-                            🔊 Speak Response
+                            Speak Response
                         </label>
                     </div>
                     ''')
@@ -1022,22 +1105,41 @@ class EnhancedInterviewApp:
             submit_btn_disabled = gr.State(True)
             
             # Event handlers
+            
+            # Tab 1: Topic Interview
             start_btn.click(
                 fn=self.start_interview,
-                inputs=[topic_dropdown, candidate_name, model_dropdown],
-                outputs=[interview_display, answer_input, progress_html, system_status, start_btn_disabled, submit_btn_disabled]
+                inputs=[topic_dropdown, candidate_name],
+                outputs=[interview_display, answer_input, progress_html, system_status, start_btn, start_practice_btn]
+            )
+            
+            # Tab 2: Practice Mode
+            start_practice_btn.click(
+                fn=self._start_practice_mode,
+                inputs=[resume_upload, jd_text, jd_url, practice_name],
+                outputs=[interview_display, answer_input, progress_html, system_status, start_btn, start_practice_btn]
+            )
+            
+            # Handle Enter key on Textbox
+            answer_input.submit(
+                fn=self.process_answer,
+                inputs=[answer_input, code_input, input_mode],
+                outputs=[interview_display, answer_input, progress_html, system_status, start_btn, reasoning_display]
+            ).then(
+                fn=clear_inputs,
+                outputs=[answer_input, code_input]
+            )
+            
+            # Input Toggle (Disabled v2.3)
+            input_mode.change(
+                fn=toggle_input,
+                inputs=[input_mode],
+                outputs=[answer_input, code_input]
             )
             
             submit_btn.click(
                 fn=self.process_answer,
                 inputs=[answer_input, code_input, input_mode],
-                outputs=[interview_display, answer_input, progress_html, system_status, submit_btn_disabled, reasoning_display]
-            )
-            
-            # Allow Enter key to submit (only works for Textbox)
-            answer_input.submit(
-                fn=self.process_answer,
-                inputs=[answer_input, code_input, input_mode], 
                 outputs=[interview_display, answer_input, progress_html, system_status, submit_btn_disabled, reasoning_display]
             )
             
@@ -1051,17 +1153,18 @@ class EnhancedInterviewApp:
             )
             
             # Enhanced footer
-            gr.HTML("""
-            <div class="footer-section">
-                <p><strong>Enhanced AI Technical Interviewer</strong> • Autonomous Learning System • Powered by Advanced AI Agents</p>
-                <p style="font-size: 0.9rem;">🧠 Chain-of-Thought Reasoning • ⚡ Semantic Evaluation • 🔄 Hybrid Scoring • 🛡️ AI Guardrails • 🎤 Voice Mode</p>
-                <p style="font-size: 0.8rem;">Built with LangChain, HuggingFace Inference API, Gradio, and Sentence Transformers</p>
-            </div>
-            """)
+            # Enhanced footer
+            gr.HTML(
+                '<div class="footer-section">'
+                '<p><strong>Enhanced AI Technical Interviewer</strong> | Autonomous Learning System | Powered by Advanced AI Agents</p>'
+                '<p style="font-size: 0.9rem;">Chain-of-Thought Reasoning | Semantic Evaluation | Hybrid Scoring | AI Guardrails | Voice Mode</p>'
+                '<p style="font-size: 0.8rem;">Built with LangChain, HuggingFace Inference API, Gradio, and Sentence Transformers</p>'
+                '</div>'
+            )
             
             # Voice Mode Toggle Logic
             def toggle_voice_mode(mode):
-                if mode == "Voice 🎤":
+                if "Voice" in mode:
                     return gr.update(visible=True)
                 else:
                     return gr.update(visible=False)
@@ -1075,7 +1178,6 @@ class EnhancedInterviewApp:
         return interface
 
 def main():
-    """Enhanced main entry point"""
     print("Starting Enhanced AI Technical Interviewer...")
     print("Features: Autonomous Learning-Based Adaptive Intelligence")
     print("Requirements: 100% Compliant with Enterprise Standards")
