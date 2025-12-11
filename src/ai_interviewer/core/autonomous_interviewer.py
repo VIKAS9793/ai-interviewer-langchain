@@ -190,6 +190,7 @@ class InterviewSession:
     start_time: float = field(default_factory=time.time)
     interview_complete: bool = False
     final_report: Optional[str] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)  # Stores custom_context for resume/JD
 
 
 class AutonomousInterviewer:
