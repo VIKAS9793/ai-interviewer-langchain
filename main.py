@@ -1205,19 +1205,30 @@ def main():
         # Launch with enhanced configuration and dynamic port
         print(f"Launching Enhanced AI Interviewer on port {available_port}...")
         
+        # Detect Gradio version for compatibility
+        import gradio
+        gradio_version = tuple(map(int, gradio.__version__.split('.')[:2]))
+        is_gradio_5 = gradio_version >= (5, 0)
+        print(f"Detected Gradio version: {gradio.__version__} (v5+: {is_gradio_5})")
+        
         try:
             # Queue for Spaces - default_concurrency_limit for Gradio 4.x
             interface.queue(default_concurrency_limit=2)
             
-            interface.launch(
-                server_name="0.0.0.0",  # Allow external access
-                server_port=7860,  # Fixed port for Spaces
-                share=False,  # Disabled for Spaces (platform handles this)
-                show_error=True,
-                quiet=False,
-                ssr=False,  # Disable SSR (fixes specific Spaces timeout/hydration issues)
-                show_api=False,  # Disable API docs (fixes "bool not iterable" schema crash)
-            )
+            # Build launch args conditionally
+            launch_args = {
+                "server_name": "0.0.0.0",
+                "server_port": 7860,
+                "share": False,
+                "show_error": True,
+                "quiet": False,
+            }
+            # Add Gradio 5.x specific args only if supported
+            if is_gradio_5:
+                launch_args["ssr"] = False
+                launch_args["show_api"] = False
+            
+            interface.launch(**launch_args)
         except Exception as launch_error:
             print(f"Failed to launch on port {available_port}: {launch_error}")
             print("Attempting to find another available port...")
@@ -1227,17 +1238,19 @@ def main():
                 if is_port_available(alt_port):
                     print(f"Trying alternative port: {alt_port}")
                     try:
-                        interface.launch(
-                            server_name="0.0.0.0",
-                            server_port=alt_port,
-                            share=False,  # Disabled for Spaces
-                            show_error=True,
-                            quiet=False,
-                            inbrowser=False,  # Disabled for Spaces
-                            favicon_path=None,
-                            ssr=False,
-                            show_api=False,
-                        )
+                        alt_launch_args = {
+                            "server_name": "0.0.0.0",
+                            "server_port": alt_port,
+                            "share": False,
+                            "show_error": True,
+                            "quiet": False,
+                            "inbrowser": False,
+                            "favicon_path": None,
+                        }
+                        if is_gradio_5:
+                            alt_launch_args["ssr"] = False
+                            alt_launch_args["show_api"] = False
+                        interface.launch(**alt_launch_args)
                         print(f"Successfully launched on port {alt_port}")
                         break
                     except Exception as alt_error:
