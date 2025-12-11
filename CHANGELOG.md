@@ -34,6 +34,10 @@ All notable changes to this project will be documented in this file.
 *   **Extracted Helper Methods:** `_buttons_enabled()` and `_buttons_disabled()` reduce duplicate code
 *   **Replaced 7 duplicate patterns** with helper method calls
 
+### 🔒 Security & Stability
+*   **Fixed bare `except:` clause** in FlowController (now logs errors)
+*   **Added file error handling** in MetacognitiveSystem (IOError/OSError)
+
 ---
 
 ## [2.4.0] - 2025-12-10
