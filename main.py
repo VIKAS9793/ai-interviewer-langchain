@@ -1215,8 +1215,6 @@ def main():
                 share=False,  # Disabled for Spaces (platform handles this)
                 show_error=True,
                 quiet=False,
-                ssr=False,  # Disable SSR (fixes "bool not iterable" error)
-                show_api=False,  # Disable API docs (fixes schema generation crashes)
             )
         except Exception as launch_error:
             print(f"Failed to launch on port {available_port}: {launch_error}")
@@ -1235,8 +1233,6 @@ def main():
                             quiet=False,
                             inbrowser=False,  # Disabled for Spaces
                             favicon_path=None,
-                            ssr=False,
-                            show_api=False,
                         )
                         print(f"Successfully launched on port {alt_port}")
                         break
