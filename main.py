@@ -1101,11 +1101,7 @@ def main():
             share=False,
             show_error=True
         )
-            server_port=port,
-            share=False,
-            show_error=True,
-            show_api=False
-        )
+
         
     except Exception as e:
         logger.error(f"Failed to start application: {e}", exc_info=True)
