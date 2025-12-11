@@ -458,8 +458,11 @@ class MetacognitiveSystem:
             "saved_at": datetime.now().isoformat()
         }
         
-        with open(self.state_path, 'w') as f:
-            json.dump(state, f, indent=2)
+        try:
+            with open(self.state_path, 'w') as f:
+                json.dump(state, f, indent=2)
+        except (IOError, OSError) as e:
+            logger.warning(f"Failed to save metacognitive state: {e}")
     
     def _load_state(self):
         """Load metacognitive state from disk."""

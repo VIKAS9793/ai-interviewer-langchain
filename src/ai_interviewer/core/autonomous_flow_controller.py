@@ -202,5 +202,6 @@ class AutonomousFlowController:
     def __del__(self):
         try:
             self.shutdown()
-        except:
-            pass
+        except Exception as e:
+            # Swallowing exceptions in __del__ is necessary but we log it
+            logger.debug(f"Shutdown cleanup: {e}")
