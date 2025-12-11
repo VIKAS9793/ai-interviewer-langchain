@@ -842,77 +842,79 @@ INFO **The AI thinks before asking each question and explains its reasoning!**""
             )
             
             # --- Tabbed Interface (Clean & Focused) ---
-            with gr.Tabs() as mode_tabs:
+            # Wrap in Column for visibility control (gr.Tabs doesn't support visible)
+            with gr.Column() as tabs_container:
+                with gr.Tabs() as mode_tabs:
                 
-                # --- TAB 1: Topic Interview ---
-                with gr.Tab("Technical Interviewer"):
-                    with gr.Row():
-                        with gr.Column(scale=1, min_width=300):
-                            candidate_name = gr.Textbox(
-                                label="Name",
-                                placeholder="Candidate Name",
-                                elem_classes=["custom-input"]
-                            )
-                            
-                            topic_dropdown = gr.Dropdown(
-                                label="Topic",
-                                choices=[
-                                    "JavaScript/Frontend Development",
-                                    "Python/Backend Development", 
-                                    "Machine Learning/AI",
-                                    "System Design",
-                                    "Data Structures & Algorithms"
-                                ],
-                                value="JavaScript/Frontend Development",
-                                elem_classes=["custom-input"]
-                            )
-                            
-                            start_btn = gr.Button(
-                                "Start Interview", 
-                                variant="primary", 
-                                size="lg",
-                                elem_classes=["enhanced-btn"]
-                            )
+                    # --- TAB 1: Topic Interview ---
+                    with gr.Tab("Technical Interviewer"):
+                        with gr.Row():
+                            with gr.Column(scale=1, min_width=300):
+                                candidate_name = gr.Textbox(
+                                    label="Name",
+                                    placeholder="Candidate Name",
+                                    elem_classes=["custom-input"]
+                                )
+                                
+                                topic_dropdown = gr.Dropdown(
+                                    label="Topic",
+                                    choices=[
+                                        "JavaScript/Frontend Development",
+                                        "Python/Backend Development", 
+                                        "Machine Learning/AI",
+                                        "System Design",
+                                        "Data Structures & Algorithms"
+                                    ],
+                                    value="JavaScript/Frontend Development",
+                                    elem_classes=["custom-input"]
+                                )
+                                
+                                start_btn = gr.Button(
+                                    "Start Interview", 
+                                    variant="primary", 
+                                    size="lg",
+                                    elem_classes=["enhanced-btn"]
+                                )
                 
-                # --- TAB 2: Practice Mode ---
-                with gr.Tab("Practice Mode"):
-                    gr.Markdown("#### Resume & JD Simulation")
-                    
-                    with gr.Row():
-                        with gr.Column():
-                            practice_name = gr.Textbox(
-                                label="Name",
-                                placeholder="Candidate Name",
-                                elem_classes=["custom-input"]
-                            )
-                            
-                            resume_upload = gr.File(
-                                label="Resume (PDF/DOCX)",
-                                file_types=[".pdf", ".docx"],
-                                file_count="single",
-                                elem_classes=["custom-input"]
-                            )
+                    # --- TAB 2: Practice Mode ---
+                    with gr.Tab("Practice Mode"):
+                        gr.Markdown("#### Resume & JD Simulation")
                         
-                        with gr.Column():
-                            jd_url = gr.Textbox(
-                                label="JD URL",
-                                placeholder="https://...",
-                                elem_classes=["custom-input"]
-                            )
+                        with gr.Row():
+                            with gr.Column():
+                                practice_name = gr.Textbox(
+                                    label="Name",
+                                    placeholder="Candidate Name",
+                                    elem_classes=["custom-input"]
+                                )
+                                
+                                resume_upload = gr.File(
+                                    label="Resume (PDF/DOCX)",
+                                    file_types=[".pdf", ".docx"],
+                                    file_count="single",
+                                    elem_classes=["custom-input"]
+                                )
                             
-                            jd_text = gr.Textbox(
-                                label="Or Paste JD",
-                                placeholder="Job Description Text...",
-                                lines=3,
-                                elem_classes=["custom-input"]
-                            )
-                    
-                    start_practice_btn = gr.Button(
-                        "Analyze & Start Practice", 
-                        variant="primary", 
-                        size="lg",
-                        elem_classes=["enhanced-btn"]
-                    )
+                            with gr.Column():
+                                jd_url = gr.Textbox(
+                                    label="JD URL",
+                                    placeholder="https://...",
+                                    elem_classes=["custom-input"]
+                                )
+                                
+                                jd_text = gr.Textbox(
+                                    label="Or Paste JD",
+                                    placeholder="Job Description Text...",
+                                    lines=3,
+                                    elem_classes=["custom-input"]
+                                )
+                        
+                        start_practice_btn = gr.Button(
+                            "Analyze & Start Practice", 
+                            variant="primary", 
+                            size="lg",
+                            elem_classes=["enhanced-btn"]
+                        )
 
             # --- Two-Column Interview Layout (v2.6) ---
             with gr.Row():
@@ -1155,14 +1157,14 @@ INFO **The AI thinks before asking each question and explains its reasoning!**""
             start_btn.click(
                 fn=self.start_interview,
                 inputs=[topic_dropdown, candidate_name],
-                outputs=[interview_display, answer_input, progress_html, system_status, start_btn, start_practice_btn, mode_tabs]
+                outputs=[interview_display, answer_input, progress_html, system_status, start_btn, start_practice_btn, tabs_container]
             )
             
             # Tab 2: Practice Mode
             start_practice_btn.click(
                 fn=self._start_practice_mode,
                 inputs=[resume_upload, jd_text, jd_url, practice_name],
-                outputs=[interview_display, answer_input, progress_html, system_status, start_btn, start_practice_btn, mode_tabs]
+                outputs=[interview_display, answer_input, progress_html, system_status, start_btn, start_practice_btn, tabs_container]
             )
             
             # Handle Enter key on Textbox
