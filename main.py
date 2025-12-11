@@ -81,6 +81,12 @@ class EnhancedInterviewApp:
         import os
         os.makedirs("data/memory", exist_ok=True)
         
+        # Fix: Ensure Gradio cache directory exists (HuggingFace Spaces fix)
+        # See: https://huggingface.co/docs/hub/spaces-sdks-gradio
+        gradio_cache = os.environ.get("GRADIO_TEMP_DIR", "/tmp/gradio")
+        os.makedirs(gradio_cache, exist_ok=True)
+        os.environ["GRADIO_TEMP_DIR"] = gradio_cache
+        
         # Initialize autonomous flow controller
         self.flow_controller = AutonomousFlowController(
             max_concurrent_sessions=20,
