@@ -90,57 +90,86 @@ class ResumeParser:
     def analyze_content(text: str) -> Dict[str, Any]:
         """
         Heuristic analysis of resume content to extract skills, experience level, and target role.
+        Uses word boundary matching to avoid false positives.
         """
+        import re
         text_lower = text.lower()
         
-        # Expanded skills list
-        skills_keywords = [
-            # Languages
-            "python", "java", "javascript", "typescript", "go", "rust", "c++", "c#", "ruby", "php", "swift", "kotlin",
+        # Skills with word boundary matching to avoid false positives
+        tech_skills = [
+            # Languages (use word boundaries)
+            r"\bpython\b", r"\bjava\b", r"\bjavascript\b", r"\btypescript\b", 
+            r"\bgolang\b", r"\brust\b", r"\bc\+\+\b", r"\bc#\b", r"\bruby\b", 
+            r"\bphp\b", r"\bswift\b", r"\bkotlin\b",
             # Frontend
-            "react", "vue", "angular", "nextjs", "html", "css", "tailwind",
+            r"\breact\b", r"\bvue\b", r"\bangular\b", r"\bnextjs\b", r"\bnext\.js\b",
             # Backend
-            "node", "django", "flask", "fastapi", "spring", "express",
+            r"\bnode\.?js\b", r"\bdjango\b", r"\bflask\b", r"\bfastapi\b", r"\bspring\b",
             # Cloud & DevOps
-            "aws", "gcp", "azure", "docker", "kubernetes", "terraform", "jenkins", "ci/cd",
+            r"\baws\b", r"\bgcp\b", r"\bazure\b", r"\bdocker\b", r"\bkubernetes\b", 
+            r"\bterraform\b", r"\bjenkins\b", r"\bci/cd\b",
             # Data
-            "sql", "nosql", "mongodb", "postgresql", "redis", "elasticsearch",
+            r"\bsql\b", r"\bnosql\b", r"\bmongodb\b", r"\bpostgresql\b", r"\bredis\b",
             # AI/ML
-            "machine learning", "deep learning", "ai", "tensorflow", "pytorch", "nlp", "computer vision",
-            # Other
-            "git", "agile", "scrum", "api", "rest", "graphql", "microservices"
+            r"\bmachine learning\b", r"\bdeep learning\b", r"\btensorflow\b", 
+            r"\bpytorch\b", r"\bnlp\b", r"\bcomputer vision\b",
         ]
-        found_skills = [skill for skill in skills_keywords if skill in text_lower]
         
-        # Role/Title extraction (look for common patterns)
-        role_keywords = {
-            "product manager": "Product Management",
-            "software engineer": "Software Engineering", 
-            "data scientist": "Data Science",
-            "machine learning": "Machine Learning",
-            "frontend": "Frontend Development",
-            "backend": "Backend Development",
-            "full stack": "Full Stack Development",
-            "devops": "DevOps Engineering",
-            "cloud engineer": "Cloud Engineering",
-            "sre": "Site Reliability Engineering"
-        }
-        detected_role = "General Technical Interview"
-        for keyword, role in role_keywords.items():
-            if keyword in text_lower:
+        # Business/Sales skills (for non-technical roles)
+        business_skills = [
+            r"\bcrm\b", r"\bsalesforce\b", r"\bsales\b", r"\baccount management\b",
+            r"\brelationship management\b", r"\bbusiness development\b", 
+            r"\bconsultative selling\b", r"\bpipeline\b", r"\bnegotiation\b",
+            r"\bportfolio management\b", r"\baum\b", r"\basset management\b",
+            r"\bwealth management\b", r"\bbanking\b", r"\bfinance\b",
+            r"\bproject management\b", r"\bproduct management\b", r"\bagile\b", r"\bscrum\b",
+        ]
+        
+        # Find matches with word boundaries
+        found_tech = [skill.replace(r"\b", "").replace("\\", "") 
+                      for skill in tech_skills if re.search(skill, text_lower)]
+        found_business = [skill.replace(r"\b", "").replace("\\", "") 
+                          for skill in business_skills if re.search(skill, text_lower)]
+        all_skills = list(set(found_tech + found_business))
+        
+        # Role detection with priority
+        role_keywords = [
+            (r"business pro", "Business Development"),
+            (r"business development", "Business Development"),
+            (r"relationship manager", "Relationship Management"),
+            (r"sales", "Sales"),
+            (r"product manager", "Product Management"),
+            (r"project manager", "Project Management"),
+            (r"software engineer", "Software Engineering"),
+            (r"data scientist", "Data Science"),
+            (r"machine learning", "Machine Learning"),
+            (r"devops", "DevOps Engineering"),
+        ]
+        detected_role = "General Interview"
+        for pattern, role in role_keywords:
+            if re.search(pattern, text_lower):
                 detected_role = role
                 break
         
-        # Experience level detection
+        # Experience level detection - look for years of experience
         experience_level = "Mid"
-        if any(word in text_lower for word in ["senior", "lead", "principal", "staff", "director"]):
+        years_match = re.search(r"(\d+)\+?\s*years?\s*(of)?\s*(experience|exp)?", text_lower)
+        if years_match:
+            years = int(years_match.group(1))
+            if years >= 7:
+                experience_level = "Senior"
+            elif years >= 3:
+                experience_level = "Mid"
+            else:
+                experience_level = "Junior"
+        elif any(word in text_lower for word in ["senior", "lead", "principal", "director", "head of"]):
             experience_level = "Senior"
-        elif any(word in text_lower for word in ["junior", "intern", "entry", "graduate", "fresher"]):
+        elif any(word in text_lower for word in ["junior", "intern", "entry level", "fresher", "graduate"]):
             experience_level = "Junior"
         
         return {
             "text_length": len(text),
-            "found_skills": list(set(found_skills)),
+            "found_skills": all_skills,
             "detected_role": detected_role,
             "experience_level": experience_level
         }
