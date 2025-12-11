@@ -205,7 +205,7 @@ class EnhancedInterviewApp:
         }
     
     def _generate_progress_html(self, question_num: int = 0, elapsed_seconds: int = 0, start_timestamp: float = 0) -> str:
-        """Generate progress bar HTML with elapsed time (updates on each interaction)"""
+        """Generate consolidated header status (Quick Win #3)"""
         progress_pct = (question_num / 5) * 100 if question_num > 0 else 0
         
         # Calculate elapsed from start_timestamp if available
@@ -217,21 +217,24 @@ class EnhancedInterviewApp:
         seconds = elapsed_seconds % 60
         time_str = f"{minutes:02d}:{seconds:02d}"
         
-        # Note: Gradio sanitizes JavaScript, so timer updates only on each interaction
         return f"""
-        <div class="progress-container">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                <span style="color: var(--text-secondary);">Question</span>
-                <span style="color: var(--learning-color); font-weight: 600;">{question_num} / 5</span>
+        <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-medium); padding: 15px 25px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-family: 'Inter', sans-serif; margin-bottom: 20px;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="font-weight: 700; color: var(--learning-color); font-size: 1.1rem;">
+                    Question {question_num} <span style="color: var(--text-secondary); font-weight: 400; font-size: 0.9rem;">of 5</span>
+                </div>
+                <div style="width: 150px; height: 8px; background: var(--bg-dark); border-radius: 4px; overflow: hidden;">
+                    <div style="width: {progress_pct}%; height: 100%; background: linear-gradient(90deg, var(--primary-color), var(--learning-color)); transition: width 0.5s ease;"></div>
+                </div>
             </div>
-            <div class="progress-bar-wrapper">
-                <div class="progress-bar-fill" style="width: {progress_pct}%;">{question_num}/5</div>
+            
+            <div style="font-family: 'Space Grotesk', monospace; font-size: 1.1rem; color: var(--text-primary); font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                <span style="animation: pulse 2s infinite;">⏱️</span> {time_str}
             </div>
-        </div>
-        <div class="timer-display">
-            <span class="timer-icon">⏱️</span>
-            <span style="color: var(--text-secondary);">Elapsed:</span>
-            <span class="timer-value">{time_str}</span>
+            
+            <div style="background: rgba(102, 126, 234, 0.1); color: var(--primary-color); padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; font-weight: 600;">
+                Active Session
+            </div>
         </div>
         """
         
@@ -404,13 +407,16 @@ class EnhancedInterviewApp:
 
 ---
 
-### Autonomous Features Active:
+<details>
+<summary><strong>ℹ️ View Autonomous Capabilities</strong></summary>
+
 - **Self-Thinking:** Chain-of-Thought reasoning before every action
 - **Logical Reasoning:** Multi-step analysis of your responses
 - **Self-Resilient:** Graceful error recovery
 - **Human-Like:** Natural, adaptive conversation
 - **AI Guardrails:** Fair, unbiased, explainable decisions
 - **Accountability:** Complete audit trail
+</details>
 
 ---
 
@@ -573,11 +579,12 @@ INFO **The AI thinks before asking each question and explains its reasoning!**""
         .enhanced-header {
             text-align: center;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #9f7aea 100%);
-            color: white;
+            color: #ffffff !important;
             padding: 2rem;
             border-radius: 15px;
             margin-bottom: 2rem;
             box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3); /* improved contrast */
         }
         
         /* Learning features showcase */
@@ -639,10 +646,21 @@ INFO **The AI thinks before asking each question and explains its reasoning!**""
         .enhanced-interview-content {
             background: var(--bg-medium) !important;
             border-radius: 10px;
-            padding: 1.5rem;
+            padding: 2rem;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-            border-left: 4px solid var(--learning-color);
+            border-left: 6px solid var(--learning-color);
             color: var(--text-primary) !important;
+            font-size: 1.5rem !important; /* Typography Quick Win: 24px+ */
+            line-height: 1.6 !important;
+        }
+
+        /* Large Input Area */
+        .custom-input textarea {
+            min-height: 350px !important; /* Layout Quick Win */
+            font-size: 1.1rem !important;
+            line-height: 1.6;
+            background: var(--bg-dark) !important;
+            border: 1px solid var(--border-color) !important;
         }
         
         /* Learning insights panel */
@@ -1011,6 +1029,7 @@ INFO **The AI thinks before asking each question and explains its reasoning!**""
                                     if (status) {
                                         status.innerHTML = 'DOT <strong>Listening...</strong> Speak now';
                                         status.style.background = 'rgba(239, 68, 68, 0.2)';
+                                        status.style.color = '#fff';
                                     }
                                     
                                     try {
@@ -1068,23 +1087,46 @@ INFO **The AI thinks before asking each question and explains its reasoning!**""
                                     }
                                 };
                                 
+                                // Keyboard shortcut (Ctrl+Enter)
+                                document.addEventListener('keydown', function(event) {
+                                    if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+                                        const btn = document.getElementById('submit-btn');
+                                        if (btn) {
+                                            event.preventDefault(); // Prevent newline
+                                            btn.click();
+                                        }
+                                    }
+                                });
+
                                 console.log('Voice Mode v2.4 ready');
                             })();
                             </script>
-                            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 10px;">
-                                <div id="voice-status" style="padding: 10px 20px; border-radius: 8px; background: rgba(34, 197, 94, 0.2); text-align: center; flex: 1;">
+                            <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap; padding: 15px 0;">
+                                <!-- Large Status Indicator -->
+                                <div id="voice-status" style="padding: 15px 20px; border-radius: 12px; background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.3); text-align: center; flex: 1; min-width: 200px; font-weight: 500; font-size: 1.1rem; color: var(--text-primary);">
                                     READY Click microphone to start
                                 </div>
-                                <button onclick="window.startVoiceRecording()" style="padding: 10px 20px; border-radius: 8px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none; cursor: pointer; font-size: 1rem; font-weight: 600;">
-                                    Start Recording
+                                
+                                <!-- MASSIVE Start Button (Quick Win #2) -->
+                                <button onclick="window.startVoiceRecording()" style="
+                                    padding: 15px 40px; 
+                                    border-radius: 12px; 
+                                    background: linear-gradient(135deg, #6366f1, #8b5cf6); 
+                                    color: white; 
+                                    border: none; 
+                                    cursor: pointer; 
+                                    font-size: 1.3rem; 
+                                    font-weight: 700;
+                                    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+                                    transition: transform 0.2s;
+                                    display: flex; align-items: center; gap: 10px;
+                                " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                                    🎤 Start Recording
                                 </button>
-                                <button onclick="window.stopVoiceRecording()" style="padding: 10px 20px; border-radius: 8px; background: #4b5563; color: white; border: none; cursor: pointer; font-size: 1rem;">
-                                    Stop
+                                
+                                <button onclick="window.stopVoiceRecording()" style="padding: 15px 25px; border-radius: 12px; background: #4b5563; color: white; border: none; cursor: pointer; font-size: 1.1rem; font-weight: 600;">
+                                    ⏹️ Stop
                                 </button>
-                                <label style="display: flex; align-items: center; gap: 5px; color: var(--text-primary);">
-                                    <input type="checkbox" id="speak-response-checkbox" checked style="width: 18px; height: 18px;">
-                                    Speak Response
-                                </label>
                             </div>
                             ''')
                         
@@ -1134,7 +1176,8 @@ INFO **The AI thinks before asking each question and explains its reasoning!**""
                                 "📤 Submit Answer", 
                                 variant="primary", 
                                 size="lg",
-                                elem_classes=["enhanced-btn"]
+                                elem_classes=["enhanced-btn"],
+                                elem_id="submit-btn"
                             )
                             clear_btn = gr.Button(
                                 "🗑️ Clear", 
