@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.5.0] - 2025-12-11
+
+### 🎯 Practice Mode (Resume-Based Interviews)
+*   **Resume Upload:** PDF/DOCX support with security scanning (magic bytes, macro detection)
+*   **Job Description URL Scraping:** Paste job link to extract JD context
+*   **Intelligent Resume Analysis:** 40+ skills detection, role extraction, experience level parsing
+*   **Role Detection:** Automatic detection of Business Development, PM, SWE, Data Science roles
+*   **Experience Level:** Parses "X+ years" from resume (Junior/Mid/Senior)
+
+### 🐛 Bug Fixes (9 Total)
+*   **Fixed:** `custom_context` parameter missing from FlowController
+*   **Fixed:** Button showing "True" after click (gr.update pattern)
+*   **Fixed:** Skills key mismatch (`found_skills` vs `skills`)
+*   **Fixed:** `InterviewSession` missing `metadata` field  
+*   **Fixed:** Gradio 5 temp file path access errors
+*   **Fixed:** Session stored as string instead of dict (string indices error)
+*   **Fixed:** False positive skill matches (word boundary regex)
+*   **Fixed:** Pydantic 2.11+ incompatibility (pinned to 2.10.6)
+*   **Fixed:** Gradio cache directory for HuggingFace Spaces
+
+### ⚠️ Known Limitations
+*   Evaluation scoring optimized for technical interviews (Business/PM improvements in v3.0)
+*   Gemini integration planned for v3.0
+
+---
+
 ## [2.4.0] - 2025-12-10
 
 ### 🎤 Voice Mode (Browser-Native)
