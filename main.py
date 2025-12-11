@@ -1106,6 +1106,10 @@ INFO **The AI thinks before asking each question and explains its reasoning!**""
             
             # Event handlers
             
+            # Clear Inputs Helper
+            def clear_inputs():
+                return "", ""
+            
             # Tab 1: Topic Interview
             start_btn.click(
                 fn=self.start_interview,
@@ -1144,8 +1148,6 @@ INFO **The AI thinks before asking each question and explains its reasoning!**""
             )
             
             # Clear button
-            def clear_inputs():
-                return "", ""
             
             clear_btn.click(
                 fn=clear_inputs,
