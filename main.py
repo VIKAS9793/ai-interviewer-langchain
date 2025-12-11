@@ -914,49 +914,43 @@ INFO **The AI thinks before asking each question and explains its reasoning!**""
                         elem_classes=["enhanced-btn"]
                     )
 
-            # Shared Status Section
+            # --- Two-Column Interview Layout (v2.6) ---
             with gr.Row():
-                with gr.Column():
-                     # Progress bar HTML component
+                # LEFT COLUMN - Question & Progress (40%)
+                with gr.Column(scale=2, min_width=350):
+                    # Compact status bar
+                    with gr.Row():
+                        system_status = gr.Markdown(
+                            "🟡 **Ready** | ⏱ 00:00 | Q: 0/5",
+                            elem_classes=["compact-status"]
+                        )
+                    
+                    # Progress bar
                     progress_html = gr.HTML(
                         """
-                        <div class="progress-container">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                                <span style="color: var(--text-secondary);">Question</span>
-                                <span style="color: var(--learning-color); font-weight: 600;">0 / 5</span>
+                        <div class="progress-container" style="padding: 0.5rem 0;">
+                            <div class="progress-bar-wrapper" style="height: 8px; border-radius: 4px; background: #334155;">
+                                <div class="progress-bar-fill" style="width: 0%; height: 100%; border-radius: 4px; background: linear-gradient(90deg, #667eea, #9f7aea);"></div>
                             </div>
-                            <div class="progress-bar-wrapper">
-                                <div class="progress-bar-fill" style="width: 0%;"></div>
-                            </div>
-                        </div>
-                        <div class="timer-display">
-                            <span class="timer-icon">&#9201;</span>
-                            <span style="color: var(--text-secondary);">Elapsed:</span>
-                            <span class="timer-value">00:00</span>
                         </div>
                         """,
                         elem_id="progress-tracker"
                     )
                     
-                    system_status = gr.Markdown(
-                        "🟡 **Status:** Ready",
-                        elem_classes=["system-status"]
-                    )
-            
-            # Right panel - Interview content
-                
-                # Right panel - Interview content
+                    # Question display
                     interview_display = gr.Markdown(
                         "### AI Technical Interviewer\n\n**Powered by Meta LLaMA 3 (8B)**\n\n#### Instructions\n1. **Setup**: Enter name & topic (or upload resume)\n2. **Start**: Click the launch button\n3. **Speak**: Use Voice Mode for hands-free",
                         elem_classes=["enhanced-interview-content"]
                     )
-                    
-                    # AI Reasoning Accordion (Collapsible)
-                    with gr.Accordion("🧠 AI Internal Monologue", open=False) as reasoning_accordion:
-                        reasoning_display = gr.Markdown(
-                            "*AI thoughts will appear here after each answer evaluation...*",
-                            elem_classes=["reasoning-display"]
-                        )
+                
+                # RIGHT COLUMN - Answer (60%)
+                with gr.Column(scale=3, min_width=400):
+                    # Hidden reasoning (for results only)
+                    reasoning_display = gr.Markdown(
+                        "",
+                        visible=False,
+                        elem_classes=["reasoning-display"]
+                    )
             
             # Answer section
             gr.Markdown("### 💬 Your Response")
