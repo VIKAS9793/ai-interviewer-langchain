@@ -866,33 +866,35 @@ INFO **The AI thinks before asking each question and explains its reasoning!**""
                 
                     # --- TAB 1: Topic Interview ---
                     with gr.Tab("Technical Interviewer"):
-                        with gr.Row():
-                            with gr.Column(scale=1, min_width=300):
-                                candidate_name = gr.Textbox(
-                                    label="Name",
-                                    placeholder="Candidate Name",
-                                    elem_classes=["custom-input"]
-                                )
-                                
-                                topic_dropdown = gr.Dropdown(
-                                    label="Topic",
-                                    choices=[
-                                        "JavaScript/Frontend Development",
-                                        "Python/Backend Development", 
-                                        "Machine Learning/AI",
-                                        "System Design",
-                                        "Data Structures & Algorithms"
-                                    ],
-                                    value="JavaScript/Frontend Development",
-                                    elem_classes=["custom-input"]
-                                )
-                                
-                                start_btn = gr.Button(
-                                    "Start Interview", 
-                                    variant="primary", 
-                                    size="lg",
-                                    elem_classes=["enhanced-btn"]
-                                )
+                        with gr.Row(equal_height=True):
+                            candidate_name = gr.Textbox(
+                                label="Name",
+                                placeholder="Candidate Name",
+                                elem_classes=["custom-input"],
+                                scale=2
+                            )
+                            
+                            topic_dropdown = gr.Dropdown(
+                                label="Topic",
+                                choices=[
+                                    "JavaScript/Frontend Development",
+                                    "Python/Backend Development", 
+                                    "Machine Learning/AI",
+                                    "System Design",
+                                    "Data Structures & Algorithms"
+                                ],
+                                value="JavaScript/Frontend Development",
+                                elem_classes=["custom-input"],
+                                scale=2
+                            )
+                            
+                            start_btn = gr.Button(
+                                "Start Interview", 
+                                variant="primary", 
+                                size="lg",
+                                elem_classes=["enhanced-btn"],
+                                scale=1
+                            )
                 
                     # --- TAB 2: Practice Mode ---
                     with gr.Tab("Practice Mode"):
@@ -942,17 +944,32 @@ INFO **The AI thinks before asking each question and explains its reasoning!**""
                     with gr.Row():
                         system_status = gr.Markdown(
                             "🟡 **Ready** | ⏱ 00:00 | Q: 0/5",
-                            elem_classes=["compact-status"]
+                            elem_classes=["compact-status"],
+                            visible=False  # Hidden (Replaced by progress_html header)
                         )
                     
                     # Progress bar
+                    # Progress bar (Initial State)
                     progress_html = gr.HTML(
                         """
-                        <div class="progress-container" style="padding: 0.5rem 0;">
-                            <div class="progress-bar-wrapper" style="height: 8px; border-radius: 4px; background: #334155;">
-                                <div class="progress-bar-fill" style="width: 0%; height: 100%; border-radius: 4px; background: linear-gradient(90deg, #667eea, #9f7aea);"></div>
-                            </div>
-                        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-medium); padding: 15px 25px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-family: 'Inter', sans-serif; margin-bottom: 20px;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="font-weight: 700; color: var(--learning-color); font-size: 1.1rem;">
+                    Question 0 <span style="color: var(--text-secondary); font-weight: 400; font-size: 0.9rem;">of 5</span>
+                </div>
+                <div style="width: 150px; height: 8px; background: var(--bg-dark); border-radius: 4px; overflow: hidden;">
+                    <div style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--primary-color), var(--learning-color)); transition: width 0.5s ease;"></div>
+                </div>
+            </div>
+            
+            <div style="font-family: 'Space Grotesk', monospace; font-size: 1.1rem; color: var(--text-primary); font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                <span style="animation: pulse 2s infinite;">⏱️</span> 00:00
+            </div>
+            
+            <div style="background: rgba(102, 126, 234, 0.1); color: var(--primary-color); padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; font-weight: 600;">
+                Ready
+            </div>
+        </div>
                         """,
                         elem_id="progress-tracker"
                     )
