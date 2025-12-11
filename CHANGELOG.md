@@ -26,6 +26,14 @@ All notable changes to this project will be documented in this file.
 *   Evaluation scoring optimized for technical interviews (Business/PM improvements in v3.0)
 *   Gemini integration planned for v3.0
 
+### 🎨 UI Improvements
+*   **Full Width Layout:** `fill_width=True` for better screen utilization
+*   **Tab Visibility Control:** Tabs hidden during active interview (in progress)
+
+### 🛠️ Code Quality
+*   **Extracted Helper Methods:** `_buttons_enabled()` and `_buttons_disabled()` reduce duplicate code
+*   **Replaced 7 duplicate patterns** with helper method calls
+
 ---
 
 ## [2.4.0] - 2025-12-10
