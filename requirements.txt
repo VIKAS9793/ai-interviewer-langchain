@@ -1,39 +1,36 @@
-# Core Framework
-gradio>=5.0.0
-python-dotenv>=1.0.0
+# Core Dependencies - Pinned for Stability
+gradio==4.44.0  # Downgrade from 5.9.1 to avoid schema parsing bug
+huggingface-hub==0.25.2
+torch==2.5.1
+transformers==4.46.3
 
-# AI/ML Core
-langchain>=0.1.0
-langchain-community>=0.0.20
-langchain-huggingface>=0.0.1
+# LangChain Stack
+langchain==0.3.7
+langchain-community==0.3.5
+langchain-huggingface==0.1.2
 
-# Embeddings & Vector Store
-sentence-transformers>=2.2.2
-chromadb>=0.4.22
-faiss-cpu>=1.7.4
-
-# LLM Providers
-huggingface-hub>=0.20.0
-torch>=2.0.0
+# Vector Store & Embeddings
+chromadb==0.5.20
+sentence-transformers==3.3.1
 
 # Document Processing
-pypdf>=3.17.0
-python-docx>=1.1.0
-python-magic>=0.4.27
-pdfplumber>=0.10.0
+PyPDF2==3.0.1
+python-docx==1.1.2
+pdfplumber==0.11.4
 
-# Web Scraping
-beautifulsoup4>=4.12.0
-requests>=2.31.0
-lxml>=4.9.0
-
-# Security
-validators>=0.22.0
+# Web & API
+requests==2.32.3
+beautifulsoup4==4.12.3
+aiohttp==3.11.7
 
 # Utilities
-pydantic>=2.0.0
-pyyaml>=6.0.1
-aiofiles>=23.0.0
+python-dotenv==1.0.1
+pydantic==2.10.3
+pyyaml==6.0.2
 
-# Voice Mode (Required for HF Spaces)
-openai-whisper>=20231117
+# Audio (Optional - for voice mode)
+openai-whisper==20231117
+soundfile==0.12.1
+
+# Security
+cryptography==44.0.0

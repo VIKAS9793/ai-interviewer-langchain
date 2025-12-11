@@ -1,6 +1,7 @@
 """
 AI Technical Interviewer - Production-Grade Gradio UI
 Clean Architecture | Responsive Design | Accessibility First
+PATCHED FOR GRADIO 4.44 COMPATIBILITY
 """
 
 import gradio as gr
@@ -83,47 +84,17 @@ MAX_QUESTIONS = 5
 DEFAULT_MODEL = "meta-llama/Meta-Llama-3-8B-Instruct"
 
 # ============================================================================
-# THEME CONFIGURATION - Using Gradio's Native Theme System
+# THEME CONFIGURATION - Gradio 4.44 Compatible
 # ============================================================================
 
 def create_theme() -> gr.Theme:
-    """Create consistent theme using Gradio's native system"""
+    """Create consistent theme using Gradio 4.44 theme system"""
     return gr.themes.Soft(
         primary_hue="indigo",
         secondary_hue="purple",
         neutral_hue="slate",
-        font=("Inter", "system-ui", "sans-serif"),
-        font_mono=("IBM Plex Mono", "monospace")
-    ).set(
-        # Typography
-        body_text_size="*text_lg",
-        body_text_weight="400",
-        
-        # Spacing
-        # spacing_xl="40px", (Removed for compatibility)
-        # spacing_lg="24px",
-        # spacing_md="16px",
-        
-        # Borders
-        # radius_lg="16px", (Removed for compatibility)
-        # radius_md="12px",
-        # radius_sm="8px",
-        
-        # Shadows
-        # shadow_drop="0 4px 6px -1px rgb(0 0 0 / 0.1)",
-        # shadow_drop_lg="0 10px 15px -3px rgb(0 0 0 / 0.1)",
-        
-        # Button
-        # button_primary_background_fill="*primary_500",
-        # button_primary_background_fill_hover="*primary_600",
-        # button_primary_text_size="*text_lg",
-        # button_large_padding="16px 32px",
-        
-        # Input
-        # input_background_fill="*neutral_50",
-        # input_border_width="2px",
-        # input_padding="12px",
-        # input_text_size="*text_md"
+        font=["Inter", "system-ui", "sans-serif"],
+        font_mono=["IBM Plex Mono", "monospace"]
     )
 
 # ============================================================================
@@ -161,21 +132,21 @@ MINIMAL_CSS = """
 
 /* Fix: Progress bar container */
 .progress-container {
-    background: var(--neutral-100);
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 8px;
     height: 8px;
     overflow: hidden;
 }
 
 .progress-bar {
-    background: linear-gradient(90deg, var(--primary-500), var(--secondary-500));
+    background: linear-gradient(90deg, #6366f1, #a855f7);
     height: 100%;
     transition: width 0.3s ease;
 }
 
 /* Accessibility: Focus indicators */
 *:focus-visible {
-    outline: 3px solid var(--primary-500);
+    outline: 3px solid #6366f1;
     outline-offset: 2px;
 }
 
@@ -200,7 +171,7 @@ def create_progress_display(question_num: int = 0, elapsed_sec: int = 0) -> str:
     status_class = "status-ready" if question_num == 0 else "status-active"
     
     return f"""
-    <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 16px; background: var(--neutral-50); border-radius: 12px; margin-bottom: 20px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 16px; background: rgba(255,255,255,0.05); border-radius: 12px; margin-bottom: 20px;">
         <div style="flex: 1;">
             <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 8px;">
                 {status_text}
@@ -306,7 +277,7 @@ def format_final_report(
     for strength in strengths:
         parts.append(f"- {strength}")
     
-    parts.extend(["", "## 🎓 Growth Areas", ""])
+    parts.extend(["", "## � Growth Areas", ""])
     
     improvements = summary.get('areas_for_improvement', ['Continue practicing'])[:3]
     for improvement in improvements:
@@ -408,7 +379,7 @@ class InterviewApplication:
         self,
         topic: str,
         candidate_name: str
-    ) -> Tuple[str, str, str, bool, bool, bool]:
+    ) -> Tuple:
         """Start topic-based interview"""
         
         # Validation
@@ -417,11 +388,9 @@ class InterviewApplication:
                 "⚠️ Please enter your name to begin.",
                 create_progress_display(0, 0),
                 "",
-                False,  # tabs visible
-                True,   # start enabled
-                gr.update(visible=True),
-                gr.update(interactive=True),
-                gr.update(interactive=True)
+                gr.update(visible=True),  # tabs visible
+                gr.update(interactive=True),   # start enabled
+                gr.update(interactive=True)    # practice enabled
             )
         
         try:
@@ -493,7 +462,7 @@ class InterviewApplication:
         jd_text: str,
         jd_url: str,
         candidate_name: str
-    ):
+    ) -> Tuple:
         """Start practice mode with resume analysis"""
         
         # Validation
@@ -529,8 +498,8 @@ class InterviewApplication:
                     gr.update(interactive=True)
                 )
             
-            # Get file path (Gradio 4/5 compatibility)
-            file_path = resume_file if isinstance(resume_file, str) else resume_file.name
+            # Get file path (Gradio 4.44 uses .name attribute)
+            file_path = resume_file.name if hasattr(resume_file, 'name') else resume_file
             
             if not os.path.exists(file_path):
                 return (
@@ -672,19 +641,19 @@ class InterviewApplication:
         self,
         answer_text: str,
         transcription_text: str = ""
-    ):
+    ) -> Tuple:
         """Process candidate's answer (from either text or voice)"""
         
         # Check session
         if not self.current_session:
             return (
                 "❌ No active session. Please start an interview first.",
-            create_progress_display(0, 0),
-            "",
-            gr.update(visible=True),
-            gr.update(interactive=True),
-            gr.update(interactive=True)
-        )
+                create_progress_display(0, 0),
+                "",
+                gr.update(visible=True),
+                gr.update(interactive=True),
+                gr.update(interactive=True)
+            )
         
         # Use transcription if provided, otherwise text input
         final_answer = transcription_text if transcription_text else answer_text
@@ -695,12 +664,12 @@ class InterviewApplication:
             q_num = self.current_session["question_count"]
             return (
                 "⚠️ Please provide an answer before submitting.",
-            create_progress_display(q_num, elapsed),
-            final_answer,  # Keep existing text
-            gr.update(visible=False),
-            gr.update(interactive=True), # Keep enabled to retry? 
-            gr.update(interactive=False) # Practice disabled
-        )
+                create_progress_display(q_num, elapsed),
+                final_answer,  # Keep existing text
+                gr.update(visible=False),
+                gr.update(interactive=True), # Keep enabled to retry
+                gr.update(interactive=False) # Practice disabled
+            )
         
         try:
             # Process with AI
@@ -732,18 +701,17 @@ class InterviewApplication:
                 progress = create_progress_display(q_num, elapsed)
                 
                 return (
-                display,
-                progress,
-                "",  # Clear answer
-                gr.update(visible=False),
-                gr.update(interactive=True), # Enable for next question
-                gr.update(interactive=False)
-            )
+                    display,
+                    progress,
+                    "",  # Clear answer
+                    gr.update(visible=False),
+                    gr.update(interactive=True), # Enable for next question
+                    gr.update(interactive=False)
+                )
             
             # Handle completion
             elif result["status"] == "completed":
                 summary = result.get("summary", {})
-                final_report = result.get("final_report", "")
                 
                 display = format_final_report(summary, elapsed)
                 progress = create_progress_display(MAX_QUESTIONS, elapsed)
@@ -751,47 +719,46 @@ class InterviewApplication:
                 self.current_session = None
                 
                 return (
-                display,
-                progress,
-                "",
-                gr.update(visible=True),
-                gr.update(interactive=True),
-                gr.update(interactive=True)
-            )
+                    display,
+                    progress,
+                    "",
+                    gr.update(visible=True),
+                    gr.update(interactive=True),
+                    gr.update(interactive=True)
+                )
             
             else:
                 return (
-                f"❌ Error: {result.get('message', 'Unexpected error')}",
-                create_progress_display(0, elapsed),
-                final_answer,
-                gr.update(visible=False),
-                gr.update(interactive=True), # Enable to retry
-                gr.update(interactive=False)
-            )
+                    f"❌ Error: {result.get('message', 'Unexpected error')}",
+                    create_progress_display(0, elapsed),
+                    final_answer,
+                    gr.update(visible=False),
+                    gr.update(interactive=True), # Enable to retry
+                    gr.update(interactive=False)
+                )
                 
         except Exception as e:
             logger.error(f"Error processing answer: {e}", exc_info=True)
             return (
-            f"❌ System Error: {str(e)}",
-            create_progress_display(0, 0),
-            final_answer,
-            gr.update(visible=True), # Recover
-            gr.update(interactive=True),
-            gr.update(interactive=True)
-        )
+                f"❌ System Error: {str(e)}",
+                create_progress_display(0, 0),
+                final_answer,
+                gr.update(visible=True), # Recover
+                gr.update(interactive=True),
+                gr.update(interactive=True)
+            )
 
 # ============================================================================
 # UI CONSTRUCTION - Clean, Composable Interface
 # ============================================================================
 
 def create_interface(app: InterviewApplication) -> gr.Blocks:
-    """Create Gradio interface using best practices"""
+    """Create Gradio interface using best practices (Gradio 4.44)"""
     
     with gr.Blocks(
         theme=create_theme(),
         css=MINIMAL_CSS,
-        title="AI Technical Interviewer",
-        fill_height=True
+        title="AI Technical Interviewer"
     ) as interface:
         
         # Header
@@ -800,41 +767,36 @@ def create_interface(app: InterviewApplication) -> gr.Blocks:
             # 🤖 AI Technical Interviewer
             
             **Powered by Meta LLaMA 3** | Chain-of-Thought Reasoning | Adaptive Questioning
-            """,
-            elem_classes=["text-center"]
+            """
         )
         
         # Tabs container (for hiding during interview)
         with gr.Column(visible=True) as tabs_container:
-            with gr.Tabs() as mode_tabs:
+            with gr.Tabs():
                 
                 # Tab 1: Topic-Based Interview
-                with gr.Tab("📝 Technical Interview"):
+                with gr.TabItem("📝 Technical Interview"):
                     gr.Markdown("### Quick Start Interview")
                     
                     with gr.Row():
                         candidate_name = gr.Textbox(
                             label="Your Name",
-                            placeholder="Enter your full name",
-                            scale=2
+                            placeholder="Enter your full name"
                         )
                         
                         topic_dropdown = gr.Dropdown(
                             label="Interview Topic",
                             choices=TOPICS,
-                            value=TOPICS[0],
-                            scale=2
+                            value=TOPICS[0]
                         )
                         
-                        start_btn = gr.Button(
-                            "Start Interview",
-                            variant="primary",
-                            size="lg",
-                            scale=1
-                        )
+                    start_btn = gr.Button(
+                        "Start Interview",
+                        variant="primary"
+                    )
                 
                 # Tab 2: Practice Mode
-                with gr.Tab("🎯 Practice Mode"):
+                with gr.TabItem("🎯 Practice Mode"):
                     gr.Markdown("### Resume-Based Practice Interview")
                     
                     with gr.Row():
@@ -864,8 +826,7 @@ def create_interface(app: InterviewApplication) -> gr.Blocks:
                     
                     start_practice_btn = gr.Button(
                         "Analyze & Start Practice",
-                        variant="primary",
-                        size="lg"
+                        variant="primary"
                     )
         
         # Progress Display
@@ -892,8 +853,7 @@ def create_interface(app: InterviewApplication) -> gr.Blocks:
                     - Take your time to think
                     - Explain your reasoning
                     - Ask clarifying questions when needed
-                    """,
-                    elem_classes=["question-card"]
+                    """
                 )
             
             # Answer Input (Right)
@@ -902,8 +862,8 @@ def create_interface(app: InterviewApplication) -> gr.Blocks:
                 
                 # Input Mode Toggle
                 input_mode = gr.Radio(
-                    choices=["✍️ Text", "🎤 Voice"],
-                    value="✍️ Text",
+                    choices=["✏️ Text", "🎤 Voice"],
+                    value="✏️ Text",
                     label="Input Mode",
                     info="Choose how you'd like to answer"
                 )
@@ -928,8 +888,7 @@ def create_interface(app: InterviewApplication) -> gr.Blocks:
                         3. Speak your answer clearly
                         4. Click "Stop" when finished
                         5. Review the transcription and submit
-                        """,
-                        elem_classes=["voice-instructions"]
+                        """
                     )
                     
                     audio_input = gr.Audio(
