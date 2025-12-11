@@ -48,7 +48,7 @@ class AutonomousFlowController:
         
         logger.info(f"🤖 Autonomous Flow Controller initialized (max sessions: {max_concurrent_sessions})")
     
-    def start_interview(self, topic: str, candidate_name: str) -> Dict[str, Any]:
+    def start_interview(self, topic: str, candidate_name: str, custom_context: Dict[str, Any] = None) -> Dict[str, Any]:
         """Start interview with autonomous AI interviewer"""
         try:
             # Check concurrency
@@ -60,8 +60,8 @@ class AutonomousFlowController:
                     "error_code": "CONCURRENCY_LIMIT"
                 }
             
-            # Start autonomous interview
-            result = self.interviewer.start_interview(topic, candidate_name)
+            # Start autonomous interview with optional custom context
+            result = self.interviewer.start_interview(topic, candidate_name, custom_context=custom_context)
             
             if result["status"] == "started":
                 with self.session_lock:

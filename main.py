@@ -234,7 +234,7 @@ class EnhancedInterviewApp:
         """
         try:
             if not candidate_name or not candidate_name.strip():
-                return "⚠️ Please enter your name first.", "", self._generate_progress_html(0, 0), "waiting", True, True
+                return "⚠️ Please enter your name first.", "", self._generate_progress_html(0, 0), "waiting", gr.update(interactive=True), gr.update(interactive=True)
                 
             custom_context = {}
             
@@ -246,18 +246,18 @@ class EnhancedInterviewApp:
                     is_safe, refusal_reason = SecurityScanner.scan_file(f, resume_file.name)
                 
                 if not is_safe:
-                     return f"❌ Security Alert: {refusal_reason}", "", self._generate_progress_html(0, 0), "security_block", True, True
+                     return f"❌ Security Alert: {refusal_reason}", "", self._generate_progress_html(0, 0), "security_block", gr.update(interactive=True), gr.update(interactive=True)
                 
                 # Parse
                 with open(resume_file.name, 'rb') as f:
                     resume_text = ResumeParser.extract_text(f, resume_file.name)
                 
                 if not resume_text:
-                    return "❌ Failed to extract text from resume.", "", self._generate_progress_html(0, 0), "parse_error", True, True
+                    return "❌ Failed to extract text from resume.", "", self._generate_progress_html(0, 0), "parse_error", gr.update(interactive=True), gr.update(interactive=True)
                     
                 custom_context["resume_text"] = resume_text
             else:
-                return "⚠️ Please upload a resume to start Practice Mode.", "", self._generate_progress_html(0, 0), "waiting", True, True
+                return "⚠️ Please upload a resume to start Practice Mode.", "", self._generate_progress_html(0, 0), "waiting", gr.update(interactive=True), gr.update(interactive=True)
 
             # --- 2. Process Job Description ---
             final_jd_text = ""
@@ -298,21 +298,21 @@ class EnhancedInterviewApp:
 **Candidate:** {candidate_name}
 
 **Analysis:**
-*   **Skills Detected:** {', '.join(analysis.get('skills', []))}
+*   **Skills Detected:** {', '.join(analysis.get('found_skills', []))}
 *   **Level:** {analysis.get('level', 'Mid')}
 
 {result.get('greeting', 'Hello!')}
 
 {result.get('first_question', 'Ready to begin?')}
 """
-                return welcome_msg, "", self._generate_progress_html(1, 0), "Status: In Progress", False, False
+                return welcome_msg, "", self._generate_progress_html(1, 0), "Status: In Progress", gr.update(interactive=False), gr.update(interactive=False)
 
             else:
-                 return f"Error: {result.get('message')}", "", self._generate_progress_html(0, 0), "error", True, True
+                 return f"Error: {result.get('message')}", "", self._generate_progress_html(0, 0), "error", gr.update(interactive=True), gr.update(interactive=True)
 
         except Exception as e:
             logger.error(f"Practice Mode Error: {e}")
-            return f"System Error: {str(e)}", "", self._generate_progress_html(0, 0), "error", True, True
+            return f"System Error: {str(e)}", "", self._generate_progress_html(0, 0), "error", gr.update(interactive=True), gr.update(interactive=True)
     def start_interview(self, topic: str, candidate_name: str, model_id: str = "meta-llama/Meta-Llama-3-8B-Instruct") -> Tuple[str, str, str, str, bool, bool]:
         """Start autonomous interview session with self-thinking AI"""
         try:
