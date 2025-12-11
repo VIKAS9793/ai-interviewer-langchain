@@ -240,17 +240,29 @@ class EnhancedInterviewApp:
             
             # --- 1. Process Resume ---
             if resume_file:
+                # Gradio 5 compatibility: file can be string path or file object
+                import os
+                if isinstance(resume_file, str):
+                    file_path = resume_file
+                elif hasattr(resume_file, 'name'):
+                    file_path = resume_file.name
+                else:
+                    file_path = str(resume_file)
+                
+                # Validate file exists
+                if not os.path.exists(file_path):
+                    return f"❌ File not found: {os.path.basename(file_path)}. Please re-upload.", "", self._generate_progress_html(0, 0), "file_error", gr.update(interactive=True), gr.update(interactive=True)
+                
                 # Security Scan
-                # resume_file is a temp path string in Gradio, open it
-                with open(resume_file.name, 'rb') as f:
-                    is_safe, refusal_reason = SecurityScanner.scan_file(f, resume_file.name)
+                with open(file_path, 'rb') as f:
+                    is_safe, refusal_reason = SecurityScanner.scan_file(f, file_path)
                 
                 if not is_safe:
                      return f"❌ Security Alert: {refusal_reason}", "", self._generate_progress_html(0, 0), "security_block", gr.update(interactive=True), gr.update(interactive=True)
                 
                 # Parse
-                with open(resume_file.name, 'rb') as f:
-                    resume_text = ResumeParser.extract_text(f, resume_file.name)
+                with open(file_path, 'rb') as f:
+                    resume_text = ResumeParser.extract_text(f, file_path)
                 
                 if not resume_text:
                     return "❌ Failed to extract text from resume.", "", self._generate_progress_html(0, 0), "parse_error", gr.update(interactive=True), gr.update(interactive=True)
