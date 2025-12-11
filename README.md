@@ -204,6 +204,9 @@ python main.py
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| **v2.5.0** | 2025-12-11 | Practice Mode (Resume + JD), 11 bug fixes |
+| **v2.4.0** | 2025-12-10 | Voice Mode (browser-native STT/TTS) |
+| **v2.3.1** | 2025-12-10 | Single-model stability patch |
 | **v2.2.2** | 2025-12-08 | Codebase cleanup, cloud-first |
 | **v2.2.1** | 2025-12-08 | Hybrid evaluation, Prometheus rubrics |
 | **v2.2.0** | 2025-12-08 | AI Internal Monologue, Semantic checking |
