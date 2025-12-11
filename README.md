@@ -74,6 +74,24 @@ license: mit
 
 </td>
 </tr>
+<tr>
+<td width="50%">
+
+### 📄 Practice Mode (v2.5)
+- Resume upload (PDF/DOCX)
+- JD URL scraping
+- Role & experience detection
+
+</td>
+<td width="50%">
+
+### 🔒 Security
+- File magic byte validation
+- Macro/script detection
+- XSS prevention
+
+</td>
+</tr>
 </table>
 
 ---

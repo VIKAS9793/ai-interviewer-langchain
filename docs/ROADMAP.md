@@ -58,13 +58,23 @@
 
 ---
 
-## 🔮 Future (v2.5+)
+## ✅ v2.5 - Practice Mode (Complete - 2025-12-11)
+- ✅ Resume upload (PDF/DOCX) with security scanning
+- ✅ JD URL scraping for job context
+- ✅ Intelligent resume analysis (40+ skills, role detection)
+- ✅ Auto-suggest topic from resume
+- ✅ 11 bug fixes, security & stability improvements
 
-### v2.5 - Resume Integration (Next Priority)
-- PDF upload with `gr.File`
-- Personalized questions based on resume
-- Auto-extract skills for topic selection
+---
 
-### v2.6 - Multi-Language Support
-- Interview in multiple languages
-- Language detection and switching
+## 🔮 Future (v2.6+)
+
+### v2.6 - UI Refactoring (Next Priority)
+- Two-column layout (Question | Answer)
+- Hide tabs during active interview
+- Compact header bar
+
+### v3.0 - Intelligent Evaluation
+- Gemini API integration for better evaluation
+- Company-specific templates (STAR for PM, etc.)
+- Feedback collection to GitHub Issues
