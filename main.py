@@ -397,26 +397,10 @@ class EnhancedInterviewApp:
                 greeting = result.get("greeting", f"Welcome, {candidate_name}!")
                 
                 # Enhanced welcome with autonomous features
-                welcome_msg = f"""## Autonomous AI Interview Started!
+                welcome_msg = f"""### 👋 Welcome, {candidate_name}!
 
-**Candidate:** {candidate_name}  
 **Topic:** {topic}  
-**AI Model:** {model_display}
-
-### {greeting}
-
----
-
-<details>
-<summary><strong>ℹ️ View Autonomous Capabilities</strong></summary>
-
-- **Self-Thinking:** Chain-of-Thought reasoning before every action
-- **Logical Reasoning:** Multi-step analysis of your responses
-- **Self-Resilient:** Graceful error recovery
-- **Human-Like:** Natural, adaptive conversation
-- **AI Guardrails:** Fair, unbiased, explainable decisions
-- **Accountability:** Complete audit trail
-</details>
+**Ready?** Let's begin.
 
 ---
 
@@ -424,7 +408,9 @@ class EnhancedInterviewApp:
 
 {first_question}
 
-INFO **The AI thinks before asking each question and explains its reasoning!**"""
+---
+
+💡 **Tip:** Use Voice Mode (🎤) for hands-free answering or type your response below."""
 
                 status_msg = f"🟢 **Status:** Autonomous Interview Active - Question 1/5"
                 progress_html = self._generate_progress_html(1, 0, self.current_session["start_time"])
@@ -554,281 +540,238 @@ INFO **The AI thinks before asking each question and explains its reasoning!**""
         
         # Enhanced CSS for modern design
         enhanced_css = """
-        /* Enhanced theme variables */
-        :root {
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-            --accent-color: #48bb78;
-            --learning-color: #9f7aea;
-            --bg-dark: #1a202c;
-            --bg-medium: #2d3748;
-            --bg-light: #4a5568;
-            --text-primary: #f7fafc;
-            --text-secondary: #e2e8f0;
-            --border-color: #4a5568;
-        }
-        
-        /* Global container styling */
-        .gradio-container {
-            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif !important;
-            background: var(--bg-dark) !important;
-            color: var(--text-primary) !important;
-        }
-        
-        /* Enhanced header */
-        .enhanced-header {
-            text-align: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #9f7aea 100%);
-            color: #ffffff !important;
-            padding: 2rem;
-            border-radius: 15px;
-            margin-bottom: 2rem;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3); /* improved contrast */
-        }
-        
-        /* Learning features showcase */
-        .learning-features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin: 1rem 0;
-        }
-        
-        .learning-feature {
-            background: var(--bg-medium) !important;
-            border: 1px solid var(--border-color) !important;
-            border-radius: 10px;
-            padding: 1rem;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-        
-        .learning-feature:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(159, 122, 234, 0.3);
-        }
-        
-        .learning-feature h4 {
-            color: var(--learning-color) !important;
-            margin-bottom: 0.5rem;
-        }
-        
-        .learning-feature p {
-            color: var(--text-secondary) !important;
-            margin: 0;
-            font-size: 0.9rem;
-        }
-        
-        /* Performance indicators */
-        .performance-indicator {
-            background: var(--bg-medium) !important;
-            border: 1px solid var(--border-color) !important;
-            border-radius: 8px;
-            padding: 0.5rem 1rem;
-            margin: 0.5rem 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .performance-indicator .label {
-            color: var(--text-primary) !important;
-            font-weight: 600;
-        }
-        
-        .performance-indicator .value {
-            color: var(--accent-color) !important;
-            font-weight: 700;
-        }
-        
-        /* Enhanced interview content */
-        .enhanced-interview-content {
-            background: var(--bg-medium) !important;
-            border-radius: 10px;
-            padding: 2rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-            border-left: 6px solid var(--learning-color);
-            color: var(--text-primary) !important;
-            font-size: 1.5rem !important; /* Typography Quick Win: 24px+ */
-            line-height: 1.6 !important;
-        }
+/* === ENHANCED THEME v2.7 - Full Rewrite === */
+:root {
+    --primary-color: #667eea;
+    --primary-hover: #5a67d8;
+    --secondary-color: #764ba2;
+    --accent-green: #48bb78;
+    --accent-orange: #ed8936;
+    --learning-color: #9f7aea;
+    --bg-dark: #1a202c;
+    --bg-medium: #2d3748;
+    --bg-light: #4a5568;
+    --text-primary: #ffffff;
+    --text-secondary: #e2e8f0;
+    --text-muted: #a0aec0;
+    --border-color: #4a5568;
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.2);
+    --shadow-lg: 0 8px 30px rgba(0,0,0,0.3);
+}
 
-        /* Large Input Area */
-        .custom-input textarea {
-            min-height: 350px !important; /* Layout Quick Win */
-            font-size: 1.1rem !important;
-            line-height: 1.6;
-            background: var(--bg-dark) !important;
-            border: 1px solid var(--border-color) !important;
-        }
-        
-        /* Learning insights panel */
-        .learning-insights {
-            background: var(--bg-light) !important;
-            border-radius: 8px;
-            padding: 1rem;
-            margin: 1rem 0;
-            border: 1px solid var(--learning-color);
-        }
-        
-        .learning-insights h4 {
-            color: var(--learning-color) !important;
-            margin-bottom: 0.5rem;
-        }
-        
-        .learning-insights p {
-            color: var(--text-secondary) !important;
-            margin: 0.25rem 0;
-        }
-        
-        /* Enhanced buttons */
-        .enhanced-btn {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--learning-color) 100%) !important;
-            border: none !important;
-            border-radius: 8px !important;
-            font-weight: 600 !important;
-            padding: 0.75rem 1.5rem !important;
-            transition: all 0.3s ease !important;
-            color: white !important;
-        }
-        
-        .enhanced-btn:hover {
-            transform: translateY(-2px) !important;
-            box-shadow: 0 8px 25px rgba(159, 122, 234, 0.4) !important;
-        }
-        
-        /* System status indicator */
-        .system-status {
-            background: var(--bg-medium) !important;
-            border: 1px solid var(--border-color) !important;
-            border-radius: 8px;
-            padding: 1rem;
-            margin: 1rem 0;
-        }
-        
-        .system-status h4 {
-            color: var(--accent-color) !important;
-            margin-bottom: 0.5rem;
-        }
-        
-        .system-status .status-item {
-            display: flex;
-            justify-content: space-between;
-            margin: 0.25rem 0;
-        }
-        
-        .system-status .status-label {
-            color: var(--text-secondary) !important;
-        }
-        
-        .system-status .status-value {
-            color: var(--text-primary) !important;
-            font-weight: 600;
-        }
-        
-        /* Progress bar styling */
-        .progress-container {
-            background: var(--bg-medium) !important;
-            border: 1px solid var(--border-color) !important;
-            border-radius: 10px;
-            padding: 1rem;
-            margin: 1rem 0;
-        }
-        
-        .progress-bar-wrapper {
-            background: var(--bg-dark);
-            border-radius: 20px;
-            height: 24px;
-            overflow: hidden;
-            margin: 0.5rem 0;
-        }
-        
-        .progress-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary-color) 0%, var(--learning-color) 100%);
-            border-radius: 20px;
-            transition: width 0.5s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            font-size: 0.85rem;
-        }
-        
-        /* Timer styling */
-        .timer-display {
-            background: var(--bg-medium) !important;
-            border: 1px solid var(--border-color) !important;
-            border-radius: 8px;
-            padding: 0.5rem 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-family: 'Space Grotesk', sans-serif;
-            font-variant-numeric: tabular-nums;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .timer-icon {
-            font-size: 1.1rem;
-            animation: pulse 2s infinite;
-        }
-        
-        .timer-value {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--primary-light) !important;
-        }
+/* Global Reset */
+* {
+    box-sizing: border-box;
+}
 
-        /* Fix Radio Button Contrast - High Specificity */
-        .gradio-container fieldset {
-            background: transparent !important;
-        }
-        
-        /* Target the Radio Group Wrapper */
-        .gradio-container .block.form {
-            background: var(--bg-medium) !important;
-            border-color: var(--border-color) !important;
-        }
+.gradio-container {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    background: var(--bg-dark) !important;
+    color: var(--text-primary) !important;
+    line-height: 1.6;
+}
 
-        /* Target ALL radio option labels */
-        .gradio-container .wrap label span {
-            color: #E2E8F0 !important; /* Force light hex for safety */
-            font-weight: 500;
-        }
-        
-        /* Specifically target unselected radio buttons */
-        .gradio-container label:not(.selected) span {
-            color: #CBD5E1 !important; /* Slightly dimmer white */
-        }
-        
-        /* Ensure checked state is also visible */
-        .gradio-container label.selected span {
-            color: #FFFFFF !important;
-            font-weight: 700;
-        }
-            border: 1px solid var(--learning-color) !important;
-            border-radius: 10px;
-            padding: 0.75rem 1rem;
-            margin: 0.5rem 0;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .timer-icon {
-            font-size: 1.2rem;
-        }
-        
-        .timer-value {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--learning-color) !important;
-            font-family: 'Courier New', monospace;
-        }
-        """
+/* === RADIO BUTTON FIX (CRITICAL) === */
+.gradio-container label span,
+.gradio-container .wrap label span,
+.gradio-container fieldset label span,
+.gradio-container .gr-radio label span {
+    color: #FFFFFF !important;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.4) !important;
+    font-weight: 600 !important;
+    font-size: 1.05rem !important;
+}
+
+.gradio-container label.selected span {
+    color: #FFFFFF !important;
+    font-weight: 800 !important;
+    text-shadow: 0 0 12px rgba(102, 126, 234, 0.8) !important;
+}
+
+/* === HEADER === */
+.enhanced-header {
+    text-align: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #9f7aea 100%);
+    color: #ffffff !important;
+    padding: 2.5rem 2rem;
+    border-radius: 20px;
+    margin-bottom: 2.5rem;
+    box-shadow: var(--shadow-lg);
+    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.enhanced-header h1 {
+    margin: 0;
+    font-size: 3rem;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+}
+
+.enhanced-header p {
+    margin: 1rem 0 0 0;
+    font-size: 1.2rem;
+    opacity: 0.95;
+}
+
+/* === QUESTION DISPLAY === */
+.enhanced-interview-content {
+    background: var(--bg-medium) !important;
+    border-radius: 16px !important;
+    padding: 2.5rem !important;
+    box-shadow: var(--shadow-md);
+    border-left: 6px solid var(--learning-color) !important;
+    color: var(--text-primary) !important;
+    font-size: 1.75rem !important; /* 28px */
+    line-height: 1.7 !important;
+    min-height: 300px;
+}
+
+.enhanced-interview-content h3 {
+    font-size: 2.2rem !important; /* 35px */
+    color: var(--primary-color) !important;
+    margin-bottom: 1.5rem !important;
+    font-weight: 800 !important;
+}
+
+/* === ANSWER TEXTAREA === */
+.custom-input textarea,
+.answer-textarea textarea {
+    min-height: 400px !important; /* INCREASED */
+    font-size: 1.15rem !important;
+    line-height: 1.7 !important;
+    background: var(--bg-dark) !important;
+    border: 2px solid var(--border-color) !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    color: var(--text-primary) !important;
+    transition: border-color 0.3s;
+}
+
+.custom-input textarea:focus,
+.answer-textarea textarea:focus {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2) !important;
+    outline: none !important;
+}
+
+/* === BUTTONS === */
+.enhanced-btn,
+.gr-button {
+    background: linear-gradient(135deg, var(--primary-color), var(--learning-color)) !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    padding: 1rem 2rem !important;
+    font-size: 1.1rem !important;
+    transition: all 0.3s ease !important;
+    color: white !important;
+    cursor: pointer !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+
+.enhanced-btn:hover,
+.gr-button:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: var(--shadow-md) !important;
+}
+
+.enhanced-btn:active,
+.gr-button:active {
+    transform: translateY(-1px) !important;
+}
+
+/* === VOICE MODE BUTTON === */
+#voice-mode-toggle {
+    background: linear-gradient(135deg, #f59e0b, #ea580c) !important;
+    border: 3px solid rgba(251, 146, 60, 0.5) !important;
+    padding: 20px 50px !important;
+    font-size: 1.6rem !important;
+    font-weight: 900 !important;
+    box-shadow: 0 8px 30px rgba(251, 146, 60, 0.5) !important;
+    animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 8px 30px rgba(251, 146, 60, 0.5);
+    }
+    50% {
+        box-shadow: 0 8px 40px rgba(251, 146, 60, 0.8);
+    }
+}
+
+/* === SIDEBAR PANEL === */
+.sidebar-panel {
+    background: var(--bg-medium) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 12px;
+    padding: 1.5rem;
+    position: sticky;
+    top: 20px;
+}
+
+.sidebar-panel h3 {
+    color: var(--primary-color) !important;
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+}
+
+.sidebar-panel ul {
+    padding-left: 1.5rem;
+    margin: 0.5rem 0;
+}
+
+.sidebar-panel li {
+    margin: 0.5rem 0;
+    color: var(--text-secondary);
+}
+
+/* === MOBILE RESPONSIVE === */
+@media (max-width: 768px) {
+    .enhanced-header h1 {
+        font-size: 2rem;
+    }
+    
+    .enhanced-interview-content {
+        font-size: 1.4rem !important;
+        padding: 1.5rem !important;
+    }
+    
+    .custom-input textarea,
+    .answer-textarea textarea {
+        min-height: 300px !important;
+    }
+    
+    .enhanced-btn {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .sidebar-panel {
+        position: relative;
+        margin-bottom: 20px;
+    }
+}
+
+/* === ACCESSIBILITY === */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+*:focus-visible {
+    outline: 3px solid var(--primary-color) !important;
+    outline-offset: 2px !important;
+}
+"""
         
         with gr.Blocks(
             title="Enhanced AI Technical Interviewer - Autonomous Learning System",
@@ -1125,20 +1068,28 @@ INFO **The AI thinks before asking each question and explains its reasoning!**""
                                 </div>
                                 
                                 <!-- MASSIVE Start Button (Quick Win #2) -->
-                                <button onclick="window.startVoiceRecording()" style="
-                                    padding: 15px 40px; 
-                                    border-radius: 12px; 
-                                    background: linear-gradient(135deg, #6366f1, #8b5cf6); 
-                                    color: white; 
-                                    border: none; 
-                                    cursor: pointer; 
-                                    font-size: 1.3rem; 
-                                    font-weight: 700;
-                                    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
-                                    transition: transform 0.2s;
-                                    display: flex; align-items: center; gap: 10px;
-                                " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                                    🎤 Start Recording
+                                <!-- MASSIVE Start Button (Fix 2) -->
+                                <button onclick="window.startVoiceRecording()" 
+                                    style="
+                                        padding: 20px 50px; 
+                                        border-radius: 16px; 
+                                        background: linear-gradient(135deg, #f59e0b, #ea580c); 
+                                        color: white; 
+                                        border: 2px solid rgba(251, 146, 60, 0.5); 
+                                        cursor: pointer; 
+                                        font-size: 1.5rem; 
+                                        font-weight: 800;
+                                        box-shadow: 0 8px 30px rgba(251, 146, 60, 0.5);
+                                        transition: all 0.3s;
+                                        display: flex; 
+                                        align-items: center; 
+                                        gap: 12px;
+                                        min-width: 250px;
+                                        justify-content: center;
+                                    " 
+                                    onmouseover="this.style.transform='scale(1.08)'; this.style.boxShadow='0 12px 40px rgba(251, 146, 60, 0.7)'" 
+                                    onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 8px 30px rgba(251, 146, 60, 0.5)'">
+                                    🎤 <strong>SPEAK YOUR ANSWER</strong>
                                 </button>
                                 
                                 <button onclick="window.stopVoiceRecording()" style="padding: 15px 25px; border-radius: 12px; background: #4b5563; color: white; border: none; cursor: pointer; font-size: 1.1rem; font-weight: 600;">
@@ -1160,11 +1111,12 @@ INFO **The AI thinks before asking each question and explains its reasoning!**""
                         answer_input = gr.Textbox(
                             label="📝 Your Answer",
                             placeholder="Share your thoughts, approach, and reasoning here...",
-                            lines=5,
+                            lines=12,
+                            max_lines=20,
                             interactive=True,
-                            elem_classes=["custom-input"],
+                            elem_classes=["custom-input", "large-input"],
                             elem_id="answer-textbox",
-                            info="💡 Voice Mode: Click 🎤 to speak your answer!"
+                            info="💡 Voice Mode: Click 🎤 to speak your answer! | ⌨️ Press Ctrl+Enter to submit"
                         )
                         
                         code_input = gr.Code(
