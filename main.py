@@ -419,12 +419,17 @@ class InterviewApplication:
                 "",
                 False,  # tabs visible
                 True,   # start enabled
-                True    # practice enabled
+                gr.update(visible=True),
+                gr.update(interactive=True),
+                gr.update(interactive=True)
             )
         
         try:
             # Start interview
-            result = self.flow_controller.start_interview(topic, candidate_name)
+            result = self.flow_controller.start_interview(
+                topic=topic,
+                name=candidate_name
+            )
             
             if result["status"] != "started":
                 error_msg = result.get('message', 'Failed to start interview')
@@ -432,16 +437,16 @@ class InterviewApplication:
                     f"❌ **Error:** {error_msg}",
                     create_progress_display(0, 0),
                     "",
-                    False, True, True
+                    gr.update(visible=True),
+                    gr.update(interactive=True),
+                    gr.update(interactive=True)
                 )
             
             # Initialize session
             self.current_session = {
                 "session_id": result["session_id"],
-                "topic": topic,
-                "candidate_name": candidate_name,
-                "question_count": 1,
-                "start_time": time.time()
+                "start_time": time.time(),
+                "question_count": 1
             }
             
             # Format welcome message
@@ -462,9 +467,9 @@ class InterviewApplication:
                 welcome_msg,
                 progress,
                 "",  # Clear answer box
-                True,   # Hide tabs during interview
-                False,  # Disable start
-                False   # Disable practice
+                gr.update(visible=False), # Hide tabs
+                gr.update(interactive=False), # Disable start
+                gr.update(interactive=False)  # Disable practice
             )
             
         except Exception as e:
@@ -473,7 +478,9 @@ class InterviewApplication:
                 f"❌ System Error: {str(e)}",
                 create_progress_display(0, 0),
                 "",
-                False, True, True
+                gr.update(visible=True),
+                gr.update(interactive=True),
+                gr.update(interactive=True)
             )
     
     # ========================================================================
@@ -486,7 +493,7 @@ class InterviewApplication:
         jd_text: str,
         jd_url: str,
         candidate_name: str
-    ) -> Tuple[str, str, str, bool, bool, bool]:
+    ):
         """Start practice mode with resume analysis"""
         
         # Validation
@@ -495,7 +502,9 @@ class InterviewApplication:
                 "⚠️ Please enter your name first.",
                 create_progress_display(0, 0),
                 "",
-                False, True, True
+                gr.update(visible=True),
+                gr.update(interactive=True),
+                gr.update(interactive=True)
             )
         
         if not resume_file:
@@ -503,7 +512,9 @@ class InterviewApplication:
                 "⚠️ Please upload a resume to start Practice Mode.",
                 create_progress_display(0, 0),
                 "",
-                False, True, True
+                gr.update(visible=True),
+                gr.update(interactive=True),
+                gr.update(interactive=True)
             )
         
         try:
@@ -513,7 +524,9 @@ class InterviewApplication:
                     "❌ Practice Mode requires full module installation.",
                     create_progress_display(0, 0),
                     "",
-                    False, True, True
+                    gr.update(visible=True),
+                    gr.update(interactive=True),
+                    gr.update(interactive=True)
                 )
             
             # Get file path (Gradio 4/5 compatibility)
@@ -524,7 +537,9 @@ class InterviewApplication:
                     f"❌ File not found: {os.path.basename(file_path)}",
                     create_progress_display(0, 0),
                     "",
-                    False, True, True
+                    gr.update(visible=True),
+                    gr.update(interactive=True),
+                    gr.update(interactive=True)
                 )
             
             # Security scan
@@ -536,7 +551,9 @@ class InterviewApplication:
                     f"❌ Security Alert: {reason}",
                     create_progress_display(0, 0),
                     "",
-                    False, True, True
+                    gr.update(visible=True),
+                    gr.update(interactive=True),
+                    gr.update(interactive=True)
                 )
             
             # Parse resume
@@ -548,7 +565,9 @@ class InterviewApplication:
                     "❌ Could not extract text from resume. Please try a different format.",
                     create_progress_display(0, 0),
                     "",
-                    False, True, True
+                    gr.update(visible=True),
+                    gr.update(interactive=True),
+                    gr.update(interactive=True)
                 )
             
             # Build context
@@ -587,7 +606,9 @@ class InterviewApplication:
                     f"❌ Error: {result.get('message')}",
                     create_progress_display(0, 0),
                     "",
-                    False, True, True
+                    gr.update(visible=True),
+                    gr.update(interactive=True),
+                    gr.update(interactive=True)
                 )
             
             # Initialize session
@@ -627,7 +648,9 @@ class InterviewApplication:
                 welcome_msg,
                 progress,
                 "",
-                True, False, False
+                gr.update(visible=False), # Hide tabs
+                gr.update(interactive=False), # Disable start
+                gr.update(interactive=False)  # Disable practice
             )
             
         except Exception as e:
@@ -636,7 +659,9 @@ class InterviewApplication:
                 f"❌ System Error: {str(e)}",
                 create_progress_display(0, 0),
                 "",
-                False, True, True
+                gr.update(visible=True),
+                gr.update(interactive=True),
+                gr.update(interactive=True)
             )
     
     # ========================================================================
@@ -647,17 +672,19 @@ class InterviewApplication:
         self,
         answer_text: str,
         transcription_text: str = ""
-    ) -> Tuple[str, str, str, bool, bool, bool]:
+    ):
         """Process candidate's answer (from either text or voice)"""
         
         # Check session
         if not self.current_session:
             return (
                 "❌ No active session. Please start an interview first.",
-                create_progress_display(0, 0),
-                "",
-                False, True, True
-            )
+            create_progress_display(0, 0),
+            "",
+            gr.update(visible=True),
+            gr.update(interactive=True),
+            gr.update(interactive=True)
+        )
         
         # Use transcription if provided, otherwise text input
         final_answer = transcription_text if transcription_text else answer_text
@@ -668,10 +695,12 @@ class InterviewApplication:
             q_num = self.current_session["question_count"]
             return (
                 "⚠️ Please provide an answer before submitting.",
-                create_progress_display(q_num, elapsed),
-                final_answer,  # Keep existing text
-                True, False, False
-            )
+            create_progress_display(q_num, elapsed),
+            final_answer,  # Keep existing text
+            gr.update(visible=False),
+            gr.update(interactive=True), # Keep enabled to retry? 
+            gr.update(interactive=False) # Practice disabled
+        )
         
         try:
             # Process with AI
@@ -703,11 +732,13 @@ class InterviewApplication:
                 progress = create_progress_display(q_num, elapsed)
                 
                 return (
-                    display,
-                    progress,
-                    "",  # Clear answer
-                    True, False, False
-                )
+                display,
+                progress,
+                "",  # Clear answer
+                gr.update(visible=False),
+                gr.update(interactive=True), # Enable for next question
+                gr.update(interactive=False)
+            )
             
             # Handle completion
             elif result["status"] == "completed":
@@ -720,28 +751,34 @@ class InterviewApplication:
                 self.current_session = None
                 
                 return (
-                    display,
-                    progress,
-                    "",
-                    False, True, True
-                )
+                display,
+                progress,
+                "",
+                gr.update(visible=True),
+                gr.update(interactive=True),
+                gr.update(interactive=True)
+            )
             
             else:
                 return (
-                    f"❌ Error: {result.get('message', 'Unexpected error')}",
-                    create_progress_display(0, elapsed),
-                    final_answer,
-                    True, False, False
-                )
+                f"❌ Error: {result.get('message', 'Unexpected error')}",
+                create_progress_display(0, elapsed),
+                final_answer,
+                gr.update(visible=False),
+                gr.update(interactive=True), # Enable to retry
+                gr.update(interactive=False)
+            )
                 
         except Exception as e:
             logger.error(f"Error processing answer: {e}", exc_info=True)
             return (
-                f"❌ System Error: {str(e)}",
-                create_progress_display(0, 0),
-                final_answer,
-                True, False, False
-            )
+            f"❌ System Error: {str(e)}",
+            create_progress_display(0, 0),
+            final_answer,
+            gr.update(visible=True), # Recover
+            gr.update(interactive=True),
+            gr.update(interactive=True)
+        )
 
 # ============================================================================
 # UI CONSTRUCTION - Clean, Composable Interface
