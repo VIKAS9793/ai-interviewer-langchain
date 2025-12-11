@@ -131,12 +131,12 @@ def create_theme() -> gr.Theme:
 # ============================================================================
 
 MINIMAL_CSS = """
-/* Fix: Ensure proper contrast for all text */
+/* Theme: Enforce Dark Mode & Brand Colors */
 .gradio-container {
-    color-scheme: light;
+    color-scheme: dark;
 }
 
-/* Fix: Status badges */
+/* Fix: Status badges (Dark Mode Optimized) */
 .status-badge {
     display: inline-flex;
     align-items: center;
@@ -147,14 +147,16 @@ MINIMAL_CSS = """
     font-size: 0.9rem;
 }
 
-.status-ready { background: #dbeafe; color: #1e40af; }
-.status-active { background: #dcfce7; color: #166534; }
-.status-error { background: #fee2e2; color: #991b1b; }
+.status-ready { background: rgba(30, 64, 175, 0.4); color: #93c5fd; border: 1px solid #1e40af; }
+.status-active { background: rgba(22, 101, 52, 0.4); color: #86efac; border: 1px solid #166534; }
+.status-error { background: rgba(153, 27, 27, 0.4); color: #fca5a5; border: 1px solid #991b1b; }
 
 /* Fix: Question card emphasis */
 .question-card {
     border-left: 4px solid var(--primary-500);
     padding-left: 24px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 0 8px 8px 0;
 }
 
 /* Fix: Progress bar container */
