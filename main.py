@@ -288,10 +288,20 @@ class EnhancedInterviewApp:
             # Analyze resume to determine topic/level if not explicit
             analysis = self.flow_controller.analyze_resume(custom_context["resume_text"])
             
-            # Determine topic
-            topic = analysis.get("topic", "General Technical Interview")
+            # Determine topic from resume analysis or JD
+            topic = analysis.get("detected_role", "General Technical Interview")
+            experience_level = analysis.get("experience_level", "Mid")
+            
+            # If JD is provided, try to extract role from it
             if "job_description" in custom_context:
-                topic = "Role-Specific Interview"
+                jd_lower = custom_context["job_description"].lower()
+                # Simple JD role extraction
+                if "product manager" in jd_lower:
+                    topic = "Product Management"
+                elif "software engineer" in jd_lower:
+                    topic = "Software Engineering"
+                elif "data scientist" in jd_lower:
+                    topic = "Data Science"
             
             custom_context["topic"] = topic
             custom_context["analysis"] = analysis
@@ -304,9 +314,10 @@ class EnhancedInterviewApp:
                 self.interview_history = []
                 
                 # Format Welcome Message
-                welcome_msg = f"""### Practice Session Started
+                welcome_msg = f"""### 🎯 Practice Session Started
                 
 **Target Role:** {topic}
+**Experience Level:** {experience_level}
 **Candidate:** {candidate_name}
 
 **Analysis:**

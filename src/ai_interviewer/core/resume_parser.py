@@ -89,13 +89,58 @@ class ResumeParser:
     @staticmethod
     def analyze_content(text: str) -> Dict[str, Any]:
         """
-        Basic heuristic analysis of resume content (Mock/Placeholder for LLM)
-        In a real flow, this text goes to the LLM.
+        Heuristic analysis of resume content to extract skills, experience level, and target role.
         """
-        skills_keywords = ["python", "java", "javascript", "react", "node", "aws", "docker", "kubernetes", "sql", "nosql", "machine learning", "ai"]
-        found_skills = [skill for skill in skills_keywords if skill in text.lower()]
+        text_lower = text.lower()
+        
+        # Expanded skills list
+        skills_keywords = [
+            # Languages
+            "python", "java", "javascript", "typescript", "go", "rust", "c++", "c#", "ruby", "php", "swift", "kotlin",
+            # Frontend
+            "react", "vue", "angular", "nextjs", "html", "css", "tailwind",
+            # Backend
+            "node", "django", "flask", "fastapi", "spring", "express",
+            # Cloud & DevOps
+            "aws", "gcp", "azure", "docker", "kubernetes", "terraform", "jenkins", "ci/cd",
+            # Data
+            "sql", "nosql", "mongodb", "postgresql", "redis", "elasticsearch",
+            # AI/ML
+            "machine learning", "deep learning", "ai", "tensorflow", "pytorch", "nlp", "computer vision",
+            # Other
+            "git", "agile", "scrum", "api", "rest", "graphql", "microservices"
+        ]
+        found_skills = [skill for skill in skills_keywords if skill in text_lower]
+        
+        # Role/Title extraction (look for common patterns)
+        role_keywords = {
+            "product manager": "Product Management",
+            "software engineer": "Software Engineering", 
+            "data scientist": "Data Science",
+            "machine learning": "Machine Learning",
+            "frontend": "Frontend Development",
+            "backend": "Backend Development",
+            "full stack": "Full Stack Development",
+            "devops": "DevOps Engineering",
+            "cloud engineer": "Cloud Engineering",
+            "sre": "Site Reliability Engineering"
+        }
+        detected_role = "General Technical Interview"
+        for keyword, role in role_keywords.items():
+            if keyword in text_lower:
+                detected_role = role
+                break
+        
+        # Experience level detection
+        experience_level = "Mid"
+        if any(word in text_lower for word in ["senior", "lead", "principal", "staff", "director"]):
+            experience_level = "Senior"
+        elif any(word in text_lower for word in ["junior", "intern", "entry", "graduate", "fresher"]):
+            experience_level = "Junior"
         
         return {
             "text_length": len(text),
-            "found_skills": list(set(found_skills))
+            "found_skills": list(set(found_skills)),
+            "detected_role": detected_role,
+            "experience_level": experience_level
         }
