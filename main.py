@@ -100,30 +100,30 @@ def create_theme() -> gr.Theme:
         body_text_weight="400",
         
         # Spacing
-        spacing_xl="40px",
-        spacing_lg="24px",
-        spacing_md="16px",
+        # spacing_xl="40px", (Removed for compatibility)
+        # spacing_lg="24px",
+        # spacing_md="16px",
         
         # Borders
-        radius_lg="16px",
-        radius_md="12px",
-        radius_sm="8px",
+        # radius_lg="16px", (Removed for compatibility)
+        # radius_md="12px",
+        # radius_sm="8px",
         
         # Shadows
-        shadow_drop="0 4px 6px -1px rgb(0 0 0 / 0.1)",
-        shadow_drop_lg="0 10px 15px -3px rgb(0 0 0 / 0.1)",
+        # shadow_drop="0 4px 6px -1px rgb(0 0 0 / 0.1)",
+        # shadow_drop_lg="0 10px 15px -3px rgb(0 0 0 / 0.1)",
         
         # Button
-        button_primary_background_fill="*primary_500",
-        button_primary_background_fill_hover="*primary_600",
-        button_primary_text_size="*text_lg",
-        button_large_padding="16px 32px",
+        # button_primary_background_fill="*primary_500",
+        # button_primary_background_fill_hover="*primary_600",
+        # button_primary_text_size="*text_lg",
+        # button_large_padding="16px 32px",
         
         # Input
-        input_background_fill="*neutral_50",
-        input_border_width="2px",
-        input_padding="12px",
-        input_text_size="*text_md"
+        # input_background_fill="*neutral_50",
+        # input_border_width="2px",
+        # input_padding="12px",
+        # input_text_size="*text_md"
     )
 
 # ============================================================================
