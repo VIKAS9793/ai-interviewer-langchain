@@ -1225,7 +1225,7 @@ def main():
             }
             # Add Gradio 5.x specific args only if supported
             if is_gradio_5:
-                launch_args["ssr"] = False
+                launch_args["ssr_mode"] = False
                 launch_args["show_api"] = False
             
             interface.launch(**launch_args)
@@ -1248,7 +1248,7 @@ def main():
                             "favicon_path": None,
                         }
                         if is_gradio_5:
-                            alt_launch_args["ssr"] = False
+                            alt_launch_args["ssr_mode"] = False
                             alt_launch_args["show_api"] = False
                         interface.launch(**alt_launch_args)
                         print(f"Successfully launched on port {alt_port}")
