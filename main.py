@@ -953,195 +953,195 @@ INFO **The AI thinks before asking each question and explains its reasoning!**""
                         visible=False,
                         elem_classes=["reasoning-display"]
                     )
-            
-            # Answer section
-            gr.Markdown("### 💬 Your Response")
-            with gr.Column(elem_classes=["answer-section"]):
-                # Voice Mode Toggle (v2.4)
-                voice_mode = gr.Radio(
-                    choices=["Text", "Voice 🎤"],
-                    value="Text",
-                    label="Input Mode",
-                    info="Use Voice for hands-free input (Chrome/Edge/Safari)"
-                )
-                
-                # Voice Controls (Hidden by default) - Using HTML buttons with inline JS
-                with gr.Row(visible=False) as voice_controls:
-                    voice_control_html = gr.HTML('''
-                    <script>
-                    // Voice Mode v2.4 - Inline Script (ensures functions exist before buttons)
-                    (function() {
-                        // Rate limiting
-                        let lastVoiceInput = 0;
-                        const RATE_LIMIT_MS = 3000;
-                        const MAX_TRANSCRIPT_LENGTH = 2000;
+                    
+                    # Answer section
+                    gr.Markdown("### 💬 Your Response")
+                    with gr.Column(elem_classes=["answer-section"]):
+                        # Voice Mode Toggle (v2.4)
+                        voice_mode = gr.Radio(
+                            choices=["Text", "Voice 🎤"],
+                            value="Text",
+                            label="Input Mode",
+                            info="Use Voice for hands-free input (Chrome/Edge/Safari)"
+                        )
                         
-                        // Check browser support
-                        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                        if (!SpeechRecognition) {
-                            console.warn('Voice Mode: Speech Recognition not supported');
-                            window.startVoiceRecording = function() { alert('Voice not supported in this browser. Please use Chrome or Edge.'); };
-                            window.stopVoiceRecording = function() {};
-                            return;
-                        }
+                        # Voice Controls (Hidden by default) - Using HTML buttons with inline JS
+                        with gr.Row(visible=False) as voice_controls:
+                            voice_control_html = gr.HTML('''
+                            <script>
+                            // Voice Mode v2.4 - Inline Script (ensures functions exist before buttons)
+                            (function() {
+                                // Rate limiting
+                                let lastVoiceInput = 0;
+                                const RATE_LIMIT_MS = 3000;
+                                const MAX_TRANSCRIPT_LENGTH = 2000;
+                                
+                                // Check browser support
+                                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                                if (!SpeechRecognition) {
+                                    console.warn('Voice Mode: Speech Recognition not supported');
+                                    window.startVoiceRecording = function() { alert('Voice not supported in this browser. Please use Chrome or Edge.'); };
+                                    window.stopVoiceRecording = function() {};
+                                    return;
+                                }
+                                
+                                // Initialize recognition
+                                const recognition = new SpeechRecognition();
+                                recognition.continuous = false;
+                                recognition.interimResults = false;
+                                recognition.lang = 'en-US';
+                                
+                                // Sanitize input
+                                function sanitize(text) {
+                                    if (!text) return '';
+                                    return text.replace(/<[^>]+>/g, '').replace(/(javascript:|on\w+=)/gi, '').substring(0, MAX_TRANSCRIPT_LENGTH).trim();
+                                }
+                                
+                                // Start listening
+                                window.startVoiceRecording = function() {
+                                    const now = Date.now();
+                                    if (now - lastVoiceInput < RATE_LIMIT_MS) {
+                                        alert('Please wait a few seconds before recording again.');
+                                        return;
+                                    }
+                                    lastVoiceInput = now;
+                                    
+                                    
+                                    const status = document.getElementById('voice-status');
+                                    if (status) {
+                                        status.innerHTML = 'DOT <strong>Listening...</strong> Speak now';
+                                        status.style.background = 'rgba(239, 68, 68, 0.2)';
+                                    }
+                                    
+                                    try {
+                                        recognition.start();
+                                    } catch (e) {
+                                        console.error('Recognition start error:', e);
+                                        if (status) status.innerHTML = 'WARN Error starting - try again';
+                                    }
+                                };
+                                
+                                // Stop listening
+                                window.stopVoiceRecording = function() {
+                                    recognition.stop();
+                                    const status = document.getElementById('voice-status');
+                                    if (status) {
+                                        status.innerHTML = 'READY Ready to record';
+                                        status.style.background = 'rgba(34, 197, 94, 0.2)';
+                                    }
+                                };
+                                
+                                // Handle result
+                                recognition.onresult = function(event) {
+                                    const transcript = sanitize(event.results[0][0].transcript);
+                                    const confidence = event.results[0][0].confidence;
+                                    
+                                    // Find Gradio textbox and update it
+                                    const textbox = document.querySelector('#answer-textbox textarea');
+                                    if (textbox) {
+                                        textbox.value = transcript;
+                                        textbox.dispatchEvent(new Event('input', { bubbles: true }));
+                                    }
+                                    
+                                    const status = document.getElementById('voice-status');
+                                    if (status) {
+                                        status.innerHTML = 'OK Transcribed (' + Math.round(confidence * 100) + '% confidence)';
+                                        status.style.background = 'rgba(34, 197, 94, 0.2)';
+                                    }
+                                };
+                                
+                                // Handle errors
+                                recognition.onerror = function(event) {
+                                    console.error('Speech error:', event.error);
+                                    const status = document.getElementById('voice-status');
+                                    if (status) {
+                                        status.innerHTML = 'WARN ' + event.error + ' - Try again or use text';
+                                        status.style.background = 'rgba(245, 158, 11, 0.2)';
+                                    }
+                                };
+                                
+                                recognition.onend = function() {
+                                    const status = document.getElementById('voice-status');
+                                    if (status && !status.innerHTML.includes('OK')) {
+                                        status.innerHTML = 'READY Ready to record';
+                                        status.style.background = 'rgba(34, 197, 94, 0.2)';
+                                    }
+                                };
+                                
+                                console.log('Voice Mode v2.4 ready');
+                            })();
+                            </script>
+                            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 10px;">
+                                <div id="voice-status" style="padding: 10px 20px; border-radius: 8px; background: rgba(34, 197, 94, 0.2); text-align: center; flex: 1;">
+                                    READY Click microphone to start
+                                </div>
+                                <button onclick="window.startVoiceRecording()" style="padding: 10px 20px; border-radius: 8px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none; cursor: pointer; font-size: 1rem; font-weight: 600;">
+                                    Start Recording
+                                </button>
+                                <button onclick="window.stopVoiceRecording()" style="padding: 10px 20px; border-radius: 8px; background: #4b5563; color: white; border: none; cursor: pointer; font-size: 1rem;">
+                                    Stop
+                                </button>
+                                <label style="display: flex; align-items: center; gap: 5px; color: var(--text-primary);">
+                                    <input type="checkbox" id="speak-response-checkbox" checked style="width: 18px; height: 18px;">
+                                    Speak Response
+                                </label>
+                            </div>
+                            ''')
                         
-                        // Initialize recognition
-                        const recognition = new SpeechRecognition();
-                        recognition.continuous = false;
-                        recognition.interimResults = false;
-                        recognition.lang = 'en-US';
-                        
-                        // Sanitize input
-                        function sanitize(text) {
-                            if (!text) return '';
-                            return text.replace(/<[^>]+>/g, '').replace(/(javascript:|on\w+=)/gi, '').substring(0, MAX_TRANSCRIPT_LENGTH).trim();
-                        }
-                        
-                        // Start listening
-                        window.startVoiceRecording = function() {
-                            const now = Date.now();
-                            if (now - lastVoiceInput < RATE_LIMIT_MS) {
-                                alert('Please wait a few seconds before recording again.');
-                                return;
-                            }
-                            lastVoiceInput = now;
-                            
-                            
-                            const status = document.getElementById('voice-status');
-                            if (status) {
-                                status.innerHTML = 'DOT <strong>Listening...</strong> Speak now';
-                                status.style.background = 'rgba(239, 68, 68, 0.2)';
-                            }
-                            
-                            try {
-                                recognition.start();
-                            } catch (e) {
-                                console.error('Recognition start error:', e);
-                                if (status) status.innerHTML = 'WARN Error starting - try again';
-                            }
-                        };
-                        
-                        // Stop listening
-                        window.stopVoiceRecording = function() {
-                            recognition.stop();
-                            const status = document.getElementById('voice-status');
-                            if (status) {
-                                status.innerHTML = 'READY Ready to record';
-                                status.style.background = 'rgba(34, 197, 94, 0.2)';
-                            }
-                        };
-                        
-                        // Handle result
-                        recognition.onresult = function(event) {
-                            const transcript = sanitize(event.results[0][0].transcript);
-                            const confidence = event.results[0][0].confidence;
-                            
-                            // Find Gradio textbox and update it
-                            const textbox = document.querySelector('#answer-textbox textarea');
-                            if (textbox) {
-                                textbox.value = transcript;
-                                textbox.dispatchEvent(new Event('input', { bubbles: true }));
-                            }
-                            
-                            const status = document.getElementById('voice-status');
-                            if (status) {
-                                status.innerHTML = 'OK Transcribed (' + Math.round(confidence * 100) + '% confidence)';
-                                status.style.background = 'rgba(34, 197, 94, 0.2)';
-                            }
-                        };
-                        
-                        // Handle errors
-                        recognition.onerror = function(event) {
-                            console.error('Speech error:', event.error);
-                            const status = document.getElementById('voice-status');
-                            if (status) {
-                                status.innerHTML = 'WARN ' + event.error + ' - Try again or use text';
-                                status.style.background = 'rgba(245, 158, 11, 0.2)';
-                            }
-                        };
-                        
-                        recognition.onend = function() {
-                            const status = document.getElementById('voice-status');
-                            if (status && !status.innerHTML.includes('OK')) {
-                                status.innerHTML = 'READY Ready to record';
-                                status.style.background = 'rgba(34, 197, 94, 0.2)';
-                            }
-                        };
-                        
-                        console.log('Voice Mode v2.4 ready');
-                    })();
-                    </script>
-                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; padding: 10px;">
-                        <div id="voice-status" style="padding: 10px 20px; border-radius: 8px; background: rgba(34, 197, 94, 0.2); text-align: center; flex: 1;">
-                            READY Click microphone to start
-                        </div>
-                        <button onclick="window.startVoiceRecording()" style="padding: 10px 20px; border-radius: 8px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none; cursor: pointer; font-size: 1rem; font-weight: 600;">
-                            Start Recording
-                        </button>
-                        <button onclick="window.stopVoiceRecording()" style="padding: 10px 20px; border-radius: 8px; background: #4b5563; color: white; border: none; cursor: pointer; font-size: 1rem;">
-                            Stop
-                        </button>
-                        <label style="display: flex; align-items: center; gap: 5px; color: var(--text-primary);">
-                            <input type="checkbox" id="speak-response-checkbox" checked style="width: 18px; height: 18px;">
-                            Speak Response
-                        </label>
-                    </div>
-                    ''')
-                
-                # Input Mode Selection - DISABLED (v2.3 Rollback)
-                input_mode = gr.Radio(
-                    choices=["Text Answer", "Code Editor"],
-                    value="Text Answer",
-                    label="Input Mode",
-                    info="Code Editor temporarily disabled likely due to Cloud API limits",
-                    visible=False, 
-                    interactive=False
-                )
+                        # Input Mode Selection - DISABLED (v2.3 Rollback)
+                        input_mode = gr.Radio(
+                            choices=["Text Answer", "Code Editor"],
+                            value="Text Answer",
+                            label="Input Mode",
+                            info="Code Editor temporarily disabled likely due to Cloud API limits",
+                            visible=False, 
+                            interactive=False
+                        )
 
-                answer_input = gr.Textbox(
-                    label="📝 Your Answer",
-                    placeholder="Share your thoughts, approach, and reasoning here...",
-                    lines=5,
-                    interactive=True,
-                    elem_classes=["custom-input"],
-                    elem_id="answer-textbox",
-                    info="💡 Voice Mode: Click 🎤 to speak your answer!"
-                )
-                
-                code_input = gr.Code(
-                    value="",
-                    language="python",
-                    label="💻 Code Editor",
-                    interactive=False,
-                    visible=False
-                )
-                
-                # Input toggle logic
-                def toggle_input(mode):
-                    if mode == "Code Editor":
-                        return gr.update(visible=False), gr.update(visible=True)
-                    else:
-                        return gr.update(visible=True), gr.update(visible=False)
+                        answer_input = gr.Textbox(
+                            label="📝 Your Answer",
+                            placeholder="Share your thoughts, approach, and reasoning here...",
+                            lines=5,
+                            interactive=True,
+                            elem_classes=["custom-input"],
+                            elem_id="answer-textbox",
+                            info="💡 Voice Mode: Click 🎤 to speak your answer!"
+                        )
+                        
+                        code_input = gr.Code(
+                            value="",
+                            language="python",
+                            label="💻 Code Editor",
+                            interactive=False,
+                            visible=False
+                        )
+                        
+                        # Input toggle logic
+                        def toggle_input(mode):
+                            if mode == "Code Editor":
+                                return gr.update(visible=False), gr.update(visible=True)
+                            else:
+                                return gr.update(visible=True), gr.update(visible=False)
 
-                input_mode.change(
-                    fn=toggle_input,
-                    inputs=[input_mode],
-                    outputs=[answer_input, code_input]
-                )
-                
-                with gr.Row(elem_classes=["button-row"]):
-                    submit_btn = gr.Button(
-                        "📤 Submit Answer", 
-                        variant="primary", 
-                        size="lg",
-                        elem_classes=["enhanced-btn"]
-                    )
-                    clear_btn = gr.Button(
-                        "🗑️ Clear", 
-                        variant="secondary",
-                        size="lg",
-                        elem_classes=["clear-button"]
-                    )
+                        input_mode.change(
+                            fn=toggle_input,
+                            inputs=[input_mode],
+                            outputs=[answer_input, code_input]
+                        )
+                        
+                        with gr.Row(elem_classes=["button-row"]):
+                            submit_btn = gr.Button(
+                                "📤 Submit Answer", 
+                                variant="primary", 
+                                size="lg",
+                                elem_classes=["enhanced-btn"]
+                            )
+                            clear_btn = gr.Button(
+                                "🗑️ Clear", 
+                                variant="secondary",
+                                size="lg",
+                                elem_classes=["clear-button"]
+                            )
             
             # Hidden state to track button states
             start_btn_disabled = gr.State(False)
