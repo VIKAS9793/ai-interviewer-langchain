@@ -310,7 +310,12 @@ class EnhancedInterviewApp:
             result = self.flow_controller.start_interview(topic, candidate_name, custom_context=custom_context)
             
             if result['status'] == 'started':
-                self.current_session = result['session_id']
+                import time as time_module
+                self.current_session = {
+                    "session_id": result['session_id'],
+                    "start_time": time_module.time(),
+                    "question_count": 1
+                }
                 self.interview_history = []
                 
                 # Format Welcome Message
