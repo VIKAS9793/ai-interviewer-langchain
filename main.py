@@ -96,26 +96,11 @@ def create_theme() -> gr.Theme:
         font=["Inter", "system-ui", "sans-serif"],
         font_mono=["IBM Plex Mono", "monospace"]
     ).set(
-        # Dark Background - ALL background types
+        # Dark Backgrounds
         body_background_fill="#0f172a",
         body_background_fill_dark="#0f172a",
         block_background_fill="#1e293b",
         block_background_fill_dark="#1e293b",
-        
-        # Secondary/Neutral backgrounds (for dropzones, panels, etc.)
-        background_fill_secondary="#1e293b",
-        background_fill_secondary_dark="#1e293b",
-        background_fill_primary="#0f172a",
-        background_fill_primary_dark="#0f172a",
-        
-        # Panel/Container backgrounds
-        panel_background_fill="#1e293b",
-        panel_background_fill_dark="#1e293b",
-        
-        # Neutral fills (often used by file components)
-        neutral_50="#1e293b",
-        neutral_100="#1e293b",
-        neutral_200="#334155",
         
         # High Contrast Text
         body_text_color="#f1f5f9",
@@ -128,8 +113,6 @@ def create_theme() -> gr.Theme:
         # Borders
         border_color_primary="#475569",
         border_color_primary_dark="#475569",
-        border_color_accent="#6366f1",
-        border_color_accent_dark="#6366f1",
         
         # Buttons
         button_primary_background_fill="#6366f1",
@@ -145,12 +128,6 @@ def create_theme() -> gr.Theme:
         input_border_color="#475569",
         input_border_color_dark="#475569",
         input_placeholder_color="#94a3b8",
-        
-        # Links and interactive text
-        link_text_color="#93c5fd",
-        link_text_color_dark="#93c5fd",
-        link_text_color_hover="#bfdbfe",
-        link_text_color_hover_dark="#bfdbfe",
     )
 
 # ============================================================================
