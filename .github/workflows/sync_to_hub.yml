@@ -22,6 +22,6 @@ jobs:
         run: |
           # Configure git with the HF Space remote
           # NOTE: Update 'vikas_user' to your actual HF username in the URL below
-          git remote add space https://vikas_user:$HF_TOKEN@huggingface.co/spaces/vikas_user/ai-interviewer
+          git remote add space https://Vikas9793:$HF_TOKEN@huggingface.co/spaces/Vikas9793/ai-interviewer
           # Force push to the space
           git push space main:main -f
