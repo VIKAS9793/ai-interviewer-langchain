@@ -1,0 +1,60 @@
+import gradio as gr
+from typing import List, Optional
+
+def create_text_input(
+    label: str,
+    placeholder: str = "",
+    lines: int = 1,
+    visible: bool = True
+) -> gr.Textbox:
+    """Create a standardized text input"""
+    return gr.Textbox(
+        label=label,
+        placeholder=placeholder,
+        lines=lines,
+        visible=visible,
+        elem_classes=["input-standard"]
+    )
+
+def create_dropdown(
+    label: str,
+    choices: List[str],
+    value: Optional[str] = None,
+    visible: bool = True
+) -> gr.Dropdown:
+    """Create a standardized dropdown"""
+    return gr.Dropdown(
+        label=label,
+        choices=choices,
+        value=value or choices[0] if choices else None,
+        visible=visible,
+        elem_classes=["dropdown-standard"],
+        interactive=True
+    )
+
+def create_file_upload(
+    label: str,
+    file_types: List[str] = [".pdf", ".docx"],
+    visible: bool = True
+) -> gr.File:
+    """Create a standardized file upload"""
+    return gr.File(
+        label=label,
+        file_types=file_types,
+        visible=visible,
+        elem_classes=["dark-file-upload"], # Uses our custom CSS
+        height=100
+    )
+
+def create_primary_button(
+    text: str,
+    variant: str = "primary",  # primary or secondary
+    size: str = "lg"
+) -> gr.Button:
+    """Create a CTA button"""
+    return gr.Button(
+        value=text,
+        variant=variant,
+        size=size,
+        elem_classes=["pill-btn"] if variant == "primary" else []
+    )
