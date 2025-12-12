@@ -100,8 +100,45 @@
 - [x] Implemented candidate state tracking
 - [x] Updated topics (added Cloud, DB, API Design)
 
-### v3.1 - Gemini Integration
+### v3.1 - LangGraph Migration (In Progress - 2025-12-12)
+**Goal:** Unified stateful interview flow.
+- [x] LangGraph core with 8 nodes
+- [x] JD Parser (role extraction from URLs)
+- [x] Smart role parsing (core role + specific area)
+- [x] Context-aware greeting with company/role
+- [ ] Replace AutonomousFlowController with InterviewGraph
+- [ ] Feature flag rollout
+
+### v3.2 - Company-Specific Interview Frameworks
+**Goal:** Assess candidates using real interview methodologies from top companies.
+
+#### Interview Frameworks:
+| Framework | Usage | Companies |
+|-----------|-------|-----------|
+| **STAR** | Behavioral questions | Amazon, Google, Meta |
+| **CIRCLES** | Product design questions | Google PM, Meta PM |
+| **BUS** | Business case questions | McKinsey, BCG, Bain |
+| **CAR** | Challenge-Action-Result | Microsoft, Apple |
+| **SOAR** | Situation-Obstacle-Action-Result | IBM, Oracle |
+| **PAR** | Problem-Action-Result | Startups, Tech |
+
+#### Company-Specific Strategies:
+- **Amazon LP:** 16 Leadership Principles evaluation
+- **Google:** "Googleyness" + structured behavioral
+- **Meta:** Product Sense + Execution rubrics
+- **Microsoft:** Growth Mindset + STAR
+- **Apple:** Design thinking + attention to detail
+
+#### Roadmap Tasks:
+- [ ] Detect company from JD URL/text
+- [ ] Map company → interview framework
+- [ ] Generate framework-specific questions
+- [ ] Evaluate answers against framework criteria
+- [ ] Provide framework-aware feedback (e.g., "Your STAR answer lacked specific Result metrics")
+
+### v3.3 - Gemini Integration
 **Goal:** True Multi-modal Intelligence.
 - [ ] Migrate to Gemini 2.5 Pro
 - [ ] Native Audio/Video understanding
 - [ ] Real-time canvas interaction
+
