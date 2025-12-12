@@ -161,7 +161,18 @@ class AutonomousInterviewer:
         )
         
         if custom_context:
+            # Store full context for reference
             session.metadata["resume_context"] = custom_context
+            
+            # Flatten key fields to root level for easy access in greeting/questions
+            if custom_context.get("target_role"):
+                session.metadata["target_role"] = custom_context["target_role"]
+            if custom_context.get("company_name"):
+                session.metadata["company_name"] = custom_context["company_name"]
+            if custom_context.get("area_context"):
+                session.metadata["area_context"] = custom_context["area_context"]
+            if custom_context.get("resume_skills"):
+                session.metadata["resume_skills"] = custom_context["resume_skills"]
             if custom_context.get("topic"):
                 session.topic = custom_context["topic"]
         
