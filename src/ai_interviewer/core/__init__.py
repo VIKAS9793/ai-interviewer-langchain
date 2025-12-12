@@ -25,6 +25,13 @@ from .autonomous_interviewer import (
 )
 from .autonomous_flow_controller import AutonomousFlowController
 
+# LangGraph-based Interview Flow (v3.1)
+from .interview_graph import (
+    InterviewGraph,
+    InterviewState,
+    get_interview_graph
+)
+
 # Responsible AI Components
 from .ai_guardrails import (
     ResponsibleAI,
@@ -78,6 +85,11 @@ __all__ = [
     "ReasoningMode",
     "InterviewSession",
     "InterviewPhase",
+    
+    # LangGraph (v3.1)
+    "InterviewGraph",
+    "InterviewState",
+    "get_interview_graph",
     
     # Responsible AI
     "ResponsibleAI",
