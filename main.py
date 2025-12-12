@@ -566,6 +566,10 @@ class InterviewApplication:
                 gr.update(interactive=True)
             )
 
+# Import tab creators
+from src.ui.tabs.interview_tab import create_interview_tab
+from src.ui.tabs.practice_tab import create_practice_tab
+
 # ============================================================================
 # UI CONSTRUCTION - Clean, Composable Interface
 # ============================================================================
@@ -593,68 +597,10 @@ def create_interface(app: InterviewApplication) -> gr.Blocks:
             with gr.Tabs():
                 
                 # Tab 1: Topic-Based Interview
-                with gr.TabItem("📝 Technical Interview"):
-                    gr.Markdown("### Quick Start Interview")
-                    
-                    with gr.Row():
-                        candidate_name = gr.Textbox(
-                            label="Your Name",
-                            placeholder="Enter your full name"
-                        )
-                        
-                        topic_dropdown = gr.Dropdown(
-                            label="Interview Topic",
-                            choices=TOPICS,
-                            value=TOPICS[0]
-                        )
-                        
-                    start_btn = gr.Button(
-                        "Start Interview",
-                        variant="primary",
-                        elem_classes="pill-btn"
-                    )
+                interview_tab = create_interview_tab()
                 
                 # Tab 2: Practice Mode
-                with gr.TabItem("🎯 Practice Mode"):
-                    gr.Markdown("### Resume-Based Practice Interview")
-                    
-                    gr.Markdown(
-                        """
-                        > **⚠️ Limitation Note:** Practice Mode is currently experimental. The AI may not evaluate complex technical answers thoroughly even if precise answers are provided. This mode is intended for practicing flow and question familiarity.
-                        """
-                    )
-                    
-                    with gr.Row():
-                        with gr.Column():
-                            practice_name = gr.Textbox(
-                                label="Your Name",
-                                placeholder="Enter your full name"
-                            )
-                            
-                            resume_upload = gr.File(
-                                label="Upload Resume",
-                                file_types=[".pdf", ".docx"],
-                                file_count="single",
-                                elem_classes="dark-file-upload"
-                            )
-                        
-                        with gr.Column():
-                            jd_url = gr.Textbox(
-                                label="Job Description URL (Optional)",
-                                placeholder="https://..."
-                            )
-                            
-                            jd_text = gr.Textbox(
-                                label="Or Paste Job Description",
-                                placeholder="Paste job description text...",
-                                lines=4
-                            )
-                    
-                    start_practice_btn = gr.Button(
-                        "Analyze & Start Practice",
-                        variant="primary",
-                        elem_classes="pill-btn"
-                    )
+                practice_tab = create_practice_tab()
         
         # Progress Display
         progress_display = gr.HTML(
@@ -799,30 +745,35 @@ def create_interface(app: InterviewApplication) -> gr.Blocks:
         )
         
         # Start Topic Interview
-        start_btn.click(
+        interview_tab.start_btn.click(
             fn=app.start_topic_interview,
-            inputs=[topic_dropdown, candidate_name],
+            inputs=[interview_tab.topic_dropdown, interview_tab.candidate_name],
             outputs=[
                 interview_display,
                 progress_display,
                 answer_input,
                 tabs_container,
-                start_btn,
-                start_practice_btn
+                interview_tab.start_btn,
+                practice_tab.start_btn
             ]
         )
         
         # Start Practice Interview
-        start_practice_btn.click(
+        practice_tab.start_btn.click(
             fn=app.start_practice_interview,
-            inputs=[resume_upload, jd_text, jd_url, practice_name],
+            inputs=[
+                practice_tab.resume_upload, 
+                practice_tab.jd_text, 
+                practice_tab.jd_url, 
+                practice_tab.practice_name
+            ],
             outputs=[
                 interview_display,
                 progress_display,
                 answer_input,
                 tabs_container,
-                start_btn,
-                start_practice_btn
+                interview_tab.start_btn,
+                practice_tab.start_btn
             ]
         )
         
@@ -842,8 +793,8 @@ def create_interface(app: InterviewApplication) -> gr.Blocks:
                 progress_display,
                 answer_input,
                 tabs_container,
-                start_btn,
-                start_practice_btn
+                interview_tab.start_btn,
+                practice_tab.start_btn
             ]
         )
         
@@ -856,8 +807,8 @@ def create_interface(app: InterviewApplication) -> gr.Blocks:
                 progress_display,
                 answer_input,
                 tabs_container,
-                start_btn,
-                start_practice_btn
+                interview_tab.start_btn,
+                practice_tab.start_btn
             ]
         )
         
