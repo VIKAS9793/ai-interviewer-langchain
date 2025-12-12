@@ -173,11 +173,13 @@ input, textarea, select, option {
 }
 
 /* Input Fields - High Contrast */
-textarea, input[type="text"], .gr-textbox textarea {
+textarea, input[type="text"], .gr-textbox textarea, .gr-textbox input {
     background: #1e293b !important;
     border: 1px solid #475569 !important;
     color: #f1f5f9 !important;
-    padding: 12px !important; /* Increased padding */
+    padding: 16px !important; /* Increased padding for text spacing */
+    box-sizing: border-box !important;
+    border-radius: 8px !important;
 }
 
 textarea::placeholder, input::placeholder {
