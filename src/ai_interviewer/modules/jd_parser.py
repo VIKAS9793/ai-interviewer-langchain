@@ -257,6 +257,89 @@ class JDParser:
         return title.strip()
     
     @classmethod
+    def extract_role_parts(cls, role_title: str) -> Dict[str, str]:
+        """
+        Extract core role and specific area from full role title.
+        
+        Example:
+            "Product Manager Youtube Channel Memberships Creator"
+            → {"core_role": "Product Manager", "specific_area": "YouTube Channel Memberships"}
+        
+        This enables natural question generation:
+            "Tell me about your product management experience, particularly with YouTube."
+        """
+        if not role_title:
+            return {"core_role": "technical", "specific_area": None, "full_title": role_title}
+        
+        role_lower = role_title.lower()
+        core_role = None
+        
+        # Find core role by matching keywords
+        for keyword, role in cls.ROLE_KEYWORDS.items():
+            if keyword in role_lower:
+                core_role = role
+                # Extract specific area (everything after the core role)
+                idx = role_lower.find(keyword)
+                if idx != -1:
+                    after_role = role_title[idx + len(keyword):].strip()
+                    # Clean up specific area
+                    after_role = re.sub(r'^[\s\-–—]+', '', after_role).strip()
+                    
+                    # Convert to natural language (Title Case)
+                    if after_role:
+                        specific_area = after_role.title()
+                        # Clean up common words
+                        specific_area = specific_area.replace("Youtube", "YouTube")
+                        return {
+                            "core_role": core_role,
+                            "specific_area": specific_area,
+                            "full_title": role_title
+                        }
+                
+                return {"core_role": core_role, "specific_area": None, "full_title": role_title}
+        
+        # No known role found, use full title
+        return {"core_role": role_title, "specific_area": None, "full_title": role_title}
+    
+    @classmethod
+    def get_interview_context(cls, role_title: str) -> Dict[str, str]:
+        """
+        Get interview context for natural question generation.
+        
+        Returns:
+            Dict with:
+            - topic: For question templates (e.g., "product management")
+            - area_context: For contextual reference (e.g., "YouTube memberships")
+            - greeting_role: For greeting (e.g., "Product Manager")
+        """
+        parts = cls.extract_role_parts(role_title)
+        core = parts["core_role"]
+        area = parts["specific_area"]
+        
+        # Convert role to topic (e.g., "Product Manager" → "product management")
+        topic_map = {
+            "Product Manager": "product management",
+            "Software Engineer": "software engineering",
+            "Data Scientist": "data science",
+            "Machine Learning Engineer": "machine learning",
+            "DevOps Engineer": "DevOps",
+            "Backend Engineer": "backend development",
+            "Frontend Engineer": "frontend development",
+            "Full Stack Engineer": "full-stack development",
+            "Engineering Manager": "engineering leadership",
+            "Technical Program Manager": "technical program management",
+        }
+        
+        topic = topic_map.get(core, core.lower() if core else "technical skills")
+        
+        return {
+            "topic": topic,
+            "area_context": area,
+            "greeting_role": core or "Technical",
+            "full_title": parts["full_title"]
+        }
+    
+    @classmethod
     def _extract_requirements(cls, text: str) -> List[str]:
         """Extract requirements from JD text."""
         requirements = []

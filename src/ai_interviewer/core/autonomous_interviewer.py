@@ -679,27 +679,24 @@ Evaluate the answer and respond with ONLY this JSON:
     def _generate_human_greeting(self, session: InterviewSession, thought: ThoughtChain) -> str:
         """
         Generate context-aware, human-like greeting.
-        Uses role, company, and resume skills from session metadata.
-        Avoids word repetition (e.g., "interview interview").
+        Uses role, company, area_context, and resume skills from session metadata.
         """
         name = session.candidate_name
-        topic = session.topic or "technical"
-        
-        # Clean topic to avoid "interview interview" repetition
-        topic_clean = topic
-        if "interview" in topic.lower():
-            topic_clean = topic.lower().replace(" interview", "").replace("interview ", "").strip()
-            topic_clean = topic_clean.title()
         
         # Get context from metadata
         metadata = getattr(session, 'metadata', {}) or {}
         company = metadata.get("company_name")
         resume_skills = metadata.get("resume_skills", [])[:3]
-        target_role = metadata.get("target_role", topic_clean)
+        target_role = metadata.get("target_role", "Technical")
+        area_context = metadata.get("area_context")  # e.g., "YouTube Channel Memberships"
         
         # Build personalized greeting
-        if company:
+        if company and area_context:
+            greeting = f"Hello {name}, welcome to your {target_role} interview for {company}'s {area_context} team."
+        elif company:
             greeting = f"Hello {name}, welcome to your {target_role} interview for {company}."
+        elif area_context:
+            greeting = f"Hello {name}, welcome to your {target_role} interview focusing on {area_context}."
         else:
             greeting = f"Hello {name}, welcome to your {target_role} interview."
         

@@ -344,10 +344,16 @@ class InterviewApplication:
             
             # Determine topic: JD role > resume detected role > fallback
             if jd_role:
-                topic = jd_role
-                logger.info(f"🎯 Using JD role: {topic}")
+                # Extract proper interview context (core role + specific area)
+                interview_context = JDParser.get_interview_context(jd_role)
+                topic = interview_context["topic"]  # e.g., "product management"
+                greeting_role = interview_context["greeting_role"]  # e.g., "Product Manager"
+                area_context = interview_context["area_context"]  # e.g., "YouTube Channel Memberships"
+                logger.info(f"🎯 JD context: topic='{topic}', role='{greeting_role}', area='{area_context}'")
             else:
                 topic = analysis.get("detected_role") or analysis.get("suggested_topics", ["Technical Interview"])[0]
+                greeting_role = topic
+                area_context = None
                 logger.info(f"🎯 Using resume-detected role: {topic}")
             
             # Add company context if available
@@ -356,7 +362,8 @@ class InterviewApplication:
                 logger.info(f"🏢 Company detected: {jd_company}")
             
             custom_context["topic"] = topic
-            custom_context["target_role"] = topic
+            custom_context["target_role"] = greeting_role
+            custom_context["area_context"] = area_context
             custom_context["resume_skills"] = resume_skills
             custom_context["analysis"] = analysis
             
