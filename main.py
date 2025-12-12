@@ -961,7 +961,7 @@ def create_interface(app: InterviewApplication) -> gr.Blocks:
                     
                     gr.Markdown(
                         """
-                        > **Note:** This tool is for practice purposes only. Your resume and data are processed temporarily for this session and are not stored permanently.
+                        > **⚠️ Limitation Note:** Practice Mode is currently experimental. The AI may not evaluate complex technical answers thoroughly even if precise answers are provided. This mode is intended for practicing flow and question familiarity.
                         """
                     )
                     
