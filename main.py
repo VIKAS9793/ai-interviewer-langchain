@@ -139,12 +139,42 @@ MINIMAL_CSS = """
     background: #0f172a !important;
 }
 
-/* High Contrast Text - Force visibility */
-.gradio-container, .gradio-container *, 
-.gr-prose, .gr-prose *, 
+/* High Contrast Text - Force visibility on ALL elements */
+.gradio-container, 
+.gradio-container *,
+.gr-prose, .gr-prose *,
 .gr-markdown, .gr-markdown *,
-label, span, p, h1, h2, h3, h4, h5, h6 {
+.gr-box, .gr-box *,
+.gr-form, .gr-form *,
+.gr-panel, .gr-panel *,
+.gr-block-label, .gr-block-label *,
+.gr-input-label, .gr-input-label *,
+[class*="svelte-"], [class*="svelte-"] *,
+label, label span,
+span, p, div, 
+h1, h2, h3, h4, h5, h6,
+.label-wrap, .label-wrap *,
+.wrap, .wrap *,
+input, textarea,
+.secondary-wrap, .secondary-wrap *,
+.prose, .prose * {
     color: #f1f5f9 !important;
+}
+
+/* Ensure input text is visible */
+input, textarea, select, option {
+    color: #f1f5f9 !important;
+    background-color: #1e293b !important;
+}
+
+/* Tab labels */
+.tab-nav button, .tabs button, [role="tab"] {
+    color: #e2e8f0 !important;
+}
+
+.tab-nav button.selected, .tabs button.selected, [role="tab"][aria-selected="true"] {
+    color: #ffffff !important;
+    background: #6366f1 !important;
 }
 
 /* Pill-Shaped CTA Buttons */
