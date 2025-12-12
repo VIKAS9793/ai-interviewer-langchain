@@ -484,6 +484,101 @@ class AutonomousReasoningEngine:
         
         return suggestions
     
+    # ==================== RESUME ANALYSIS ====================
+    
+    def analyze_resume(self, resume_text: str) -> Dict[str, Any]:
+        """
+        Analyze resume to extract skills, experience, and key qualifications.
+        Used for personalized interview questions.
+        """
+        if not resume_text or len(resume_text.strip()) < 50:
+            return {
+                "skills": [],
+                "experience_years": 0,
+                "key_qualifications": [],
+                "suggested_topics": [],
+                "analysis_type": "empty"
+            }
+        
+        try:
+            llm = self._get_llm()
+            if llm:
+                prompt = f"""[INST] Analyze this resume and extract key information.
+
+RESUME:
+{resume_text[:3000]}
+
+Return JSON only:
+{{"skills": ["skill1", "skill2"], "experience_years": <number>, "key_qualifications": ["qual1"], "suggested_topics": ["topic1"], "summary": "brief summary"}}
+[/INST]"""
+                
+                response = llm.invoke(prompt)
+                
+                import json
+                start = response.find('{')
+                end = response.rfind('}') + 1
+                if start != -1 and end > start:
+                    result = json.loads(response[start:end])
+                    result["analysis_type"] = "llm"
+                    return result
+        except Exception as e:
+            logger.warning(f"Resume LLM analysis failed: {e}")
+        
+        # Heuristic fallback
+        skills = []
+        text_lower = resume_text.lower()
+        
+        skill_keywords = {
+            "python": "Python", "javascript": "JavaScript", "java": "Java",
+            "react": "React", "node": "Node.js", "sql": "SQL",
+            "aws": "AWS", "docker": "Docker", "kubernetes": "Kubernetes",
+            "machine learning": "Machine Learning", "data science": "Data Science",
+            "api": "API Development", "agile": "Agile", "scrum": "Scrum"
+        }
+        
+        for kw, skill in skill_keywords.items():
+            if kw in text_lower:
+                skills.append(skill)
+        
+        return {
+            "skills": skills[:10],
+            "experience_years": self._estimate_experience(resume_text),
+            "key_qualifications": skills[:3],
+            "suggested_topics": self._suggest_topics(skills),
+            "analysis_type": "heuristic"
+        }
+    
+    def _estimate_experience(self, text: str) -> int:
+        """Estimate years of experience from resume text."""
+        import re
+        patterns = [
+            r'(\d+)\+?\s*years?\s*(?:of)?\s*experience',
+            r'experience[:\s]+(\d+)\s*years?',
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, text.lower())
+            if match:
+                return min(int(match.group(1)), 30)
+        return 0
+    
+    def _suggest_topics(self, skills: list) -> list:
+        """Suggest interview topics based on skills."""
+        topic_map = {
+            "Python": "Python/Backend Development",
+            "JavaScript": "JavaScript/Frontend Development",
+            "React": "JavaScript/Frontend Development",
+            "AWS": "Cloud & DevOps (AWS/GCP/Azure)",
+            "Docker": "Cloud & DevOps (AWS/GCP/Azure)",
+            "SQL": "Database & SQL",
+            "Machine Learning": "Machine Learning/AI",
+            "API Development": "API Design & REST"
+        }
+        topics = set()
+        for skill in skills:
+            if skill in topic_map:
+                topics.add(topic_map[skill])
+        return list(topics)[:3] if topics else ["Python/Backend Development"]
+    
     # ==================== HUMAN-LIKE INTERVIEW CONDUCT ====================
     
     def generate_human_like_question(self, context: InterviewContext,
