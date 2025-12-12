@@ -10,6 +10,7 @@ RUN useradd -m -u 1000 user
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
+    libmagic1 \
     python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
