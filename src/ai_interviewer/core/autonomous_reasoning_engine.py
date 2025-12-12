@@ -562,13 +562,25 @@ class AutonomousReasoningEngine:
     
     def _generate_natural_transition(self, context: InterviewContext) -> str:
         """Generate natural transition to next question"""
+        import random
+        
         transitions = [
             "Moving on,",
             "Let's explore another area.",
             "Building on that,",
             "Now I'd like to ask about",
             "Here's something related:",
-            "Let's dive deeper."
+            "Let's dive deeper.",
+            "Next up,",
+            "Continuing our discussion,"
+        ]
+        
+        excelling_transitions = [
+            "Since you're doing well, let's try something challenging:",
+            "Great progress! Here's a tougher one:",
+            "You're on fire! Let me push you a bit:",
+            "Impressive so far! Let's go deeper:",
+            "Building on your strong answer,"
         ]
         
         # Context-aware selection
@@ -577,9 +589,10 @@ class AutonomousReasoningEngine:
         elif context.question_number == context.max_questions:
             return "For our final question,"
         elif context.candidate_state == CandidateState.EXCELLING:
-            return "Since you're doing well, let's try something challenging:"
+            return random.choice(excelling_transitions)
+        elif context.candidate_state == CandidateState.STRUGGLING:
+            return "Let's try a different angle:"
         else:
-            import random
             return random.choice(transitions)
     
     def _generate_encouragement(self, context: InterviewContext) -> str:

@@ -256,10 +256,12 @@ class AutonomousInterviewer:
         context = self._build_context(session)
         report_thought = self.reasoning_engine.think_before_acting(context, "generate_report")
         
+        # Calculate average score
+        avg_score = sum(session.performance_history) / max(1, len(session.performance_history))
+        
         # ====================== INTRINSIC LEARNING ======================
         try:
             if self.reasoning_engine.reasoning_bank:
-                avg_score = sum(session.performance_history) / max(1, len(session.performance_history))
                 trajectory = InterviewTrajectory(
                     session_id=session.session_id,
                     candidate_name=session.candidate_name,
@@ -278,17 +280,61 @@ class AutonomousInterviewer:
             logger.error(f"Intrinsic Learning failed: {e}")
         # ================================================================
 
-        # Generate report
-        final_report = self._generate_final_report_autonomous(session, report_thought)
-        session.final_report = final_report
+        # Build structured summary for UI
+        summary = self._build_interview_summary(session, avg_score)
         
         # Update metrics
         self.interview_metrics["sessions_conducted"] += 1
         
         return {
             "status": "completed",
-            "final_report": final_report
+            "summary": summary,
+            "final_report": self._generate_final_report_autonomous(session, report_thought)
         }
+    
+    def _build_interview_summary(self, session: InterviewSession, avg_score: float) -> Dict[str, Any]:
+        """Build structured summary for UI display."""
+        # Collect strengths from evaluations
+        strengths = []
+        areas_for_improvement = []
+        
+        for qa in session.qa_pairs:
+            eval_data = qa.get("evaluation", {})
+            if eval_data.get("strengths"):
+                strengths.extend(eval_data["strengths"][:2])
+            if eval_data.get("improvements"):
+                areas_for_improvement.extend(eval_data["improvements"][:2])
+        
+        # Deduplicate and limit
+        strengths = list(dict.fromkeys(strengths))[:3] if strengths else self._infer_strengths(session, avg_score)
+        areas_for_improvement = list(dict.fromkeys(areas_for_improvement))[:3] if areas_for_improvement else self._infer_improvements(session, avg_score)
+        
+        return {
+            "avg_score": avg_score,
+            "questions_asked": len(session.qa_pairs),
+            "strengths": strengths,
+            "areas_for_improvement": areas_for_improvement,
+            "topic": session.topic,
+            "candidate_name": session.candidate_name
+        }
+    
+    def _infer_strengths(self, session: InterviewSession, avg_score: float) -> list:
+        """Infer strengths when not available from evaluations."""
+        if avg_score >= 8:
+            return ["Excellent technical understanding", "Clear communication", "Strong problem-solving"]
+        elif avg_score >= 6:
+            return ["Good foundational knowledge", "Solid communication skills"]
+        else:
+            return ["Showed effort and engagement"]
+    
+    def _infer_improvements(self, session: InterviewSession, avg_score: float) -> list:
+        """Infer areas for improvement when not available from evaluations."""
+        if avg_score >= 8:
+            return ["Consider edge cases in complex scenarios"]
+        elif avg_score >= 6:
+            return ["Add more specific examples", "Deepen technical explanations"]
+        else:
+            return ["Review core concepts", "Practice with examples", "Focus on fundamentals"]
 
     def _generate_next_question_autonomous(self, session: InterviewSession) -> Dict[str, Any]:
         # Implementation relying on reasoning engine / Reflexion Loop
@@ -432,16 +478,16 @@ OUTPUT JSON ONLY:
         else:
             trend = 0
         
-        # Determine state based on score and trend
-        if avg_score >= 8:
+        # Determine state based on score and trend (stricter thresholds)
+        if avg_score >= 9:
             session.candidate_state = CandidateState.EXCELLING
-        elif avg_score >= 6:
-            if trend > 0:
+        elif avg_score >= 7:
+            if trend > 0.5:
                 session.candidate_state = CandidateState.IMPROVING
             else:
                 session.candidate_state = CandidateState.CONFIDENT
-        elif avg_score >= 4:
-            if trend < 0:
+        elif avg_score >= 5:
+            if trend < -0.5:
                 session.candidate_state = CandidateState.DECLINING
             else:
                 session.candidate_state = CandidateState.NEUTRAL
