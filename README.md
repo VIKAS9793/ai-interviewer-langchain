@@ -218,11 +218,19 @@ python main.py
 
 ---
 
+## 🆘 Support & Feedback
+
+*   🐛 **Found a bug?** [Open a Bug Report](https://github.com/VIKAS9793/ai-interviewer-langchain/issues/new?template=bug_report.md)
+*   💡 **Have an idea?** [Request a Feature](https://github.com/VIKAS9793/ai-interviewer-langchain/issues/new?template=feature_request.md)
+*   💬 **Questions?** [Join the Discussion](https://github.com/VIKAS9793/ai-interviewer-langchain/discussions)
+
+---
+
 ## 📈 Version History
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| **v3.0.0** | 2025-12-12 | 🧠 Cognitive Upgrade (Reasoning, RAG, Reflexion), Micro-Services, Docker Support |
+| **v3.0.0** | 2025-12-12 | [**The Cognitive Upgrade**](RELEASE_NOTES.md): Reasoning, RAG, Reflexion, Micro-Services |
 | **v2.6.0** | 2025-12-12 | 🎨 UI Overhaul (Dark Mode, Pill Buttons, High Contrast) |
 | **v2.5.1** | 2025-12-11 | 🔥 Hotfix: Gradio 4.44 downgrade, Torch/Triton conflict resolution |
 | **v2.5.0** | 2025-12-11 | Practice Mode (Resume + JD), 11 bug fixes |
