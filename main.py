@@ -261,6 +261,33 @@ label, .gr-form label {
     font-weight: 600;
 }
 
+/* File Upload Component - High Contrast */
+.gr-file, .gr-file-preview, 
+[data-testid="file"], [data-testid="dropzone"],
+.upload-container, .file-preview,
+.gr-file label, .gr-file span,
+.gr-file-preview label, .gr-file-preview span {
+    color: #f1f5f9 !important;
+    background: #1e293b !important;
+    border-color: #475569 !important;
+}
+
+/* File drop zone text */
+.gr-file .wrap, .gr-file .secondary-wrap,
+.gr-file a, .gr-file p,
+[data-testid="dropzone"] span,
+[data-testid="dropzone"] a {
+    color: #93c5fd !important;
+}
+
+/* Upload button/label visibility */
+.gr-file button, .upload-button,
+.gr-file .file-name {
+    color: #f1f5f9 !important;
+    background: #334155 !important;
+    border: 1px solid #475569 !important;
+}
+
 /* Accessibility: Focus indicators */
 *:focus-visible {
     outline: 3px solid #6366f1;
