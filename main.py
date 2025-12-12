@@ -88,13 +88,44 @@ DEFAULT_MODEL = "meta-llama/Meta-Llama-3-8B-Instruct"
 # ============================================================================
 
 def create_theme() -> gr.Theme:
-    """Create consistent theme using Gradio 4.44 theme system"""
-    return gr.themes.Soft(
+    """Create dark theme with high contrast for accessibility"""
+    return gr.themes.Base(
         primary_hue="indigo",
         secondary_hue="purple",
         neutral_hue="slate",
         font=["Inter", "system-ui", "sans-serif"],
         font_mono=["IBM Plex Mono", "monospace"]
+    ).set(
+        # Dark Background
+        body_background_fill="#0f172a",
+        body_background_fill_dark="#0f172a",
+        block_background_fill="#1e293b",
+        block_background_fill_dark="#1e293b",
+        
+        # High Contrast Text
+        body_text_color="#f1f5f9",
+        body_text_color_dark="#f1f5f9",
+        block_label_text_color="#e2e8f0",
+        block_title_text_color="#f8fafc",
+        
+        # Borders
+        border_color_primary="#334155",
+        border_color_primary_dark="#475569",
+        
+        # Pill Buttons (compact, rounded)
+        button_primary_background_fill="#6366f1",
+        button_primary_background_fill_hover="#818cf8",
+        button_primary_text_color="#ffffff",
+        button_secondary_background_fill="#334155",
+        button_secondary_background_fill_hover="#475569",
+        button_secondary_text_color="#e2e8f0",
+        
+        # Inputs
+        input_background_fill="#1e293b",
+        input_background_fill_dark="#1e293b",
+        input_border_color="#475569",
+        input_border_color_dark="#475569",
+        input_placeholder_color="#94a3b8",
     )
 
 # ============================================================================
@@ -102,12 +133,62 @@ def create_theme() -> gr.Theme:
 # ============================================================================
 
 MINIMAL_CSS = """
-/* Theme: Enforce Dark Mode & Brand Colors */
+/* Dark Mode Foundation */
 .gradio-container {
     color-scheme: dark;
+    background: #0f172a !important;
 }
 
-/* Fix: Status badges (Dark Mode Optimized) */
+/* High Contrast Text */
+.gradio-container, .gradio-container * {
+    color: #f1f5f9;
+}
+
+/* Pill-Shaped Buttons - Compact & Rounded */
+button.primary, button.secondary, .gr-button {
+    border-radius: 9999px !important;  /* Full pill shape */
+    padding: 8px 24px !important;
+    min-width: auto !important;
+    width: auto !important;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+button.primary {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+    border: none !important;
+    color: #ffffff !important;
+}
+
+button.primary:hover {
+    background: linear-gradient(135deg, #818cf8, #a78bfa) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+button.secondary {
+    background: #334155 !important;
+    border: 1px solid #475569 !important;
+    color: #e2e8f0 !important;
+}
+
+button.secondary:hover {
+    background: #475569 !important;
+}
+
+/* Fix stretched buttons - constrain width */
+.gr-button-group, .button-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.gr-button-group button, .button-row button {
+    flex: 0 0 auto !important;
+}
+
+/* Status Badges */
 .status-badge {
     display: inline-flex;
     align-items: center;
@@ -122,15 +203,15 @@ MINIMAL_CSS = """
 .status-active { background: rgba(22, 101, 52, 0.4); color: #86efac; border: 1px solid #166534; }
 .status-error { background: rgba(153, 27, 27, 0.4); color: #fca5a5; border: 1px solid #991b1b; }
 
-/* Fix: Question card emphasis */
+/* Question Card */
 .question-card {
-    border-left: 4px solid var(--primary-500);
+    border-left: 4px solid #6366f1;
     padding-left: 24px;
     background: rgba(255, 255, 255, 0.03);
     border-radius: 0 8px 8px 0;
 }
 
-/* Fix: Progress bar container */
+/* Progress Bar */
 .progress-container {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 8px;
@@ -144,16 +225,36 @@ MINIMAL_CSS = """
     transition: width 0.3s ease;
 }
 
+/* Input Fields - High Contrast */
+textarea, input[type="text"], .gr-textbox textarea {
+    background: #1e293b !important;
+    border: 1px solid #475569 !important;
+    color: #f1f5f9 !important;
+}
+
+textarea::placeholder, input::placeholder {
+    color: #94a3b8 !important;
+}
+
+/* Labels */
+label, .gr-form label {
+    color: #e2e8f0 !important;
+    font-weight: 600;
+}
+
 /* Accessibility: Focus indicators */
 *:focus-visible {
     outline: 3px solid #6366f1;
     outline-offset: 2px;
 }
 
-/* Mobile: Responsive text */
+/* Mobile Responsive */
 @media (max-width: 768px) {
     .gradio-container {
         font-size: 14px;
+    }
+    button.primary, button.secondary {
+        padding: 6px 16px !important;
     }
 }
 """
