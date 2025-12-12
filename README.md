@@ -204,6 +204,7 @@ python main.py
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| **v2.6.0** | 2025-12-12 | 🎨 UI Overhaul (Dark Mode, Pill Buttons, High Contrast) |
 | **v2.5.1** | 2025-12-11 | 🔥 Hotfix: Gradio 4.44 downgrade, Torch/Triton conflict resolution |
 | **v2.5.0** | 2025-12-11 | Practice Mode (Resume + JD), 11 bug fixes |
 | **v2.4.0** | 2025-12-10 | Voice Mode (browser-native STT/TTS) |
