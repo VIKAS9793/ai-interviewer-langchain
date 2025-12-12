@@ -959,6 +959,12 @@ def create_interface(app: InterviewApplication) -> gr.Blocks:
                 with gr.TabItem("🎯 Practice Mode"):
                     gr.Markdown("### Resume-Based Practice Interview")
                     
+                    gr.Markdown(
+                        """
+                        > **Note:** This tool is for practice purposes only. Your resume and data are processed temporarily for this session and are not stored permanently.
+                        """
+                    )
+                    
                     with gr.Row():
                         with gr.Column():
                             practice_name = gr.Textbox(
