@@ -119,7 +119,7 @@ license: mit
 ```mermaid
 flowchart TD
     User([User]) <--> UI[Gradio UI]
-    UI <--> Main[App Controller (Main)]
+    UI <--> Main["App Controller (Main)"]
     
     subgraph "Core Engine (Orchestrator)"
         AutoInt[AutonomousInterviewer]
