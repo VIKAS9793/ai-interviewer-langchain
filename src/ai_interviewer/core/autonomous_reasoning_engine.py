@@ -1186,13 +1186,19 @@ Return JSON only:
             ]
         }
         
+        # Clean topic to avoid word repetition ("interview interview")
+        topic_clean = topic
+        if "interview" in topic.lower():
+            topic_clean = topic.lower().replace(" interview", "").replace("interview ", "").strip()
+            topic_clean = topic_clean.title() if topic_clean else "technical skills"
+        
         # Default questions for unknown topics
         default_questions = [
-            f"Tell me about your background in {topic}.",
-            f"What's the most challenging {topic} problem you've solved?",
-            f"How do you stay updated with developments in {topic}?",
-            f"Describe a recent project involving {topic}.",
-            f"What best practices do you follow when working with {topic}?"
+            f"Tell me about your background in {topic_clean}.",
+            f"What's the most challenging {topic_clean} problem you've solved?",
+            f"How do you stay updated with developments in {topic_clean}?",
+            f"Describe a recent project involving {topic_clean}.",
+            f"What best practices do you follow when working with {topic_clean}?"
         ]
         
         questions = question_banks.get(topic, default_questions)

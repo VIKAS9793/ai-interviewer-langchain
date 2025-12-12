@@ -677,7 +677,40 @@ Evaluate the answer and respond with ONLY this JSON:
         )
 
     def _generate_human_greeting(self, session: InterviewSession, thought: ThoughtChain) -> str:
-        return f"Hello {session.candidate_name}, welcome to the {session.topic} interview."
+        """
+        Generate context-aware, human-like greeting.
+        Uses role, company, and resume skills from session metadata.
+        Avoids word repetition (e.g., "interview interview").
+        """
+        name = session.candidate_name
+        topic = session.topic or "technical"
+        
+        # Clean topic to avoid "interview interview" repetition
+        topic_clean = topic
+        if "interview" in topic.lower():
+            topic_clean = topic.lower().replace(" interview", "").replace("interview ", "").strip()
+            topic_clean = topic_clean.title()
+        
+        # Get context from metadata
+        metadata = getattr(session, 'metadata', {}) or {}
+        company = metadata.get("company_name")
+        resume_skills = metadata.get("resume_skills", [])[:3]
+        target_role = metadata.get("target_role", topic_clean)
+        
+        # Build personalized greeting
+        if company:
+            greeting = f"Hello {name}, welcome to your {target_role} interview for {company}."
+        else:
+            greeting = f"Hello {name}, welcome to your {target_role} interview."
+        
+        # Add skill reference if available
+        if resume_skills:
+            skills_str = ", ".join(resume_skills[:3])
+            greeting += f" I see you have experience with {skills_str}."
+        
+        greeting += " I'll be evaluating your expertise through a series of questions. Let's begin!"
+        
+        return greeting
 
     def _generate_human_feedback(self, session: InterviewSession, evaluation: Dict[str, Any]) -> str:
         """
