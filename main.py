@@ -582,7 +582,7 @@ class InterviewApplication:
             # Start interview
             result = self.flow_controller.start_interview(
                 topic=topic,
-                name=candidate_name
+                candidate_name=candidate_name
             )
             
             if result["status"] != "started":

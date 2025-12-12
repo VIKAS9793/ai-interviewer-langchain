@@ -96,6 +96,22 @@ license: mit
 
 ---
 
+---
+
+## 📚 Supported Interview Topics
+
+| Domain | Focus Areas |
+|--------|-------------|
+| **JavaScript/Frontend** | React, Modern JS (ES6+), DOM Manipulation, Web Performance |
+| **Python/Backend** | FastAPI/Flask, Asyncio, ORM, API Design |
+| **Machine Learning/AI** | Transformers, Deep Learning, NLP, RAG Pipelines |
+| **System Design** | Scalability, Distributed Systems, Database Choice, Load Balancing |
+| **Data Structures** | Trees, Graphs, DP, Sorting & Search Algorithms |
+| **Product Management** | Product Sense, Metrics, Prioritization (RICE/MoSCoW) |
+| **DevOps/Cloud** | CI/CD, Docker/Kubernetes, AWS/GCP Services |
+
+---
+
 ## 🏗️ System Architecture
 
 ```mermaid
