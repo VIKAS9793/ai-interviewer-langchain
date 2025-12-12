@@ -1,6 +1,6 @@
 # 🛠️ Setup & Installation Guide
 
-> **Last Updated:** 2025-12-10
+> **Last Updated:** 2025-12-12
 > **Version:** 2.3.1 (Stability Patch)
 
 ## 📋 Prerequisites
