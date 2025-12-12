@@ -139,53 +139,42 @@ MINIMAL_CSS = """
     background: #0f172a !important;
 }
 
-/* High Contrast Text */
-.gradio-container, .gradio-container * {
-    color: #f1f5f9;
+/* High Contrast Text - Force visibility */
+.gradio-container, .gradio-container *, 
+.gr-prose, .gr-prose *, 
+.gr-markdown, .gr-markdown *,
+label, span, p, h1, h2, h3, h4, h5, h6 {
+    color: #f1f5f9 !important;
 }
 
-/* Pill-Shaped Buttons - Compact & Rounded */
-button.primary, button.secondary, .gr-button {
-    border-radius: 9999px !important;  /* Full pill shape */
-    padding: 8px 24px !important;
+/* Pill-Shaped CTA Buttons */
+.pill-btn, .pill-btn button {
+    border-radius: 9999px !important;
+    padding: 12px 32px !important;
     min-width: auto !important;
-    width: auto !important;
-    font-weight: 600;
-    font-size: 0.875rem;
-    transition: all 0.2s ease;
-}
-
-button.primary {
+    width: fit-content !important;
+    max-width: 280px !important;
+    margin: 0 auto !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    transition: all 0.2s ease !important;
+    display: inline-flex !important;
+    justify-content: center !important;
     background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
     border: none !important;
     color: #ffffff !important;
 }
 
-button.primary:hover {
+.pill-btn:hover, .pill-btn button:hover {
     background: linear-gradient(135deg, #818cf8, #a78bfa) !important;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4) !important;
 }
 
-button.secondary {
-    background: #334155 !important;
-    border: 1px solid #475569 !important;
-    color: #e2e8f0 !important;
-}
-
-button.secondary:hover {
-    background: #475569 !important;
-}
-
-/* Fix stretched buttons - constrain width */
-.gr-button-group, .button-row {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-}
-
-.gr-button-group button, .button-row button {
-    flex: 0 0 auto !important;
+/* Override Gradio's default full-width button behavior */
+.block.svelte-1f354aw, .form.svelte-1f354aw {
+    width: fit-content !important;
+    margin: 0 auto !important;
 }
 
 /* Status Badges */
@@ -893,7 +882,8 @@ def create_interface(app: InterviewApplication) -> gr.Blocks:
                         
                     start_btn = gr.Button(
                         "Start Interview",
-                        variant="primary"
+                        variant="primary",
+                        elem_classes="pill-btn"
                     )
                 
                 # Tab 2: Practice Mode
@@ -927,7 +917,8 @@ def create_interface(app: InterviewApplication) -> gr.Blocks:
                     
                     start_practice_btn = gr.Button(
                         "Analyze & Start Practice",
-                        variant="primary"
+                        variant="primary",
+                        elem_classes="pill-btn"
                     )
         
         # Progress Display
