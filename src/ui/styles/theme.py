@@ -200,6 +200,19 @@ label, .gr-form label {
     font-weight: 600;
 }
 
+/* Custom Input Standard Class (from create_text_input) */
+.input-standard input,
+.input-standard textarea,
+.input-standard [class*="svelte-"] input,
+.input-standard [class*="svelte-"] textarea {
+    background: #1e293b !important;
+    border: 1px solid #6366f1 !important;
+    color: #f1f5f9 !important;
+    padding: 16px !important;
+    box-sizing: border-box !important;
+    border-radius: 8px !important;
+}
+
 /* File Upload Component - Force dark theme on ALL nested elements */
 .dark-file-upload,
 .dark-file-upload *,
