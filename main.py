@@ -262,30 +262,40 @@ label, .gr-form label {
 }
 
 /* File Upload Component - High Contrast */
+/* Container - dark background */
 .gr-file, .gr-file-preview, 
 [data-testid="file"], [data-testid="dropzone"],
-.upload-container, .file-preview,
-.gr-file label, .gr-file span,
-.gr-file-preview label, .gr-file-preview span {
-    color: #f1f5f9 !important;
+.upload-container, .file-preview {
     background: #1e293b !important;
     border-color: #475569 !important;
 }
 
-/* File drop zone text */
-.gr-file .wrap, .gr-file .secondary-wrap,
-.gr-file a, .gr-file p,
+/* Text inside drop zone - light on dark */
+.gr-file span, .gr-file p, .gr-file a,
 [data-testid="dropzone"] span,
-[data-testid="dropzone"] a {
+[data-testid="dropzone"] a,
+[data-testid="dropzone"] p {
     color: #93c5fd !important;
 }
 
-/* Upload button/label visibility */
-.gr-file button, .upload-button,
-.gr-file .file-name {
+/* Upload button - DARK text on LIGHT background */
+.gr-file button, 
+.gr-file label.block,
+.upload-button,
+[class*="upload"] button,
+button[class*="upload"] {
+    color: #1e293b !important;
+    background: #e2e8f0 !important;
+    border: 1px solid #94a3b8 !important;
+    font-weight: 600 !important;
+}
+
+/* File label header */
+.gr-file-preview label, 
+.gr-file > label,
+.gr-file .label-wrap {
     color: #f1f5f9 !important;
-    background: #334155 !important;
-    border: 1px solid #475569 !important;
+    background: transparent !important;
 }
 
 /* Accessibility: Focus indicators */
