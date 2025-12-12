@@ -200,17 +200,23 @@ label, .gr-form label {
     font-weight: 600;
 }
 
-/* Custom Input Standard Class - Following Gradio Official Docs */
-/* Pattern from: https://www.gradio.app/guides/custom-CSS-and-JS */
+/* Custom Input Standard Class - Double Class Specificity */
+/* Based on: https://github.com/gradio-app/gradio/issues community research */
+.input-standard.input-standard textarea,
+.input-standard.input-standard input,
 .input-standard textarea,
 .input-standard input {
     background: #1e293b !important;
     border: 2px solid #6366f1 !important;
     color: #f1f5f9 !important;
-    padding: 16px !important;
+    padding: 16px 16px 16px 16px !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
     box-sizing: border-box !important;
     border-radius: 8px !important;
     font-size: 16px !important;
+    text-indent: 0 !important;
+    margin: 0 !important;
 }
 
 /* File Upload Component - Force dark theme on ALL nested elements */
