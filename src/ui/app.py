@@ -1,0 +1,249 @@
+import gradio as gr
+from src.ui.styles.theme import create_theme, MINIMAL_CSS
+from src.ui.components.feedback import create_progress_display
+from src.ui.tabs.interview_tab import create_interview_tab
+from src.ui.tabs.practice_tab import create_practice_tab
+from src.ui.interfaces import InterviewApp
+
+def create_interface(app: InterviewApp) -> gr.Blocks:
+    """
+    Create the main Gradio interface.
+    
+    Args:
+        app: The application controller implementing InterviewApp protocol.
+        
+    Returns:
+        gr.Blocks: The constructed Gradio application.
+    """
+    with gr.Blocks(
+        theme=create_theme(),
+        css=MINIMAL_CSS,
+        title="AI Technical Interviewer"
+    ) as interface:
+        
+        # Header
+        gr.Markdown(
+            """
+            # 🤖 AI Technical Interviewer
+            
+            **Powered by Meta LLaMA 3** | Chain-of-Thought Reasoning | Adaptive Questioning
+            """
+        )
+        
+        # Tabs container (for hiding during interview)
+        with gr.Column(visible=True) as tabs_container:
+            with gr.Tabs():
+                interview_tab = create_interview_tab()
+                practice_tab = create_practice_tab()
+        
+        # Progress Display
+        progress_display = gr.HTML(
+            create_progress_display(0, 0),
+            label="Progress"
+        )
+        
+        # Main Content Area
+        with gr.Row():
+            # Question Display
+            with gr.Column(scale=2):
+                interview_display = gr.Markdown(
+                    """
+                    ## Welcome! 👋
+                    
+                    **Get Started:**
+                    1. Enter your name
+                    2. Select an interview topic (or upload resume for practice)
+                    3. Click "Start Interview"
+                    4. Answer thoughtfully and honestly
+                    
+                    **Tips:**
+                    - Take your time to think
+                    - Explain your reasoning
+                    - Ask clarifying questions when needed
+                    """
+                )
+            
+            # Answer Input
+            with gr.Column(scale=3):
+                gr.Markdown("### 💬 Your Answer")
+                
+                input_mode = gr.Radio(
+                    choices=["✏️ Text", "🎤 Voice"],
+                    value="✏️ Text",
+                    label="Input Mode",
+                    info="Choose how you'd like to answer"
+                )
+                
+                # Text Input
+                with gr.Column(visible=True) as text_input_container:
+                    answer_input = gr.Textbox(
+                        label="Type your response",
+                        placeholder="Share your thoughts, approach, and reasoning...",
+                        lines=15,
+                        max_lines=25,
+                        show_label=False
+                    )
+                
+                # Voice Input
+                with gr.Column(visible=False) as voice_input_container:
+                    gr.Markdown(
+                        """
+                        **🎤 Voice Recording Instructions:**
+                        1. Click the microphone button below
+                        2. Allow browser microphone access (if prompted)
+                        3. Speak your answer clearly
+                        4. Click "Stop" when finished
+                        5. Review the transcription and submit
+                        """
+                    )
+                    
+                    audio_input = gr.Audio(
+                        label="Record Your Answer",
+                        sources=["microphone"],
+                        type="numpy",
+                        show_label=False
+                    )
+                    
+                    transcription_output = gr.Textbox(
+                        label="Transcription (Auto-generated)",
+                        placeholder="Your speech will be transcribed here...",
+                        lines=10,
+                        interactive=True,
+                        info="You can edit the transcription before submitting"
+                    )
+                    
+                    transcribe_btn = gr.Button(
+                        "🔄 Transcribe Audio",
+                        variant="secondary",
+                        size="lg"
+                    )
+                
+                # Submit Controls
+                with gr.Row():
+                    submit_btn = gr.Button(
+                        "📤 Submit Answer",
+                        variant="primary",
+                        size="lg",
+                        scale=3
+                    )
+                    
+                    clear_btn = gr.Button(
+                        "🗑️ Clear",
+                        variant="secondary",
+                        size="lg",
+                        scale=1
+                    )
+        
+        # Footer
+        gr.Markdown(
+            """
+            ---
+            
+            **AI Technical Interviewer** | Built with LangChain, HuggingFace, Gradio
+            
+            *Features: Adaptive AI • Semantic Evaluation • Real-time Feedback*
+            """,
+            elem_classes=["text-center"]
+        )
+        
+        # ====================================================================
+        # EVENT HANDLERS
+        # ====================================================================
+        
+        # Toggle Input Mode
+        def toggle_input_mode(mode: str):
+            if mode == "🎤 Voice":
+                return gr.update(visible=False), gr.update(visible=True)
+            else:
+                return gr.update(visible=True), gr.update(visible=False)
+        
+        input_mode.change(
+            fn=toggle_input_mode,
+            inputs=[input_mode],
+            outputs=[text_input_container, voice_input_container]
+        )
+        
+        # Transcribe
+        transcribe_btn.click(
+            fn=app.transcribe_audio,
+            inputs=[audio_input],
+            outputs=[transcription_output]
+        )
+        
+        # Start Topic Interview
+        interview_tab.start_btn.click(
+            fn=app.start_topic_interview,
+            inputs=[interview_tab.topic_dropdown, interview_tab.candidate_name],
+            outputs=[
+                interview_display,
+                progress_display,
+                answer_input,
+                tabs_container,
+                interview_tab.start_btn,
+                practice_tab.start_btn
+            ]
+        )
+        
+        # Start Practice Interview
+        practice_tab.start_btn.click(
+            fn=app.start_practice_interview,
+            inputs=[
+                practice_tab.resume_upload, 
+                practice_tab.jd_text, 
+                practice_tab.jd_url, 
+                practice_tab.practice_name
+            ],
+            outputs=[
+                interview_display,
+                progress_display,
+                answer_input,
+                tabs_container,
+                interview_tab.start_btn,
+                practice_tab.start_btn
+            ]
+        )
+        
+        # Submit Answer
+        def submit_answer_handler(mode: str, text: str, transcription: str):
+            if mode == "🎤 Voice":
+                return app.process_answer("", transcription)
+            else:
+                return app.process_answer(text, "")
+        
+        submit_btn.click(
+            fn=submit_answer_handler,
+            inputs=[input_mode, answer_input, transcription_output],
+            outputs=[
+                interview_display,
+                progress_display,
+                answer_input,
+                tabs_container,
+                interview_tab.start_btn,
+                practice_tab.start_btn
+            ]
+        )
+        
+        # Submit on Enter (Text only)
+        answer_input.submit(
+            fn=lambda text: app.process_answer(text, ""),
+            inputs=[answer_input],
+            outputs=[
+                interview_display,
+                progress_display,
+                answer_input,
+                tabs_container,
+                interview_tab.start_btn,
+                practice_tab.start_btn
+            ]
+        )
+        
+        # Clear
+        def clear_all_inputs():
+            return "", None, ""
+        
+        clear_btn.click(
+            fn=clear_all_inputs,
+            outputs=[answer_input, audio_input, transcription_output]
+        )
+    
+    return interface
