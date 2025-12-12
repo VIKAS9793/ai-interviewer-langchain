@@ -245,6 +245,7 @@ class AutonomousInterviewer:
             "evaluation": evaluation,
             "feedback": self._generate_human_feedback(session, evaluation),
             "next_question": next_question_result["question"],
+            "question_number": session.question_number,  # Fixed: Return updated question number
             "phase": session.phase.value
         }
 
@@ -320,8 +321,96 @@ class AutonomousInterviewer:
         }
 
     def _evaluate_answer_autonomous(self, session: InterviewSession, thought: ThoughtChain) -> Dict[str, Any]:
-       # Placeholder for evaluation logic to keep rebuild successful
-       return {"score": 7, "feedback": "Good answer"}
+        """
+        Evaluate candidate answer using LLM-based assessment.
+        Uses multi-dimensional scoring based on Config.EVALUATION_WEIGHTS.
+        """
+        try:
+            llm = self.reasoning_engine._get_llm()
+            if not llm:
+                logger.warning("LLM unavailable for evaluation, using heuristic fallback")
+                return self._heuristic_evaluation(session)
+            
+            prompt = f"""You are a Senior Technical Interviewer evaluating a candidate's answer.
+
+QUESTION: {session.current_question}
+
+CANDIDATE'S ANSWER: {session.current_answer}
+
+TOPIC: {session.topic}
+QUESTION NUMBER: {session.question_number}/{session.max_questions}
+
+EVALUATION CRITERIA (weight in parentheses):
+1. Technical Accuracy (25%): Is the answer factually correct?
+2. Conceptual Understanding (25%): Does the candidate understand underlying concepts?
+3. Practical Application (20%): Can they apply this knowledge?
+4. Communication Clarity (15%): Is the explanation clear?
+5. Depth of Knowledge (10%): Does the answer show depth?
+6. Problem-Solving Approach (5%): Is their thinking process sound?
+
+SCORING:
+- 1-3: Poor/Incorrect
+- 4-5: Below Average
+- 6-7: Satisfactory
+- 8-9: Good
+- 10: Excellent
+
+OUTPUT JSON ONLY:
+{{
+    "score": <1-10>,
+    "technical_accuracy": <1-10>,
+    "conceptual_understanding": <1-10>,
+    "communication_clarity": <1-10>,
+    "feedback": "2-3 sentence constructive feedback",
+    "strengths": ["strength1", "strength2"],
+    "improvements": ["improvement1"]
+}}
+"""
+            response = llm.invoke(prompt)
+            
+            # Parse JSON response
+            import json
+            start = response.find('{')
+            end = response.rfind('}') + 1
+            if start != -1 and end > start:
+                result = json.loads(response[start:end])
+                # Ensure score is bounded
+                result["score"] = max(1, min(10, result.get("score", 5)))
+                return result
+            
+            return self._heuristic_evaluation(session)
+            
+        except Exception as e:
+            logger.warning(f"LLM evaluation failed: {e}, using heuristic fallback")
+            return self._heuristic_evaluation(session)
+    
+    def _heuristic_evaluation(self, session: InterviewSession) -> Dict[str, Any]:
+        """Fallback heuristic evaluation when LLM is unavailable."""
+        answer = session.current_answer or ""
+        
+        # Simple heuristics based on answer length and content
+        word_count = len(answer.split())
+        
+        if word_count < 10:
+            score = 3
+            feedback = "Your answer was quite brief. Try to elaborate more on your reasoning."
+        elif word_count < 30:
+            score = 5
+            feedback = "You provided a basic answer. Consider adding more depth and examples."
+        elif word_count < 80:
+            score = 7
+            feedback = "Good answer with reasonable detail. You could strengthen it with specific examples."
+        else:
+            score = 8
+            feedback = "Comprehensive answer with good detail. Well explained!"
+        
+        return {
+            "score": score,
+            "feedback": feedback,
+            "strengths": ["Provided an answer"],
+            "improvements": ["Consider adding more specific examples"],
+            "evaluation_type": "heuristic"
+        }
 
     def _update_candidate_state(self, session: InterviewSession, evaluation: Dict[str, Any]):
        pass
