@@ -1,0 +1,27 @@
+name: Sync to Hugging Face Hub
+
+on:
+  push:
+    branches: [main]
+
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  sync-to-hub:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          lfs: true
+          
+      - name: Add remote and push to Hugging Face
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          # Configure git with the HF Space remote
+          # NOTE: Update 'vikas_user' to your actual HF username in the URL below
+          git remote add space https://vikas_user:$HF_TOKEN@huggingface.co/spaces/vikas_user/ai-interviewer
+          # Force push to the space
+          git push space main:main -f

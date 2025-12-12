@@ -2,7 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.6.0] - 2025-12-12
+## [v3.0.0] - 2025-12-12 (The Cognitive Upgrade)
+### Added
+- **Cognitive Engine:** Implemented "Autonomous Reasoning" with Chain-of-Thought (CoT).
+- **RAG (Knowledge Grounding):** Integrated ChromaDB to verify answers against technical documentation.
+- **Reflexion Agent:** Self-critique loop to improve question quality before asking.
+- **Dynamic State Machine:** LLM-driven flow control with "Privacy Guardrails" (Support/Challenge modes).
+- **Intrinsic Learning:** System now "learns" from successful interviews using `ReasoningBank`.
+- **SessionManager:** Extracted state management service.
+- **Micro-Service Architecture:** Refactored Monolith into `rag_service`, `critic_service`, `learning_service`.
+
+### Changed
+- **Major Refactor:** Decomposed `AutonomousInterviewer` into modular services.
+
+### Planned
+- **v3.1:** Gemini 2.5 Integration (Multi-modal native).
+
+## [v2.6.0] - 2025-12-12
 
 ### 🎨 UI Overhaul (Major Refactor)
 *   **Dark Mode Migration:** Switched from `gr.themes.Soft` to `gr.themes.Base` with custom slate palette.

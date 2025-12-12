@@ -131,7 +131,7 @@ class TestAutonomousInterviewer(unittest.TestCase):
         """Test interviewer initializes correctly"""
         self.assertIsNotNone(self.interviewer)
         self.assertIsNotNone(self.interviewer.reasoning_engine)
-        self.assertEqual(len(self.interviewer.active_sessions), 0)
+        self.assertEqual(len(self.interviewer.session_manager.active_sessions), 0)
     
     def test_start_interview(self):
         """Test starting an interview"""

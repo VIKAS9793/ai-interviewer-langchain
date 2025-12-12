@@ -29,9 +29,9 @@ from langchain_huggingface import HuggingFaceEndpoint
 from langchain_core.prompts import PromptTemplate
 
 
-from .reasoning_bank import ReasoningBank
+from ..modules.learning_service import ReasoningBank
 from .metacognitive import MetacognitiveSystem
-from .reflect_agent import ReflectAgent
+from ..modules.critic_service import ReflectAgent
 
 logger = logging.getLogger(__name__)
 
@@ -798,6 +798,171 @@ class AutonomousReasoningEngine:
         if other_options:
             return max(other_options, key=lambda x: x.get("suitability", 0))["approach"]
         return "default_approach"
+
+    # ==================== REFLEXION CAPABILITIES (Phase 4) ====================
+
+    def critique_draft(self, draft: str, context: InterviewContext, task: str = "question") -> Dict[str, Any]:
+        """
+        Critique a draft outputs against quality standards.
+        Used by Reflexion Loop.
+        """
+        try:
+            llm = self._get_llm()
+            if not llm:
+                return {"score": 8, "feedback": "Self-Critique unavailable (No LLM)."} # Pass by default
+
+            prompt = f"""You are a Senior Technical Interviewer mentoring a junior interviewer.
+            
+            CRITIQUE TASK: Evaluate this proposed interview {task} for quality, clarity, and relevance.
+            
+            CONTEXT:
+            Topic: {context.topic}
+            Candidate State: {context.candidate_state.value}
+            Trend: {self._calculate_trend(context.performance_history)}
+            
+            DRAFT {task.upper()}:
+            "{draft}"
+            
+            CRITERIA:
+            1. Is it clear and concise? (No ambiguity)
+            2. Is the difficulty appropriate? (Adapts to candidate state)
+            3. Is it relevant to the topic?
+            4. Is the tone professional yet encouraging?
+            
+            OUTPUT JSON ONLY:
+            {{
+                "score": <0-10>,
+                "reasoning": "brief explanation",
+                "suggestions": ["suggestion 1", "..."]
+            }}
+            """
+            
+            response = llm.invoke(prompt)
+            
+            # Simple JSON extraction
+            import json
+            start = response.find('{')
+            end = response.rfind('}') + 1
+            if start != -1 and end > start:
+                return json.loads(response[start:end])
+            
+            return {"score": 7, "feedback": "Failed to parse critique."}
+
+        except Exception as e:
+            logger.warning(f"Critique failed: {e}")
+            return {"score": 8, "feedback": "Critique error fallback."}
+
+    def revise_draft(self, draft: str, critique: Dict[str, Any], context: InterviewContext) -> str:
+        """
+        Revise a draft based on critique feedback.
+        """
+        try:
+            llm = self._get_llm()
+            if not llm:
+                return draft 
+
+            prompt = f"""You are an Expert Technical Interviewer.
+            
+            TASK: Revise this draft interview question based on the critique.
+            
+            DRAFT: "{draft}"
+            
+            CRITIQUE:
+            Score: {critique.get('score')}
+            Feedback: {critique.get('reasoning')}
+            Suggestions: {critique.get('suggestions')}
+            
+            Generate ONLY the revised text. Do not add quotes or explanations.
+            """
+            
+            revised = llm.invoke(prompt).strip()
+            # Remove quotes if present
+            if revised.startswith('"') and revised.endswith('"'):
+                revised = revised[1:-1]
+            return revised
+
+        except Exception as e:
+            logger.warning(f"Revision failed: {e}")
+            return draft
+    
+    
+    def decide_transition(self, context: InterviewContext) -> Dict[str, Any]:
+        """
+        Decide interview phase transition based on candidate state.
+        Includes PRIVACY GUARDRAILS: Internal state is detailed, external is sanitized.
+        """
+        try:
+            llm = self._get_llm()
+            
+            # 1. Analyze Situation (Internal)
+            analysis = self._analyze_situation(context)
+            
+            # 2. Heuristic Check (Guardrail Base)
+            # If candidate is struggling badly, DO NOT advance to Deep Dive regardless of what LLM says.
+            heuristic_decision = "stay"
+            if context.candidate_state == CandidateState.STRUGGLING and context.question_number < context.max_questions:
+                 heuristic_decision = "switch_to_support"
+            elif context.candidate_state == CandidateState.EXCELLING:
+                 heuristic_decision = "advance"
+                 
+            # 3. LLM Decision (Refinement)
+            if llm:
+                prompt = f"""
+                You are an Expert Interview Conductor.
+                
+                CONTEXT:
+                - Progress: {context.question_number}/{context.max_questions}
+                - State: {context.candidate_state.value} (INTERNAL ONLY)
+                - Trend: {analysis['performance_trend']}
+                - Heuristic Recommendation: {heuristic_decision}
+                
+                DECISION:
+                Should we:
+                - "stay": Keep current difficulty/phase.
+                - "advance": Increase challenge/move to next phase.
+                - "support": Switch to easier/supportive mode.
+                
+                OUTPUT JSON:
+                {{
+                    "decision": "stay" | "advance" | "support",
+                    "reasoning": "Brief reason...",
+                    "ui_label": "Neutral label for UI (e.g. 'Standard', 'Focus', 'Challenge')" 
+                }}
+                """
+                response = llm.invoke(prompt)
+                import json
+                start = response.find('{')
+                end = response.rfind('}') + 1
+                if start != -1 and end > start:
+                    result = json.loads(response[start:end])
+                else:
+                    result = {"decision": heuristic_decision, "ui_label": "Standard Mode"}
+            else:
+                 result = {"decision": heuristic_decision, "ui_label": "Standard Mode"}
+
+            # 4. Enforce Privacy Guardrail on UI Label
+            # Ensure UI label never leaks "Struggling" or negative terms
+            safe_labels = {
+                "stay": "Standard Pace",
+                "advance": "Challenge Mode",
+                "support": "Supportive Pace"
+            }
+            final_ui_label = result.get("ui_label", safe_labels.get(result["decision"], "Standard"))
+            
+            # Double check against blacklist
+            blacklist = ["struggling", "failing", "bad", "nervous"]
+            if any(b in final_ui_label.lower() for b in blacklist):
+                final_ui_label = safe_labels.get(result["decision"], "Standard")
+
+            return {
+                "decision": result["decision"],
+                "ui_label": final_ui_label,
+                "internal_state": context.candidate_state.value
+            }
+
+        except Exception as e:
+            logger.error(f"Transition decision failed: {e}")
+            return {"decision": "stay", "ui_label": "Standard Pace"}
     
     def _get_safe_fallback(self, action_type: str) -> str:
         """Get safe fallback for action type"""

@@ -8,6 +8,7 @@ transformers==4.46.3
 langchain==0.3.7
 langchain-community==0.3.5
 langchain-huggingface==0.1.2
+langgraph==0.2.53 # Added for Phase 4 Agents
 
 # Vector Store & Embeddings
 chromadb==0.5.20

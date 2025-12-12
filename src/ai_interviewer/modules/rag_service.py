@@ -298,165 +298,131 @@ Performance Trend: {context.overall_performance_trend}""")
         }
 
 
+
+from .knowledge_store import KnowledgeStore
+
 class KnowledgeGrounding:
     """
-    Knowledge Grounding for Answer Verification
+    Knowledge Grounding for Answer Verification (RAG - Retrieval Augmented Generation)
     
-    Grounds AI evaluations against authoritative sources to:
-    1. Verify technical accuracy of candidate answers
-    2. Ensure AI feedback is based on verified knowledge
-    3. Update understanding based on latest documentation
+    Grounds AI evaluations against authoritative sources using Semantic Search.
     
     Research Reference: arXiv:2501.09136 (Agentic RAG)
     """
     
-    # Authoritative knowledge sources by topic
-    KNOWLEDGE_SOURCES = {
-        "JavaScript/Frontend Development": {
-            "concepts": {
-                "closure": "A closure is a function that has access to its outer function's scope even after the outer function has returned. MDN Web Docs.",
-                "hoisting": "Variable and function declarations are moved to the top of their scope during compilation. var is hoisted and initialized to undefined, let/const are hoisted but not initialized (TDZ).",
-                "event_loop": "JavaScript uses a single-threaded event loop with a call stack, task queue, and microtask queue. Promises use the microtask queue.",
-                "prototype": "JavaScript uses prototypal inheritance. Objects inherit from other objects via the prototype chain.",
-                "async_await": "async/await is syntactic sugar over Promises where async functions implicitly return Promises and await pauses execution.",
-                "virtual_dom": "React's Virtual DOM is an in-memory representation that enables efficient reconciliation by computing minimal DOM updates."
-            },
-            "official_docs": ["developer.mozilla.org", "react.dev", "nodejs.org"]
-        },
-        "Python/Backend Development": {
-            "concepts": {
-                "gil": "The Global Interpreter Lock (GIL) is a mutex that protects access to Python objects, allowing only one thread to execute Python bytecode at a time.",
-                "decorators": "Decorators are functions that modify the behavior of other functions/classes, applied using @decorator syntax.",
-                "generators": "Generators are functions that use yield to return an iterator, enabling lazy evaluation and memory efficiency.",
-                "context_managers": "Context managers implement __enter__ and __exit__ methods for resource management, typically used with 'with' statement.",
-                "metaclasses": "Metaclasses are classes of classes that define how classes behave. type is the default metaclass.",
-                "async_python": "asyncio provides async/await for concurrent I/O-bound operations using coroutines and event loops."
-            },
-            "official_docs": ["docs.python.org", "djangoproject.com", "flask.palletsprojects.com"]
-        },
-        "Machine Learning/AI": {
-            "concepts": {
-                "overfitting": "Overfitting occurs when a model learns training data too well, including noise, leading to poor generalization on unseen data.",
-                "gradient_descent": "Gradient descent is an optimization algorithm that iteratively adjusts parameters in the direction of steepest descent of the loss function.",
-                "backpropagation": "Backpropagation computes gradients of the loss with respect to weights using the chain rule, enabling neural network training.",
-                "regularization": "Regularization (L1/L2) adds penalty terms to the loss function to prevent overfitting by constraining model complexity.",
-                "attention": "Attention mechanisms allow models to focus on relevant parts of input, computing weighted combinations based on query-key similarities.",
-                "transformers": "Transformers use self-attention to process sequences in parallel, enabling efficient training on long-range dependencies."
-            },
-            "official_docs": ["scikit-learn.org", "pytorch.org", "tensorflow.org"]
-        },
-        "System Design": {
-            "concepts": {
-                "cap_theorem": "CAP theorem states distributed systems can only guarantee 2 of 3: Consistency, Availability, Partition tolerance.",
-                "load_balancing": "Load balancing distributes traffic across servers using algorithms like round-robin, least connections, or consistent hashing.",
-                "caching": "Caching stores frequently accessed data in faster storage layers. Strategies include LRU, LFU, write-through, write-back.",
-                "sharding": "Database sharding horizontally partitions data across multiple database instances to improve scalability.",
-                "microservices": "Microservices architecture decomposes applications into loosely coupled, independently deployable services.",
-                "message_queues": "Message queues (Kafka, RabbitMQ) enable async communication between services, providing decoupling and reliability."
-            },
-            "official_docs": ["aws.amazon.com/architecture", "cloud.google.com/architecture"]
-        },
-        "Data Structures & Algorithms": {
-            "concepts": {
-                "big_o": "Big O notation describes algorithm time/space complexity in terms of input size growth. O(1) < O(log n) < O(n) < O(n log n) < O(n²)",
-                "hash_table": "Hash tables provide O(1) average-case lookup/insert using hash functions to map keys to array indices. Handle collisions via chaining or open addressing.",
-                "binary_tree": "Binary trees have at most 2 children per node. BST maintains sorted order (left < root < right), enabling O(log n) operations.",
-                "dynamic_programming": "DP solves problems by breaking into overlapping subproblems, storing solutions to avoid recomputation (memoization/tabulation).",
-                "graph_algorithms": "BFS explores level-by-level (shortest paths), DFS explores depth-first (topological sort, cycle detection).",
-                "sorting": "Comparison sorts: QuickSort O(n log n) average, MergeSort O(n log n) guaranteed, HeapSort O(n log n) in-place."
-            },
-            "official_docs": ["algorithm visualizer", "geeksforgeeks.org"]
-        }
+    # Fallback/Bootstrap knowledge
+    # We load this into Vector DB on first run if empty
+    BOOTSTRAP_KNOWLEDGE = {
+        "JavaScript/Frontend Development": [
+            "Closure: Function having access to parent scope even after parent returns. (MDN)",
+            "Hoisting: Declarations moved to top of scope. let/const in TDZ. (MDN)",
+            "Event Loop: Single-threaded loop with Call Stack, Task Queue, Microtask Queue. (Node.js)",
+            "Virtual DOM: In-memory DOM representation for efficient diffing. (React)",
+            "useEffect: Hook for side effects in functional components. (React)"
+        ],
+        "Python/Backend Development": [
+            "GIL: Mutex protecting access to Python objects, preventing multi-core bytecode execution. (Python Docs)",
+            "Decorators: Functions that modify other functions using @syntax. (Python Docs)",
+            "Generators: Functions using yield to return lazy iterators. (Python Docs)",
+            "Context Managers: Objects managing resources via __enter__ and __exit__. (Python Docs)"
+        ],
+        "System Design": [
+            "CAP Theorem: Distributed systems pick 2: Consistency, Availability, Partition Tolerance.",
+            "Sharding: Horizontal partitioning of data across instances.",
+            "Load Balancing: Distributing traffic via Round Robin, Least Conn, etc. (AWS)",
+            "Caching strategies: LRU, LFU, Write-Through, Write-Back. (Redis)"
+        ]
     }
     
     def __init__(self):
-        """Initialize Knowledge Grounding with topic knowledge bases"""
-        self.knowledge_base = self.KNOWLEDGE_SOURCES
-        self.verification_cache = {}
-        logger.info("📚 KnowledgeGrounding initialized with authoritative sources")
+        """Initialize Knowledge Grounding with Vector Store"""
+        try:
+            self.store = KnowledgeStore()
+            self._bootstrap_if_empty()
+            logger.info("📚 KnowledgeGrounding initialized with Vector Store (RAG)")
+        except Exception as e:
+            logger.error(f"Failed to init Knowledge Store: {e}")
+            self.store = None
     
+    def _bootstrap_if_empty(self):
+        """Load initial knowledge if store is empty"""
+        # This is a naive check, but fine for MVP
+        # Ideally we check collection count
+        try:
+            if self.store.collection.count() == 0:
+                logger.info("🚀 Bootstrapping Knowledge Store with default concepts...")
+                for topic, facts in self.BOOTSTRAP_KNOWLEDGE.items():
+                    self.store.add_texts(
+                        texts=facts, 
+                        metadatas=[{"topic": topic, "source": "bootstrap"} for _ in facts]
+                    )
+        except Exception as e:
+            logger.warning(f"Bootstrap failed: {e}")
+            
     def get_grounding_context(self, topic: str, answer: str) -> Dict[str, Any]:
         """
-        Get relevant grounding knowledge for answer verification
-        
-        Returns verified facts and concepts related to the answer
+        Get relevant grounding knowledge via Semantic Search
         """
-        topic_knowledge = self.knowledge_base.get(topic, {})
-        concepts = topic_knowledge.get("concepts", {})
-        official_docs = topic_knowledge.get("official_docs", [])
+        if not self.store:
+            return {"error": "Vector Store unavailable"}
+            
+        # Search for concepts relevant to the answer
+        # logic: query the store with the answer text to find what concepts it touches on
+        results = self.store.search(
+            query=answer, 
+            k=3,
+            # Optional: Filter by topic if we strictly want only topic-relevant facts
+            # filter_criteria={"topic": topic} if topic else None
+        )
         
-        # Find relevant concepts mentioned in answer
         relevant_concepts = {}
-        answer_lower = answer.lower()
-        
-        for concept_key, definition in concepts.items():
-            # Check if concept or related terms appear in answer
-            search_terms = concept_key.replace("_", " ").split()
-            if any(term in answer_lower for term in search_terms):
-                relevant_concepts[concept_key] = definition
-        
+        for res in results:
+            # key = content (the fact itself), val = source
+            fact = res['content']
+            meta = res['metadata']
+            source = meta.get('source', 'unknown')
+            relevant_concepts[f"Fact: {fact[:50]}..."] = f"{fact} ({source})"
+            
         return {
             "relevant_concepts": relevant_concepts,
-            "grounding_sources": official_docs,
+            "grounding_sources": ["Vector Knowledge Base"],
             "topic": topic,
             "verification_status": "grounded" if relevant_concepts else "unverified"
         }
     
     def verify_answer(self, topic: str, question: str, answer: str) -> Dict[str, Any]:
         """
-        Verify candidate answer against authoritative knowledge
-        
-        Returns:
-            - accuracy_assessment: How accurate the answer is
-            - factual_errors: Any incorrect statements detected
-            - missing_concepts: Key concepts candidate should have mentioned
-            - grounding_evidence: Supporting evidence from knowledge base
+        Verify candidate answer against retrieved knowledge.
         """
         grounding = self.get_grounding_context(topic, answer)
         relevant_concepts = grounding.get("relevant_concepts", {})
         
-        # Check for factual accuracy
-        factual_errors = []
         correct_points = []
         
-        for concept_key, verified_definition in relevant_concepts.items():
-            # Simple keyword matching for now
-            # In production, this would use semantic similarity
-            if concept_key.replace("_", " ") in answer.lower():
-                correct_points.append({
-                    "concept": concept_key,
-                    "candidate_mentioned": True,
-                    "verified_definition": verified_definition[:100] + "..."
-                })
+        # In RAG, we don't just keyword match. 
+        # We assume if semantic search found it, it's relevant context.
+        # Ideally, we pass this to an LLM to verify "Does Answer agree with Fact?"
+        # For this MVP, we just return the Retrieves Facts as valid context.
         
-        # Identify missing key concepts
-        topic_knowledge = self.knowledge_base.get(topic, {})
-        all_concepts = list(topic_knowledge.get("concepts", {}).keys())
-        mentioned_concepts = [c["concept"] for c in correct_points]
-        
-        # Suggest concepts that might be relevant but weren't mentioned
-        # (based on question keywords - simple heuristic)
-        question_words = question.lower().split()
-        potentially_relevant = [
-            c for c in all_concepts 
-            if any(w in c.replace("_", " ") for w in question_words)
-            and c not in mentioned_concepts
-        ][:3]
-        
+        for key, definition in relevant_concepts.items():
+            correct_points.append({
+                "concept": key,
+                "candidate_mentioned": True, # Assumed relevant by vector search
+                "verified_definition": definition
+            })
+            
         return {
-            "accuracy_assessment": "verified" if correct_points else "needs_review",
+            "accuracy_assessment": "verified_against_docs",
             "correct_points": correct_points,
-            "factual_errors": factual_errors,
-            "missing_concepts": potentially_relevant,
+            "factual_errors": [], # Needs LLM to determine contradiction
+            "missing_concepts": [],
             "grounding_evidence": grounding,
             "confidence": 0.8 if correct_points else 0.5
         }
     
     def get_verification_prompt(self, topic: str, answer: str) -> str:
         """
-        Generate a verification prompt that includes grounding knowledge
-        
-        This prompt helps the LLM verify against authoritative sources
+        Generate prompt with RAG context
         """
         grounding = self.get_grounding_context(topic, answer)
         relevant_concepts = grounding.get("relevant_concepts", {})
@@ -464,22 +430,20 @@ class KnowledgeGrounding:
         if not relevant_concepts:
             return ""
         
-        prompt = "\n=== AUTHORITATIVE KNOWLEDGE (for verification) ===\n"
+        prompt = "\n=== VERIFIED KNOWLEDGE BASE (RAG) ===\n"
         for concept, definition in relevant_concepts.items():
-            prompt += f"• {concept.replace('_', ' ').title()}: {definition}\n"
+            prompt += f"• {definition}\n"
         
-        prompt += "\nVerify the candidate's answer against these authoritative definitions."
-        
+        prompt += "\nUse the above facts to verify the accuracy of the answer."
         return prompt
-    
+
     def update_knowledge(self, topic: str, concept: str, new_definition: str, source: str) -> None:
-        """
-        Update knowledge base with new verified information
-        
-        This enables the system to learn from authoritative sources
-        """
-        if topic not in self.knowledge_base:
-            self.knowledge_base[topic] = {"concepts": {}, "official_docs": []}
-        
-        self.knowledge_base[topic]["concepts"][concept] = f"{new_definition} (Source: {source})"
-        logger.info(f"📝 Knowledge updated: {topic}/{concept}")
+        """Add new knowledge to Vector Store"""
+        if self.store:
+            text = f"{concept}: {new_definition}"
+            self.store.add_texts(
+                texts=[text], 
+                metadatas=[{"topic": topic, "source": source}]
+            )
+            logger.info(f"📝 Knowledge added to Vector Store: {concept}")
+

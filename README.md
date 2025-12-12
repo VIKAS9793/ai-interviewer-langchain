@@ -3,9 +3,8 @@ title: AI Technical Interviewer
 emoji: 🤖
 colorFrom: indigo
 colorTo: purple
-sdk: gradio
-sdk_version: 4.44.0
-python_version: "3.11"
+sdk: docker
+app_port: 7860
 app_file: main.py
 pinned: false
 license: mit
@@ -19,14 +18,17 @@ license: mit
 
 [![Live Demo](https://img.shields.io/badge/🚀_Try_Live_Demo-HuggingFace_Spaces-FF6B6B?style=for-the-badge)](https://huggingface.co/spaces/Vikas9793/ai-interviewer)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/VIKAS9793/ai-interviewer-langchain)
+[![CI/CD](https://github.com/VIKAS9793/ai-interviewer-langchain/actions/workflows/sync_to_hub.yml/badge.svg)](https://github.com/VIKAS9793/ai-interviewer-langchain/actions)
 [![License](https://img.shields.io/badge/License-MIT-22C55E?style=for-the-badge)](LICENSE)
 
-![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)
+![Version](https://img.shields.io/badge/Release-v3.0.0-blue?style=flat-square&logo=git)
+![Python](https://img.shields.io/badge/Python-3.9-3776AB?style=flat-square&logo=python&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?style=flat-square&logo=docker&logoColor=white)
 ![Gradio](https://img.shields.io/badge/Gradio-4.44.0-FF7C00?style=flat-square)
 ![LangChain](https://img.shields.io/badge/LangChain-Framework-1C3C3C?style=flat-square)
+![LangGraph](https://img.shields.io/badge/LangGraph-Powered-blue?style=flat-square)
 ![HuggingFace](https://img.shields.io/badge/🤗_HuggingFace-API-FFD21E?style=flat-square)
 ![LLaMA](https://img.shields.io/badge/LLaMA_3-8B-0467DF?style=flat-square)
-![Architecture](https://img.shields.io/badge/Single_Model-Architecture-10B981?style=flat-square)
 
 **Self-Thinking AI** • **Chain-of-Thought** • **Autonomous Reasoning** • **Responsible AI**
 
@@ -115,35 +117,35 @@ license: mit
 ## 🏗️ System Architecture
 
 ```mermaid
-flowchart TB
-    subgraph UI["🖥️ Gradio Interface"]
-        A["👤 Candidate"] --> B["Interview Controller"]
-        A2["🎤 Voice Input"] --> B
+flowchart TD
+    User([User]) <--> UI[Gradio UI]
+    UI <--> Main[App Controller (Main)]
+    
+    subgraph "Core Engine (Orchestrator)"
+        AutoInt[AutonomousInterviewer]
     end
     
-    subgraph Core["⚙️ Core Engine"]
-        B --> C["🤖 Autonomous Interviewer"]
-        C --> D["🧠 Reasoning Engine<br/>Chain-of-Thought"]
-        C --> E["📊 Evaluation Engine<br/>Prometheus Scoring"]
-        C --> F["📚 Knowledge Grounding"]
+    subgraph "State Layer"
+        SM[SessionManager]
+        DB[(Session DB)]
+        SM <--> DB
     end
     
-    subgraph Models["🤗 HuggingFace Cloud"]
-        D --> G["Meta LLaMA-3-8B<br/>Single-Model Architecture"]
-        E --> G
-        E --> I["MiniLM<br/>Semantic Embeddings"]
+    subgraph "Cognitive Services (Modules)"
+        RAG[RAG Service]
+        Critic[Critic Service]
+        Learn[Learning Service]
+        
+        RAG <--> VDB[(Vector Store)]
+        Learn <--> RB[(Reasoning Bank)]
     end
     
-    subgraph Safety["🛡️ AI Guardrails"]
-        C --> J["Bias Detection"]
-        C --> K["Fairness Validation"]
-        C --> L["Explainability"]
-    end
+    Main --> AutoInt
+    AutoInt --> SM
     
-    style UI fill:#e3f2fd,stroke:#1976d2
-    style Core fill:#fff3e0,stroke:#f57c00
-    style Models fill:#f3e5f5,stroke:#7b1fa2
-    style Safety fill:#e8f5e9,stroke:#388e3c
+    AutoInt -- "Context" --> RAG
+    AutoInt -- "Draft" --> Critic
+    AutoInt -- "Trajectory" --> Learn
 ```
 
 ---
@@ -220,6 +222,7 @@ python main.py
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| **v3.0.0** | 2025-12-12 | 🧠 Cognitive Upgrade (Reasoning, RAG, Reflexion), Micro-Services, Docker Support |
 | **v2.6.0** | 2025-12-12 | 🎨 UI Overhaul (Dark Mode, Pill Buttons, High Contrast) |
 | **v2.5.1** | 2025-12-11 | 🔥 Hotfix: Gradio 4.44 downgrade, Torch/Triton conflict resolution |
 | **v2.5.0** | 2025-12-11 | Practice Mode (Resume + JD), 11 bug fixes |

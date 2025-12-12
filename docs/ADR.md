@@ -57,3 +57,51 @@
 - ✅ Detects off-topic answers accurately
 - ✅ Cached embeddings for performance
 - ⚠️ Additional dependency (sentence-transformers)
+
+---
+
+## 5. Micro-Kernel Architecture (v3.0)
+
+**Status:** Accepted
+
+**Context:** The `AutonomousInterviewer` class grew into a "God Class" (1200+ lines), making testing and maintenance difficult. File corruption issues highlighted the need for separation.
+
+**Decision:** Refactor into a **Micro-Service Architecture**:
+*   **Orchestrator:** `AutonomousInterviewer` (Stateless Controller).
+*   **State:** `SessionManager` (Isolated Logic).
+*   **Cognition:** `CognitiveModules` (RAG, Critic, Learner).
+
+**Consequences:**
+*   ✅ **Testability:** Can verify `rag_service` without mocking the whole app.
+*   ✅ **Stability:** "God Class" corruption risk eliminated.
+*   ✅ **Scalability:** Modules can eventually become separate API endpoints.
+
+---
+
+## 6. Docker-Based Deployment (v3.0)
+
+**Status:** Accepted
+
+**Context:** Hugging Face Spaces environment can vary. Relying on "standard" python environment led to inconsistencies.
+
+**Decision:** Use **Docker** as the deployment standard.
+
+**Consequences:**
+*   ✅ **Reproducibility:** "Works on my machine" = Works on Cloud.
+*   ✅ **Control:** We define the OS, User ID, and exact library versions.
+*   ⚠️ **Build Time:** Slower deployment (must build container).
+
+---
+
+## 7. Intrinsic Learning (Skill Graph)
+
+**Status:** Accepted
+
+**Context:** The interviewer was static. It didn't "improve" after seeing good answers.
+
+**Decision:** Implement `LearningService` that extracts "Winning Strategies" from successful interviews (Score > 8/10) and stores them in `ReasoningBank`.
+
+**Consequences:**
+*   ✅ **Adaptive:** System gets smarter over time.
+*   ✅ **Data-Driven:** Rubrics evolve based on real candidate data.
+

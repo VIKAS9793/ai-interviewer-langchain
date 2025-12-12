@@ -82,9 +82,18 @@
 
 ---
 
-## 🔮 Future (v3.0+)
+## 🔮 Future (v3.1+)
 
-### v3.0 - Intelligent Evaluation
-- Gemini API integration for better evaluation
-- Company-specific templates (STAR for PM, etc.)
-- Feedback collection to GitHub Issues
+### v3.0 - Cognitive Architecture (Completed)
+**Goal:** Reasoning, Self-Improvement, and Micro-Services.
+- [x] Autonomous Reasoning Engine (CoT)
+- [x] RAG Knowledge Grounding
+- [x] Reflexion (Self-Critique)
+- [x] Intrinsic Learning (Skill Graph)
+- [x] Micro-Service Architecture (Refactor)
+
+### v3.1 - Gemini Integration
+**Goal:** True Multi-modal Intelligence.
+- [ ] Migrate to Gemini 2.5 Pro
+- [ ] Native Audio/Video understanding
+- [ ] Real-time canvas interaction

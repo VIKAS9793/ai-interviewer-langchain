@@ -37,12 +37,13 @@ from .ai_guardrails import (
 )
 
 # Hybrid Research-Based Components
-from .reasoning_bank import (
+# Hybrid Research-Based Components
+from ..modules.learning_service import (
     ReasoningBank,
     MemoryItem,
     InterviewTrajectory
 )
-from .reflect_agent import (
+from ..modules.critic_service import (
     ReflectAgent,
     ReflectionResult,
     ReflectionOutcome,
@@ -59,7 +60,7 @@ from .metacognitive import (
 )
 
 # Context Engineering (CE)
-from .context_engineer import (
+from ..modules.rag_service import (
     ContextEngineer,
     KnowledgeGrounding,
     InterviewContext as CEInterviewContext,

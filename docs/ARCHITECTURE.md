@@ -15,27 +15,35 @@ An **Autonomous AI Technical Interviewer** with human-like capabilities, deploye
 ## System Architecture
 
 ```mermaid
-flowchart TB
-    subgraph UI["Gradio UI"]
-        A[User Input] --> B[Interview Controller]
+flowchart TD
+    User([User]) <--> UI[Gradio UI]
+    UI <--> Main[App Controller (Main)]
+    
+    subgraph "Core Engine (Orchestrator)"
+        AutoInt[AutonomousInterviewer]
     end
     
-    subgraph Core["Core Processing"]
-        B --> C[Autonomous Interviewer]
-        C --> D[Reasoning Engine]
-        C --> E[Evaluation Engine]
+    subgraph "State Layer"
+        SM[SessionManager]
+        DB[(Session DB)]
+        SM <--> DB
     end
     
-    subgraph Models["HuggingFace Cloud"]
-        D --> F["LLaMA-3-8B<br/>Questions & Evaluation"]
-        E --> H["MiniLM<br/>Embeddings"]
+    subgraph "Cognitive Services (Modules)"
+        RAG[RAG Service]
+        Critic[Critic Service]
+        Learn[Learning Service]
+        
+        RAG <--> VDB[(Vector Store)]
+        Learn <--> RB[(Reasoning Bank)]
     end
     
-    subgraph Safety["AI Safety"]
-        C --> I[AI Guardrails]
-        I --> J[Bias Detection]
-        I --> K[Fairness Check]
-    end
+    Main --> AutoInt
+    AutoInt --> SM
+    
+    AutoInt -- "Context" --> RAG
+    AutoInt -- "Draft" --> Critic
+    AutoInt -- "Trajectory" --> Learn
 ```
 
 ## Quick Start
@@ -49,24 +57,37 @@ flowchart TB
 | Evaluation| Meta-Llama-3-8B-Instruct | HuggingFace |
 | Embeddings | all-MiniLM-L6-v2 | Sentence Transformers |
 
-## Key Features
+## 📦 System Components (v3.0 Micro-Services)
 
-### 1. Autonomous Evaluation
-- **Single-Model Scoring (LLaMA 3):** Prometheus-style 1-5 rubric
-- **Heuristic Scoring (40%):** Length, structure, keywords, depth
+### 1. Orchestration Layer (`AutonomousInterviewer`)
+*   **Role:** The Central Executive / "Brain".
+*   **Responsibility:** Coordinates the interview lifecycle but delegates all "thinking" and "remembering" to specialized modules.
+*   **Key Behavior:** Stateless. It pulls state from `SessionManager` and pushes tasks to `CognitiveModules`.
 
-### 2. Semantic Relevance Checking
-- Embedding-based similarity (Sentence Transformers)
-- Detects off-topic answers (threshold: 0.25)
+### 2. State Layer (`SessionManager`)
+*   **Role:** Single Source of Truth.
+*   **Responsibility:** Manages `InterviewSession` data, including history, scores, and candidate profile.
+*   **Concurrency:** Handles locking to prevent race conditions during async state updates.
 
-### 3. AI Internal Monologue
-- Transparent reasoning chain display
-- Shows confidence, approach, and thought process
+### 3. Cognitive Services (`src/ai_interviewer/modules`)
+The intelligence is composed of three specialized services:
 
-## Performance
+*   **RAG Service (`rag_service.py`):**
+    *   **Context Engineering:** Builds the exact prompt context for the LLM.
+    *   **Knowledge Grounding:** Retrieves relevant technical documentation (Vector Store) to verify answers and prevent hallucinations.
+
+*   **Critic Service (`critic_service.py`):**
+    *   **Reflexion Loop:** "Thinks before speaking". Critiques generated questions for bias, clarity, and difficulty.
+    *   **Quality Control:** If a question is poor, it rejects it and forces a regeneration.
+
+*   **Learning Service (`learning_service.py`):**
+    *   **Intrinsic Memory:** Stores "Winning Strategies" in the `ReasoningBank`.
+    *   **Skill Graph:** Updates the system's understanding of what constitutes a "Good Interview" based on past successful sessions.
+
+## ⚡ Performance
 
 | Metric | Value |
 |--------|-------|
-| Response Time | 2-5 seconds |
-| Eval Accuracy | ~85% human correlation |
-| Cache Hit Rate | > 80% |
+| **Response Time** | 3-6 seconds (includes CoT & RAG) |
+| **Accuracy** | >90% (with Critic validation) |
+| **Context Window** | Dynamic (Managed by ContextEngineer) |

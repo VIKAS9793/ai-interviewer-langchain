@@ -1,18 +1,16 @@
 # 🛠️ Setup & Installation Guide
 
 > **Last Updated:** 2025-12-12
-> **Version:** 2.3.1 (Stability Patch)
+> **Version:** 3.0.0 (The Cognitive Upgrade)
 
 ## 📋 Prerequisites
 
 1. **Python 3.11+**: [Download Here](https://www.python.org/downloads/)
 2. **HuggingFace Account**: [Sign Up Here](https://huggingface.co/join)
-3. **System Libraries** (for Voice & File Processing):
-    - **FFmpeg**: Required for audio processing.
-    - **libmagic**: Required for file type detection (install `python-magic-bin` on Windows).
+3. **Docker** (Optional, recommended for production)
 
 > [!NOTE]
-> This application runs on **HuggingFace Spaces** or locally with the HuggingFace Inference API. No local GPU or Ollama required.
+> This application runs on **HuggingFace Spaces** (Dockerized) or locally. No local GPU is required (Inference API used).
 
 ---
 
@@ -21,20 +19,37 @@
 The easiest way to use the AI Interviewer:
 
 1. Visit: **https://huggingface.co/spaces/Vikas9793/ai-interviewer**
-2. Enter your name and select a topic
+2. Enter your name and select a topic.
 3. Start your interview!
-
-No installation required.
 
 ---
 
-## 💻 Option 2: Local Installation
+## 🐳 Option 2: Docker (Production-Ready)
+
+This ensures you run the exact environment deployed to the cloud.
+
+```bash
+# Build the container
+docker build -t ai-interviewer .
+
+# Run the container (Exposes port 7860)
+# Note: Replace 'your_token' with your actual HF Token
+docker run -p 7860:7860 \
+  -e HF_TOKEN="your_token" \
+  ai-interviewer
+```
+
+Access at: `http://localhost:7860`
+
+---
+
+## 💻 Option 3: Local Dev Environment
 
 ### 1. Clone the Repository
 ```bash
 git clone https://github.com/VIKAS9793/ai-interviewer-langchain.git
 cd ai-interviewer-langchain
-git checkout cloud  # Use cloud branch
+# Main branch contains the stable v3.0 release
 ```
 
 ### 2. Set Up Virtual Environment
@@ -78,10 +93,10 @@ The web interface launches at: `http://localhost:7860`
 
 | Issue | Solution |
 |-------|----------|
-| Model loading slow | First request may take 30-60s for model warmup |
-| 401 Unauthorized | Check HF_TOKEN is set correctly |
-| Rate limited | Wait 1 minute or upgrade HuggingFace account |
-| Port 7860 in use | App auto-finds next available port |
+| **Model loading slow** | First request may take 30-60s for model warmup |
+| **401 Unauthorized** | Check `HF_TOKEN` is set correctly |
+| **403 Forbidden** | Ensure your HF Token has `write` permissions (if pushing) or `read` (if using inference) |
+| **Port 7860 in use** | App auto-finds next available port |
 
 ---
 

@@ -52,7 +52,7 @@ class AutonomousFlowController:
         """Start interview with autonomous AI interviewer"""
         try:
             # Check concurrency
-            active_count = len(self.interviewer.active_sessions)
+            active_count = len(self.interviewer.session_manager.active_sessions)
             if active_count >= self.max_concurrent_sessions:
                 return {
                     "status": "error",
@@ -66,7 +66,7 @@ class AutonomousFlowController:
             if result["status"] == "started":
                 with self.session_lock:
                     self.metrics["total_sessions"] += 1
-                    self.metrics["active_sessions"] = len(self.interviewer.active_sessions)
+                    self.metrics["active_sessions"] = len(self.interviewer.session_manager.active_sessions)
                 
                 logger.info(f"🎤 Autonomous interview started: {result['session_id']}")
             
@@ -96,7 +96,7 @@ class AutonomousFlowController:
             if result["status"] in ["continue", "completed"]:
                 with self.session_lock:
                     self.metrics["autonomous_decisions"] += 1
-                    self.metrics["active_sessions"] = len(self.interviewer.active_sessions)
+                    self.metrics["active_sessions"] = len(self.interviewer.session_manager.active_sessions)
             
             return result
             
@@ -145,9 +145,9 @@ class AutonomousFlowController:
             "performance": self.metrics,
             "interviewer_stats": interviewer_stats,
             "capacity": {
-                "active": len(self.interviewer.active_sessions),
+                "active": len(self.interviewer.session_manager.active_sessions),
                 "max": self.max_concurrent_sessions,
-                "utilization": len(self.interviewer.active_sessions) / self.max_concurrent_sessions * 100
+                "utilization": len(self.interviewer.session_manager.active_sessions) / self.max_concurrent_sessions * 100
             }
         }
     
@@ -166,7 +166,7 @@ class AutonomousFlowController:
         if self.metrics["avg_response_time"] > 3.0:
             recommendations.append("Response time above target - consider optimization")
         
-        utilization = len(self.interviewer.active_sessions) / self.max_concurrent_sessions
+        utilization = len(self.interviewer.session_manager.active_sessions) / self.max_concurrent_sessions
         if utilization > 0.8:
             recommendations.append("High capacity utilization - consider scaling")
         
@@ -180,23 +180,23 @@ class AutonomousFlowController:
         current_time = time.time()
         expired = []
         
-        for session_id, session in list(self.interviewer.active_sessions.items()):
+        for session_id, session in list(self.interviewer.session_manager.active_sessions.items()):
             if current_time - session.start_time > 3600:  # 1 hour timeout
                 expired.append(session_id)
         
         for session_id in expired:
-            del self.interviewer.active_sessions[session_id]
+            self.interviewer.session_manager.delete_session(session_id)
             logger.info(f"Cleaned up expired session: {session_id}")
         
         if expired:
             with self.session_lock:
-                self.metrics["active_sessions"] = len(self.interviewer.active_sessions)
+                self.metrics["active_sessions"] = len(self.interviewer.session_manager.active_sessions)
     
     def shutdown(self):
         """Shutdown the controller"""
         logger.info("Shutting down Autonomous Flow Controller...")
         self.executor.shutdown(wait=True)
-        self.interviewer.active_sessions.clear()
+        self.interviewer.session_manager.active_sessions.clear()
         logger.info("Shutdown complete")
     
     def __del__(self):
