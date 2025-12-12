@@ -21,7 +21,7 @@ license: mit
 [![CI/CD](https://github.com/VIKAS9793/ai-interviewer-langchain/actions/workflows/sync_to_hub.yml/badge.svg)](https://github.com/VIKAS9793/ai-interviewer-langchain/actions)
 [![License](https://img.shields.io/badge/License-MIT-22C55E?style=for-the-badge)](LICENSE)
 
-![Version](https://img.shields.io/badge/Release-v3.0.0-blue?style=flat-square&logo=git)
+![Version](https://img.shields.io/badge/Release-v3.0.1-blue?style=flat-square&logo=git)
 ![Python](https://img.shields.io/badge/Python-3.9-3776AB?style=flat-square&logo=python&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?style=flat-square&logo=docker&logoColor=white)
 ![Gradio](https://img.shields.io/badge/Gradio-4.44.0-FF7C00?style=flat-square)
@@ -104,13 +104,14 @@ license: mit
 
 | Domain | Focus Areas |
 |--------|-------------|
-| **JavaScript/Frontend** | React, Modern JS (ES6+), DOM Manipulation, Web Performance |
-| **Python/Backend** | FastAPI/Flask, Asyncio, ORM, API Design |
+| **Python/Backend** | FastAPI/Flask, Asyncio, ORM, Django, REST APIs |
+| **JavaScript/Frontend** | React, Vue, Modern JS (ES6+), DOM, Web Performance |
+| **System Design & Architecture** | Scalability, Microservices, Load Balancing, Caching |
+| **Data Structures & Algorithms** | Trees, Graphs, DP, Sorting, Complexity Analysis |
 | **Machine Learning/AI** | Transformers, Deep Learning, NLP, RAG Pipelines |
-| **System Design** | Scalability, Distributed Systems, Database Choice, Load Balancing |
-| **Data Structures** | Trees, Graphs, DP, Sorting & Search Algorithms |
-| **Product Management** | Product Sense, Metrics, Prioritization (RICE/MoSCoW) |
-| **DevOps/Cloud** | CI/CD, Docker/Kubernetes, AWS/GCP Services |
+| **Cloud & DevOps** | AWS/GCP/Azure, Docker/K8s, CI/CD, Terraform |
+| **Database & SQL** | SQL, NoSQL, Indexing, Query Optimization |
+| **API Design & REST** | RESTful Design, GraphQL, Authentication, Rate Limiting |
 
 ---
 
@@ -192,18 +193,6 @@ python main.py
 
 ---
 
-## 📚 Interview Topics
-
-| Topic | Icon |
-|-------|------|
-| JavaScript/Frontend | � |
-| Python/Backend | 🐍 |
-| Machine Learning/AI | 🤖 |
-| System Design | 🏗️ |
-| Data Structures & Algorithms | 📈 |
-
----
-
 ## 📖 Documentation
 
 | Document | Description |
@@ -230,17 +219,12 @@ python main.py
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| **v3.0.1** | 2025-12-12 | 🔥 Hotfix: Fixed scoring, question counter, feedback, topics |
 | **v3.0.0** | 2025-12-12 | [**The Cognitive Upgrade**](RELEASE_NOTES.md): Reasoning, RAG, Reflexion, Micro-Services |
 | **v2.6.0** | 2025-12-12 | 🎨 UI Overhaul (Dark Mode, Pill Buttons, High Contrast) |
-| **v2.5.1** | 2025-12-11 | 🔥 Hotfix: Gradio 4.44 downgrade, Torch/Triton conflict resolution |
+| **v2.5.1** | 2025-12-11 | Hotfix: Gradio 4.44 downgrade, Torch/Triton conflict |
 | **v2.5.0** | 2025-12-11 | Practice Mode (Resume + JD), 11 bug fixes |
 | **v2.4.0** | 2025-12-10 | Voice Mode (browser-native STT/TTS) |
-| **v2.3.1** | 2025-12-10 | Single-model stability patch |
-| **v2.2.2** | 2025-12-08 | Codebase cleanup, cloud-first |
-| **v2.2.1** | 2025-12-08 | Hybrid evaluation, Prometheus rubrics |
-| **v2.2.0** | 2025-12-08 | AI Internal Monologue, Semantic checking |
-| **v2.1.0** | 2025-12-07 | HuggingFace Spaces deployment |
-| **v2.0.0** | 2025-12-07 | Autonomous Agent architecture |
 
 ---
 

@@ -18,13 +18,16 @@ class Config:
     MAX_QUESTIONS = 5
     DEFAULT_TOPIC = "JavaScript/Frontend Development"
     
-    # Available Topics
+    # Available Topics (Updated for 2024-2025 Industry)
     AVAILABLE_TOPICS = [
-        "JavaScript/Frontend Development",
-        "Python/Backend Development", 
+        "Python/Backend Development",
+        "JavaScript/Frontend Development", 
+        "System Design & Architecture",
+        "Data Structures & Algorithms",
         "Machine Learning/AI",
-        "System Design",
-        "Data Structures & Algorithms"
+        "Cloud & DevOps (AWS/GCP/Azure)",
+        "Database & SQL",
+        "API Design & REST"
     ]
     
     # Gradio Settings
@@ -65,11 +68,14 @@ class Config:
     def get_topic_mapping(cls) -> Dict[str, str]:
         """Get mapping from display names to internal names"""
         return {
-            "JavaScript/Frontend Development": "javascript_frontend",
             "Python/Backend Development": "python_backend",
+            "JavaScript/Frontend Development": "javascript_frontend",
+            "System Design & Architecture": "system_design",
+            "Data Structures & Algorithms": "algorithms",
             "Machine Learning/AI": "machine_learning",
-            "System Design": "system_design",
-            "Data Structures & Algorithms": "algorithms"
+            "Cloud & DevOps (AWS/GCP/Azure)": "cloud_devops",
+            "Database & SQL": "database_sql",
+            "API Design & REST": "api_design"
         }
     
     @classmethod

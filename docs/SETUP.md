@@ -1,7 +1,7 @@
 # 🛠️ Setup & Installation Guide
 
 > **Last Updated:** 2025-12-12
-> **Version:** 3.0.0 (The Cognitive Upgrade)
+> **Version:** 3.0.1 (Hotfix Release)
 
 ## 📋 Prerequisites
 

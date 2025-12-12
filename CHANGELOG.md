@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v3.0.1] - 2025-12-12 (Hotfix: Logic Bugs)
+### 🐛 Critical Bug Fixes
+- **Fixed Static Scoring:** Replaced hardcoded 7/10 stub with LLM-based multi-dimensional evaluation.
+- **Fixed Question Counter:** Added `question_number` to `process_answer()` response - UI now tracks correctly.
+- **Fixed Repeated Questions:** Corrected method call from `generate_question()` to `generate_human_like_question()`.
+- **Fixed Static Feedback:** Implemented personalized feedback based on evaluation scores.
+- **Fixed Candidate State:** Implemented trend-based state tracking (Excelling/Improving/Struggling).
+- **Fixed Reflection Logic:** Implemented difficulty adjustment based on metacognitive insights.
+
+### ✨ Improvements
+- **Updated Topics:** Added Cloud/DevOps, Database/SQL, and API Design topics to dropdown.
+- **Heuristic Fallback:** Added word-count based evaluation when LLM is unavailable.
+
+---
+
 ## [v3.0.0] - 2025-12-12 (The Cognitive Upgrade)
 ### Added
 - **Cognitive Engine:** Implemented "Autonomous Reasoning" with Chain-of-Thought (CoT).

@@ -92,6 +92,14 @@
 - [x] Intrinsic Learning (Skill Graph)
 - [x] Micro-Service Architecture (Refactor)
 
+### v3.0.1 - Logic Hotfix (Completed - 2025-12-12)
+- [x] Fixed static 7/10 scoring (LLM-based evaluation)
+- [x] Fixed question counter tracking
+- [x] Fixed repeated questions bug
+- [x] Implemented personalized feedback
+- [x] Implemented candidate state tracking
+- [x] Updated topics (added Cloud, DB, API Design)
+
 ### v3.1 - Gemini Integration
 **Goal:** True Multi-modal Intelligence.
 - [ ] Migrate to Gemini 2.5 Pro
