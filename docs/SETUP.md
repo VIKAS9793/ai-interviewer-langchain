@@ -7,7 +7,9 @@
 
 1. **Python 3.11+**: [Download Here](https://www.python.org/downloads/)
 2. **HuggingFace Account**: [Sign Up Here](https://huggingface.co/join)
-3. **HuggingFace API Token**: [Get Token](https://huggingface.co/settings/tokens)
+3. **System Libraries** (for Voice & File Processing):
+    - **FFmpeg**: Required for audio processing.
+    - **libmagic**: Required for file type detection (install `python-magic-bin` on Windows).
 
 > [!NOTE]
 > This application runs on **HuggingFace Spaces** or locally with the HuggingFace Inference API. No local GPU or Ollama required.

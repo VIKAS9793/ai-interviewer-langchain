@@ -71,12 +71,18 @@
 
 ---
 
-## 🔮 Future (v2.6+)
+## ✅ v2.6 - UI Overhaul (Complete - 2025-12-12)
+- ✅ **Dark Theme:** High contrast slate palette with `gr.themes.Base`
+- ✅ **Component Styling:** "Pill-shaped" buttons, fixed spacing
+- ✅ **Visibility:** High-contrast text on all inputs and file uploads
+- ✅ **UX Refinements:**
+    - Hidden tabs during interview (Focus Mode)
+    - Compact header bar
+    - Improved Practice Mode disclaimer
 
-### v2.6 - UI Refactoring (Next Priority)
-- Two-column layout (Question | Answer)
-- Hide tabs during active interview
-- Compact header bar
+---
+
+## 🔮 Future (v3.0+)
 
 ### v3.0 - Intelligent Evaluation
 - Gemini API integration for better evaluation

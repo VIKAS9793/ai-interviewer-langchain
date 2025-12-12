@@ -22,7 +22,7 @@ license: mit
 [![License](https://img.shields.io/badge/License-MIT-22C55E?style=for-the-badge)](LICENSE)
 
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)
-![Gradio](https://img.shields.io/badge/Gradio-5.9.1-FF7C00?style=flat-square)
+![Gradio](https://img.shields.io/badge/Gradio-4.44.0-FF7C00?style=flat-square)
 ![LangChain](https://img.shields.io/badge/LangChain-Framework-1C3C3C?style=flat-square)
 ![HuggingFace](https://img.shields.io/badge/🤗_HuggingFace-API-FFD21E?style=flat-square)
 ![LLaMA](https://img.shields.io/badge/LLaMA_3-8B-0467DF?style=flat-square)

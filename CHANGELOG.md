@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.6.0] - 2025-12-12
+
+### 🎨 UI Overhaul (Major Refactor)
+*   **Dark Mode Migration:** Switched from `gr.themes.Soft` to `gr.themes.Base` with custom slate palette.
+*   **High Contrast:** Enforced WCAG-compliant text visibility across all components.
+*   **Pill-Shaped Buttons:** Modernized button styling with rounded corners and proper spacing.
+*   **Compact Layout:** Improved header and footer density for better information density.
+*   **File Upload Styling:** Custom CSS to fix visibility issues in dark mode dropzones.
+
+### 🐛 Bug Fixes & Stability
+*   **Fixed Runtime Error:** Resolved `neutral_50` invalid theme variable crash.
+*   **Fixed Dependency Error:** Added `libmagic1` and `python-magic` to resolve Practice Mode crash.
+*   **Fixed Upload Visibility:** Force-styled file upload component to be visible in dark mode.
+*   **Updated Disclaimer:** Clarified evaluation limitations in Practice Mode.
+
+---
+
 ## [2.5.1] - 2025-12-11
 
 ### 🔥 Hotfix Release

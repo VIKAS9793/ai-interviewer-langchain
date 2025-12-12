@@ -47,6 +47,18 @@ export HF_TOKEN="hf_your_token_here"
 pip install sentence-transformers
 ```
 
+### "Practice Mode requires full module installation"
+**Cause:** Missing system library `libmagic` required for secure file type detection.
+**Fix (Windows):** Run `pip install python-magic-bin`
+**Fix (Linux/Mac):** Install `libmagic1` (Debian/Ubuntu) or `libmagic` (standard).
+
+### "TypeError: argument of type 'bool' is not iterable"
+**Cause:** Bug in Gradio 5.x schema parsing when using certain return types.
+**Fix:** Downgrade to Gradio 4.44.0 (Recommended):
+```bash
+pip install "gradio==4.44.0"
+```
+
 ---
 
 ## 🎯 Evaluation Issues
