@@ -261,41 +261,29 @@ label, .gr-form label {
     font-weight: 600;
 }
 
-/* File Upload Component - High Contrast */
-/* Container - dark background */
-.gr-file, .gr-file-preview, 
-[data-testid="file"], [data-testid="dropzone"],
-.upload-container, .file-preview {
+/* File Upload Component - Target by elem_classes */
+.dark-file-upload {
     background: #1e293b !important;
-    border-color: #475569 !important;
+    border: 2px dashed #475569 !important;
+    border-radius: 8px !important;
 }
 
-/* Text inside drop zone - light on dark */
-.gr-file span, .gr-file p, .gr-file a,
-[data-testid="dropzone"] span,
-[data-testid="dropzone"] a,
-[data-testid="dropzone"] p {
+.dark-file-upload * {
+    color: #f1f5f9 !important;
+}
+
+.dark-file-upload span,
+.dark-file-upload p,
+.dark-file-upload a {
     color: #93c5fd !important;
 }
 
-/* Upload button - DARK text on LIGHT background */
-.gr-file button, 
-.gr-file label.block,
-.upload-button,
-[class*="upload"] button,
-button[class*="upload"] {
-    color: #1e293b !important;
+.dark-file-upload button {
+    color: #0f172a !important;
     background: #e2e8f0 !important;
     border: 1px solid #94a3b8 !important;
     font-weight: 600 !important;
-}
-
-/* File label header */
-.gr-file-preview label, 
-.gr-file > label,
-.gr-file .label-wrap {
-    color: #f1f5f9 !important;
-    background: transparent !important;
+    border-radius: 6px !important;
 }
 
 /* Accessibility: Focus indicators */
@@ -967,7 +955,8 @@ def create_interface(app: InterviewApplication) -> gr.Blocks:
                             resume_upload = gr.File(
                                 label="Upload Resume",
                                 file_types=[".pdf", ".docx"],
-                                file_count="single"
+                                file_count="single",
+                                elem_classes="dark-file-upload"
                             )
                         
                         with gr.Column():
