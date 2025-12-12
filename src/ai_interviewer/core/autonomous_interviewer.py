@@ -413,10 +413,69 @@ OUTPUT JSON ONLY:
         }
 
     def _update_candidate_state(self, session: InterviewSession, evaluation: Dict[str, Any]):
-       pass
+        """
+        Update candidate state based on evaluation results.
+        Uses sliding window of recent scores to determine trend.
+        """
+        from .autonomous_reasoning_engine import CandidateState
+        
+        score = evaluation.get("score", 5)
+        history = session.performance_history or []
+        
+        # Calculate recent average (last 3 questions)
+        recent_scores = history[-3:] if len(history) >= 3 else history
+        avg_score = sum(recent_scores) / len(recent_scores) if recent_scores else score
+        
+        # Calculate trend (improving, declining, stable)
+        if len(history) >= 2:
+            trend = history[-1] - history[-2]
+        else:
+            trend = 0
+        
+        # Determine state based on score and trend
+        if avg_score >= 8:
+            session.candidate_state = CandidateState.EXCELLING
+        elif avg_score >= 6:
+            if trend > 0:
+                session.candidate_state = CandidateState.IMPROVING
+            else:
+                session.candidate_state = CandidateState.CONFIDENT
+        elif avg_score >= 4:
+            if trend < 0:
+                session.candidate_state = CandidateState.DECLINING
+            else:
+                session.candidate_state = CandidateState.NEUTRAL
+        else:
+            session.candidate_state = CandidateState.STRUGGLING
+        
+        logger.debug(f"Candidate state updated: {session.candidate_state.value} (avg: {avg_score:.1f}, trend: {trend:+.1f})")
 
     def _apply_reflection_insights(self, session: InterviewSession, reflection: Dict[str, Any]):
-       pass
+        """
+        Apply meta-cognitive reflection insights to adjust interview strategy.
+        Updates session metadata with strategic adjustments.
+        """
+        if not reflection:
+            return
+        
+        # Extract actionable insights
+        suggestions = reflection.get("suggestions", [])
+        confidence = reflection.get("confidence", 0.5)
+        
+        # Store insights in session metadata
+        session.metadata["last_reflection"] = {
+            "suggestions": suggestions,
+            "confidence": confidence,
+            "applied_at": session.question_number
+        }
+        
+        # Adjust difficulty if suggested
+        if "increase_difficulty" in str(suggestions).lower() and confidence > 0.7:
+            session.metadata["difficulty_modifier"] = session.metadata.get("difficulty_modifier", 0) + 0.2
+        elif "simplify" in str(suggestions).lower() and confidence > 0.7:
+            session.metadata["difficulty_modifier"] = session.metadata.get("difficulty_modifier", 0) - 0.2
+        
+        logger.debug(f"Reflection applied: {len(suggestions)} suggestions at confidence {confidence:.2f}")
 
     def _determine_phase(self, session: InterviewSession) -> InterviewPhase:
         """
@@ -471,7 +530,41 @@ OUTPUT JSON ONLY:
         return f"Hello {session.candidate_name}, welcome to the {session.topic} interview."
 
     def _generate_human_feedback(self, session: InterviewSession, evaluation: Dict[str, Any]) -> str:
-        return "Thank you for that answer."
+        """
+        Generate personalized, human-like feedback based on evaluation.
+        Creates encouraging yet constructive feedback.
+        """
+        score = evaluation.get("score", 5)
+        strengths = evaluation.get("strengths", [])
+        improvements = evaluation.get("improvements", [])
+        custom_feedback = evaluation.get("feedback", "")
+        
+        # Score-based acknowledgment
+        if score >= 9:
+            acknowledgment = "Excellent answer! "
+        elif score >= 7:
+            acknowledgment = "Good work! "
+        elif score >= 5:
+            acknowledgment = "Thank you for that answer. "
+        elif score >= 3:
+            acknowledgment = "I appreciate your effort. "
+        else:
+            acknowledgment = "Thanks for trying. "
+        
+        # Add custom feedback if available
+        if custom_feedback:
+            feedback = f"{acknowledgment}{custom_feedback}"
+        else:
+            # Build feedback from strengths/improvements
+            feedback = acknowledgment
+            
+            if strengths and len(strengths) > 0:
+                feedback += f"You demonstrated {strengths[0].lower()}. "
+            
+            if improvements and len(improvements) > 0 and score < 8:
+                feedback += f"Consider {improvements[0].lower()} next time."
+        
+        return feedback
 
     def _generate_final_report_autonomous(self, session: InterviewSession, thought: ThoughtChain) -> str:
         avg = sum(session.performance_history) / max(1, len(session.performance_history))
