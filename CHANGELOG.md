@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v3.1.0] - 2025-12-12 (LangGraph + Intelligence Layer)
+
+### 🔷 LangGraph Integration
+- **Interview Graph Engine:** 8-node StateGraph (extract_context → greeting → question → validate → evaluate → decide → report)
+- **Unified Flow:** Both Interview Tab and Practice Tab now share same intelligent core
+- **State Management:** `InterviewState` TypedDict for context persistence
+
+### 🎯 Intelligent JD Parsing
+- **JD Parser Module:** Extracts role, company, requirements from job URLs
+- **URL Support:** Google Careers, LinkedIn, Lever, Greenhouse patterns
+- **Smart Role Parsing:** Separates "Product Manager YouTube Channel Memberships" into:
+  - Core role: "Product Manager" (for greeting)
+  - Topic: "product management" (for questions)
+  - Area: "YouTube Channel Memberships" (for context)
+
+### 💬 Context-Aware Interview
+- **Personalized Greeting:** "Hello VIKAS, welcome to your Product Manager interview for Google's YouTube Channel Memberships team"
+- **Skill Reference:** Greeting mentions top 3 resume skills
+- **Natural Questions:** "Tell me about your background in product management" (not raw role title)
+
+### 🐛 Bug Fixes
+- Fixed "Technical Interview interview" word repetition
+- Fixed greeting showing "Technical" instead of detected role
+- Fixed metadata nesting (target_role now at root level)
+
+---
+
 ## [v3.0.1] - 2025-12-12 (Hotfix: Logic Bugs)
 ### 🐛 Critical Bug Fixes
 - **Fixed Static Scoring:** Replaced hardcoded 7/10 stub with LLM-based multi-dimensional evaluation.

@@ -84,6 +84,31 @@ The intelligence is composed of three specialized services:
     *   **Intrinsic Memory:** Stores "Winning Strategies" in the `ReasoningBank`.
     *   **Skill Graph:** Updates the system's understanding of what constitutes a "Good Interview" based on past successful sessions.
 
+*   **JD Parser (`jd_parser.py`):** *(New in v3.1)*
+    *   **URL Parsing:** Extracts role, company from Google Careers, LinkedIn, Lever, Greenhouse URLs.
+    *   **Smart Role Parsing:** Separates "Product Manager YouTube Channel" into core role + area context.
+    *   **Interview Context:** Returns topic for questions, role for greeting, area for context.
+
+### 4. LangGraph Interview Flow *(New in v3.1)*
+
+```mermaid
+graph LR
+    START --> extract_context
+    extract_context --> greeting
+    greeting --> generate_question
+    generate_question --> validate_question
+    validate_question --> await_answer
+    await_answer --> evaluate
+    evaluate --> decide
+    decide -->|continue| generate_question
+    decide -->|complete| report
+    report --> END
+```
+
+*   **State Schema:** `InterviewState` TypedDict with session, context, and performance tracking.
+*   **Unified Flow:** Both Interview Tab and Practice Tab use the same graph.
+*   **Critic Agent:** Question validation node (placeholder for v3.2 full implementation).
+
 ## ⚡ Performance
 
 | Metric | Value |
