@@ -306,6 +306,32 @@ label, .gr-form label {
     outline-offset: 2px;
 }
 
+/* Dropdown & Select Menu Fixes */
+ul.options, .options, .wrap, .selector, .dropdown-options, 
+[class*="options"], [class*="menu"] {
+    background: #1e293b !important;
+    background-color: #1e293b !important;
+    border-color: #475569 !important;
+}
+
+li.item, .item, .option, button.item {
+    color: #f1f5f9 !important;
+    background: #1e293b !important;
+}
+
+li.item:hover, .item:hover, .option:hover,
+li.item.selected, .item.selected,
+.selected.item {
+    background: #334155 !important;
+    color: #ffffff !important;
+}
+
+/* Fix for SVG icons in dropdowns */
+.selector svg, .wrap svg, .options svg {
+    fill: #f1f5f9 !important;
+    stroke: #f1f5f9 !important;
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
     .gradio-container {
