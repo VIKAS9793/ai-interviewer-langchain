@@ -368,94 +368,198 @@ class AutonomousInterviewer:
 
     def _evaluate_answer_autonomous(self, session: InterviewSession, thought: ThoughtChain) -> Dict[str, Any]:
         """
-        Evaluate candidate answer using LLM-based assessment.
-        Uses multi-dimensional scoring based on Config.EVALUATION_WEIGHTS.
+        Evaluate candidate answer using Prometheus-style 1-5 rubric.
+        Research shows 1-5 scales are more reliable than 1-10.
+        Converts to 1-10 for UI display.
         """
         try:
             llm = self.reasoning_engine._get_llm()
             if not llm:
-                logger.warning("LLM unavailable for evaluation, using heuristic fallback")
+                logger.warning("❌ LLM is None - using heuristic fallback")
                 return self._heuristic_evaluation(session)
             
-            prompt = f"""You are a Senior Technical Interviewer evaluating a candidate's answer.
+            logger.info(f"🔄 Evaluating with Prometheus rubric ({self.reasoning_engine._current_model or 'unknown'})...")
+            
+            # Prometheus-style prompt with 1-5 rubric
+            prompt = f"""[INST] You are evaluating a technical interview answer. Use the rubric below.
 
 QUESTION: {session.current_question}
 
-CANDIDATE'S ANSWER: {session.current_answer}
+ANSWER: {session.current_answer}
 
 TOPIC: {session.topic}
-QUESTION NUMBER: {session.question_number}/{session.max_questions}
 
-EVALUATION CRITERIA (weight in parentheses):
-1. Technical Accuracy (25%): Is the answer factually correct?
-2. Conceptual Understanding (25%): Does the candidate understand underlying concepts?
-3. Practical Application (20%): Can they apply this knowledge?
-4. Communication Clarity (15%): Is the explanation clear?
-5. Depth of Knowledge (10%): Does the answer show depth?
-6. Problem-Solving Approach (5%): Is their thinking process sound?
+RUBRIC (1-5 scale):
+5 = Excellent: Comprehensive, accurate, with examples and clear reasoning
+4 = Good: Mostly correct, demonstrates understanding, minor gaps
+3 = Satisfactory: Addresses the question but lacks depth or has some errors
+2 = Below Average: Partial understanding, significant gaps or errors
+1 = Poor: Incorrect, off-topic, or very incomplete
 
-SCORING:
-- 1-3: Poor/Incorrect
-- 4-5: Below Average
-- 6-7: Satisfactory
-- 8-9: Good
-- 10: Excellent
-
-OUTPUT JSON ONLY:
-{{
-    "score": <1-10>,
-    "technical_accuracy": <1-10>,
-    "conceptual_understanding": <1-10>,
-    "communication_clarity": <1-10>,
-    "feedback": "2-3 sentence constructive feedback",
-    "strengths": ["strength1", "strength2"],
-    "improvements": ["improvement1"]
-}}
-"""
-            response = llm.invoke(prompt)
+Evaluate the answer and respond with ONLY this JSON:
+{{"score": <1-5>, "feedback": "<2 sentences>", "strengths": ["<strength1>"], "improvements": ["<area1>"]}}
+[/INST]"""
             
-            # Parse JSON response
+            response = llm.invoke(prompt)
+            logger.info(f"✅ LLM response: {len(response)} chars")
+            
+            # Parse JSON
             import json
             start = response.find('{')
             end = response.rfind('}') + 1
             if start != -1 and end > start:
                 result = json.loads(response[start:end])
-                # Ensure score is bounded
-                result["score"] = max(1, min(10, result.get("score", 5)))
+                
+                # Convert 1-5 to 1-10 for UI display
+                raw_score = max(1, min(5, result.get("score", 3)))
+                display_score = raw_score * 2  # 1->2, 2->4, 3->6, 4->8, 5->10
+                
+                result["raw_score"] = raw_score
+                result["score"] = display_score
+                result["evaluation_type"] = "llm_prometheus"
+                
+                # Ensure arrays exist
+                if not result.get("strengths"):
+                    result["strengths"] = ["Attempted to answer the question"]
+                if not result.get("improvements"):
+                    result["improvements"] = ["Consider adding more detail"]
+                
+                logger.info(f"✅ Prometheus evaluation: {raw_score}/5 -> {display_score}/10")
                 return result
+            else:
+                logger.warning(f"⚠️ No JSON found in response: {response[:150]}...")
+                return self._heuristic_evaluation(session)
             
+        except json.JSONDecodeError as e:
+            logger.warning(f"⚠️ JSON parse failed: {e}")
             return self._heuristic_evaluation(session)
-            
         except Exception as e:
-            logger.warning(f"LLM evaluation failed: {e}, using heuristic fallback")
+            logger.warning(f"❌ Evaluation error: {type(e).__name__}: {e}")
             return self._heuristic_evaluation(session)
     
     def _heuristic_evaluation(self, session: InterviewSession) -> Dict[str, Any]:
-        """Fallback heuristic evaluation when LLM is unavailable."""
+        """
+        Smart fallback heuristic evaluation when LLM is unavailable.
+        Analyzes structure, keywords, and content quality.
+        """
+        logger.warning("⚠️ USING HEURISTIC FALLBACK - LLM evaluation unavailable")
+        
         answer = session.current_answer or ""
+        question = session.current_question or ""
+        topic = session.topic or ""
         
-        # Simple heuristics based on answer length and content
+        # Analysis metrics
         word_count = len(answer.split())
+        sentence_count = len([s for s in answer.split('.') if s.strip()])
+        has_examples = any(word in answer.lower() for word in ['example', 'for instance', 'such as', 'e.g.', 'like when'])
+        has_structure = answer.count('\n') > 1 or answer.count(',') > 3
+        has_explanation = any(word in answer.lower() for word in ['because', 'therefore', 'since', 'this means', 'which allows'])
         
-        if word_count < 10:
-            score = 3
-            feedback = "Your answer was quite brief. Try to elaborate more on your reasoning."
-        elif word_count < 30:
-            score = 5
-            feedback = "You provided a basic answer. Consider adding more depth and examples."
-        elif word_count < 80:
-            score = 7
-            feedback = "Good answer with reasonable detail. You could strengthen it with specific examples."
+        # Topic-specific keyword detection
+        topic_keywords = {
+            "python": ["python", "def", "class", "import", "django", "flask", "async", "decorator", "generator"],
+            "javascript": ["javascript", "react", "vue", "node", "async", "promise", "callback", "dom", "event"],
+            "system": ["scalability", "availability", "latency", "cache", "load balancer", "microservice", "database"],
+            "algorithm": ["complexity", "o(n)", "recursion", "tree", "graph", "sort", "search", "array"],
+            "database": ["sql", "query", "index", "join", "transaction", "normalization", "nosql"],
+            "cloud": ["aws", "gcp", "docker", "kubernetes", "ci/cd", "deploy", "container", "serverless"],
+            "api": ["rest", "endpoint", "http", "json", "authentication", "rate limit", "graphql"]
+        }
+        
+        # Find relevant keywords for topic
+        relevant_keywords = []
+        for key, keywords in topic_keywords.items():
+            if key in topic.lower():
+                relevant_keywords = keywords
+                break
+        
+        # Count topic-relevant keywords in answer
+        keyword_matches = sum(1 for kw in relevant_keywords if kw.lower() in answer.lower())
+        topic_relevance = min(keyword_matches / max(len(relevant_keywords), 1), 1.0)
+        
+        # Calculate score based on multiple factors
+        base_score = 4  # Start at 4/10
+        
+        # Word count bonus (0-2 points)
+        if word_count >= 100:
+            base_score += 2
+        elif word_count >= 50:
+            base_score += 1.5
+        elif word_count >= 25:
+            base_score += 1
+        elif word_count < 15:
+            base_score -= 1
+        
+        # Structure bonus (0-1 points)
+        if has_structure:
+            base_score += 0.5
+        if sentence_count >= 3:
+            base_score += 0.5
+        
+        # Content quality bonus (0-2 points)
+        if has_examples:
+            base_score += 1
+        if has_explanation:
+            base_score += 1
+        
+        # Topic relevance bonus (0-1 points)
+        base_score += topic_relevance
+        
+        # Clamp score
+        score = int(max(1, min(10, base_score)))
+        
+        # Generate varied feedback
+        strengths = []
+        improvements = []
+        
+        if word_count >= 50:
+            strengths.append("Provided a detailed response")
+        if has_examples:
+            strengths.append("Included practical examples")
+        if has_explanation:
+            strengths.append("Explained reasoning clearly")
+        if topic_relevance > 0.3:
+            strengths.append(f"Demonstrated {topic} knowledge")
+        if has_structure:
+            strengths.append("Well-structured answer")
+        
+        if not strengths:
+            strengths.append("Attempted to address the question")
+        
+        if word_count < 30:
+            improvements.append("Provide more detailed explanations")
+        if not has_examples:
+            improvements.append("Include specific examples or use cases")
+        if not has_explanation:
+            improvements.append("Explain the 'why' behind your approach")
+        if topic_relevance < 0.2:
+            improvements.append(f"Connect more directly to {topic} concepts")
+        
+        if not improvements:
+            improvements.append("Consider edge cases in your solution")
+        
+        # Generate contextual feedback
+        if score >= 8:
+            feedback = f"Strong answer! You covered key aspects of {topic} effectively."
+        elif score >= 6:
+            feedback = f"Good foundation. Your understanding of {topic} is solid, but could go deeper."
+        elif score >= 4:
+            feedback = "Adequate response. Try to be more specific and provide concrete examples."
         else:
-            score = 8
-            feedback = "Comprehensive answer with good detail. Well explained!"
+            feedback = "Consider reviewing the core concepts and try to structure your answer more clearly."
         
         return {
             "score": score,
             "feedback": feedback,
-            "strengths": ["Provided an answer"],
-            "improvements": ["Consider adding more specific examples"],
-            "evaluation_type": "heuristic"
+            "strengths": strengths[:3],
+            "improvements": improvements[:2],
+            "evaluation_type": "heuristic",
+            "analysis": {
+                "word_count": word_count,
+                "topic_relevance": f"{topic_relevance:.0%}",
+                "has_examples": has_examples,
+                "keyword_matches": keyword_matches
+            }
         }
 
     def _update_candidate_state(self, session: InterviewSession, evaluation: Dict[str, Any]):
