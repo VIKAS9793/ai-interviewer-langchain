@@ -22,6 +22,7 @@ try:
     from src.ai_interviewer.core.resume_parser import ResumeParser
     from src.ai_interviewer.security.scanner import SecurityScanner
     from src.ai_interviewer.utils.url_scraper import URLScraper
+    from src.ai_interviewer.modules.jd_parser import JDParser, parse_job_description
     MODULES_AVAILABLE = True
 except ImportError as e:
     logger.warning(f"Some modules unavailable: {e}. Using fallback mode.")
@@ -298,25 +299,65 @@ class InterviewApplication:
             # Build context
             custom_context = {"resume_text": resume_text}
             
-            # Process JD
+            # Process JD with intelligent parsing
             final_jd = ""
+            jd_role = None
+            jd_company = None
+            
+            # Parse JD URL for role extraction
             if jd_url and jd_url.strip():
+                jd_info = parse_job_description(url=jd_url)
+                jd_role = jd_info.get("role_title")
+                jd_company = jd_info.get("company_name")
+                
+                # Also scrape full text for context
                 scraped = URLScraper.extract_text(jd_url)
                 if scraped:
                     final_jd += f"\n\n[From URL]: {scraped}"
+                    
+                    # Parse scraped text for more details
+                    text_info = parse_job_description(text=scraped)
+                    if not jd_role:
+                        jd_role = text_info.get("role_title")
+                    if not jd_company:
+                        jd_company = text_info.get("company_name")
+                    custom_context["jd_requirements"] = text_info.get("requirements", [])
             
             if jd_text and jd_text.strip():
                 final_jd += f"\n\n[User Input]: {jd_text}"
+                # Parse pasted text
+                text_info = parse_job_description(text=jd_text)
+                if not jd_role:
+                    jd_role = text_info.get("role_title")
+                if not jd_company:
+                    jd_company = text_info.get("company_name")
+                if not custom_context.get("jd_requirements"):
+                    custom_context["jd_requirements"] = text_info.get("requirements", [])
             
             if final_jd:
                 custom_context["job_description"] = final_jd
             
             # Analyze resume
             analysis = self.flow_controller.analyze_resume(resume_text)
-            topic = analysis.get("detected_role", "Technical Interview")
+            resume_skills = analysis.get("skills", [])
             experience_level = analysis.get("experience_level", "Mid")
             
+            # Determine topic: JD role > resume detected role > fallback
+            if jd_role:
+                topic = jd_role
+                logger.info(f"🎯 Using JD role: {topic}")
+            else:
+                topic = analysis.get("detected_role") or analysis.get("suggested_topics", ["Technical Interview"])[0]
+                logger.info(f"🎯 Using resume-detected role: {topic}")
+            
+            # Add company context if available
+            if jd_company:
+                custom_context["company_name"] = jd_company
+                logger.info(f"🏢 Company detected: {jd_company}")
+            
             custom_context["topic"] = topic
+            custom_context["target_role"] = topic
+            custom_context["resume_skills"] = resume_skills
             custom_context["analysis"] = analysis
             
             # Start interview
