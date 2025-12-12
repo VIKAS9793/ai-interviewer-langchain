@@ -96,23 +96,42 @@ def create_theme() -> gr.Theme:
         font=["Inter", "system-ui", "sans-serif"],
         font_mono=["IBM Plex Mono", "monospace"]
     ).set(
-        # Dark Background
+        # Dark Background - ALL background types
         body_background_fill="#0f172a",
         body_background_fill_dark="#0f172a",
         block_background_fill="#1e293b",
         block_background_fill_dark="#1e293b",
         
+        # Secondary/Neutral backgrounds (for dropzones, panels, etc.)
+        background_fill_secondary="#1e293b",
+        background_fill_secondary_dark="#1e293b",
+        background_fill_primary="#0f172a",
+        background_fill_primary_dark="#0f172a",
+        
+        # Panel/Container backgrounds
+        panel_background_fill="#1e293b",
+        panel_background_fill_dark="#1e293b",
+        
+        # Neutral fills (often used by file components)
+        neutral_50="#1e293b",
+        neutral_100="#1e293b",
+        neutral_200="#334155",
+        
         # High Contrast Text
         body_text_color="#f1f5f9",
         body_text_color_dark="#f1f5f9",
         block_label_text_color="#e2e8f0",
+        block_label_text_color_dark="#e2e8f0",
         block_title_text_color="#f8fafc",
+        block_title_text_color_dark="#f8fafc",
         
         # Borders
-        border_color_primary="#334155",
+        border_color_primary="#475569",
         border_color_primary_dark="#475569",
+        border_color_accent="#6366f1",
+        border_color_accent_dark="#6366f1",
         
-        # Pill Buttons (compact, rounded)
+        # Buttons
         button_primary_background_fill="#6366f1",
         button_primary_background_fill_hover="#818cf8",
         button_primary_text_color="#ffffff",
@@ -126,6 +145,12 @@ def create_theme() -> gr.Theme:
         input_border_color="#475569",
         input_border_color_dark="#475569",
         input_placeholder_color="#94a3b8",
+        
+        # Links and interactive text
+        link_text_color="#93c5fd",
+        link_text_color_dark="#93c5fd",
+        link_text_color_hover="#bfdbfe",
+        link_text_color_hover_dark="#bfdbfe",
     )
 
 # ============================================================================
@@ -261,29 +286,41 @@ label, .gr-form label {
     font-weight: 600;
 }
 
-/* File Upload Component - Target by elem_classes */
-.dark-file-upload {
+/* File Upload Component - Force dark theme on ALL nested elements */
+.dark-file-upload,
+.dark-file-upload *,
+.dark-file-upload > div,
+.dark-file-upload > div > div,
+.dark-file-upload [class*="wrap"],
+.dark-file-upload [class*="container"],
+.dark-file-upload [class*="drop"],
+.dark-file-upload [class*="svelte"] {
     background: #1e293b !important;
-    border: 2px dashed #475569 !important;
-    border-radius: 8px !important;
+    background-color: #1e293b !important;
 }
 
-.dark-file-upload * {
-    color: #f1f5f9 !important;
+.dark-file-upload {
+    border: 2px dashed #6366f1 !important;
+    border-radius: 12px !important;
 }
 
+/* All text inside - light on dark */
 .dark-file-upload span,
 .dark-file-upload p,
-.dark-file-upload a {
+.dark-file-upload a,
+.dark-file-upload div {
     color: #93c5fd !important;
 }
 
+/* Upload button specifically */
 .dark-file-upload button {
-    color: #0f172a !important;
-    background: #e2e8f0 !important;
-    border: 1px solid #94a3b8 !important;
+    color: #ffffff !important;
+    background: #6366f1 !important;
+    background-color: #6366f1 !important;
+    border: none !important;
     font-weight: 600 !important;
     border-radius: 6px !important;
+    padding: 8px 16px !important;
 }
 
 /* Accessibility: Focus indicators */
