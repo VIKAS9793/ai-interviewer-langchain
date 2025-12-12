@@ -172,18 +172,26 @@ input, textarea, select, option {
     transition: width 0.3s ease;
 }
 
-/* Input Fields - High Contrast */
-textarea, input[type="text"], .gr-textbox textarea, .gr-textbox input {
+/* Input Fields - High Contrast (Gradio 4.44 compatible) */
+textarea, 
+input[type="text"], 
+input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]),
+.gr-textbox textarea, 
+.gr-textbox input,
+[data-testid*="textbox"] input,
+[data-testid*="textbox"] textarea {
     background: #1e293b !important;
     border: 1px solid #475569 !important;
     color: #f1f5f9 !important;
     padding: 16px !important; /* Increased padding for text spacing */
     box-sizing: border-box !important;
     border-radius: 8px !important;
+    margin: 4px 0 !important;
 }
 
 textarea::placeholder, input::placeholder {
     color: #94a3b8 !important;
+    padding-left: 4px !important;
 }
 
 /* Labels */
