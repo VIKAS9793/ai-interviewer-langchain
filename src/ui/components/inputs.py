@@ -7,13 +7,19 @@ def create_text_input(
     lines: int = 1,
     visible: bool = True
 ) -> gr.Textbox:
-    """Create a standardized text input"""
+    """Create a standardized text input with proper padding"""
+    # Using elem_id for maximum CSS specificity
+    import uuid
+    unique_id = f"input-{uuid.uuid4().hex[:8]}"
     return gr.Textbox(
         label=label,
-        placeholder=placeholder,
+        placeholder=f"   {placeholder}",  # Workaround: add spaces to placeholder
         lines=lines,
         visible=visible,
-        elem_classes=["input-standard"]
+        elem_classes=["input-standard"],
+        elem_id=unique_id,
+        container=True,  # Keep container for label
+        scale=1
     )
 
 def create_dropdown(
