@@ -10,9 +10,16 @@ class Config:
     """Configuration class for AI Interviewer"""
     
     # HuggingFace Cloud LLM Settings
-    DEFAULT_MODEL = "meta-llama/Meta-Llama-3-8B-Instruct"
+    # Model Fallback Chain: Try models in order until one works
+    MODEL_FALLBACK_CHAIN = [
+        "google/gemma-3-4b-it",           # Primary: Newer, efficient
+        "meta-llama/Meta-Llama-3-8B-Instruct",  # Fallback 1: Reliable
+        "mistralai/Mistral-7B-Instruct-v0.3",   # Fallback 2: Fast
+    ]
+    DEFAULT_MODEL = MODEL_FALLBACK_CHAIN[0]  # Primary model
     MODEL_TEMPERATURE = 0.4
     MAX_NEW_TOKENS = 512
+    MODEL_RETRY_DELAY = 2  # Seconds between model switch attempts
     
     # Interview Settings
     MAX_QUESTIONS = 5

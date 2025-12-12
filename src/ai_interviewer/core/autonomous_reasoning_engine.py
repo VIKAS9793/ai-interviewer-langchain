@@ -107,6 +107,7 @@ class AutonomousReasoningEngine:
         self.self_reflection_cache: Dict[str, Any] = {}
         self.decision_log: List[Dict[str, Any]] = []
         self._llm = None
+        self._current_model = None  # Tracks which model in fallback chain is active
         self._lock = threading.Lock()
         
         # Performance tracking for self-improvement
@@ -133,27 +134,45 @@ class AutonomousReasoningEngine:
         logger.info("🧠 Autonomous Reasoning Engine initialized")
     
     def _get_llm(self) -> HuggingFaceEndpoint:
-        """Lazy load Cloud LLM with self-healing"""
+        """Lazy load Cloud LLM with intelligent fallback chain"""
         if self._llm is None:
-            try:
-                # CLOUD ADAPTATION: Use Hugging Face Serverless Inference
-                # Requires HF_TOKEN in environment variables
-                token = os.environ.get("HF_TOKEN")
-                if not token:
-                    logger.warning("⚠️ HF_TOKEN not found! Falling back to public endpoints (may be rate limited).")
-                
-                self._llm = HuggingFaceEndpoint(
-                    repo_id=Config.DEFAULT_MODEL,
-                    task="text-generation",
-                    max_new_tokens=512,
-                    top_k=50,
-                    temperature=0.3,  # Lower for more deterministic reasoning
-                    huggingfacehub_api_token=token
-                )
-                logger.info("☁️ Reasoning Engine connected to Hugging Face Cloud (Meta-Llama-3-8B)")
-            except Exception as e:
-                logger.warning(f"⚠️ Cloud LLM connection failed, will use fallback: {e}")
-                self._llm = None
+            token = os.environ.get("HF_TOKEN")
+            if not token:
+                logger.warning("⚠️ HF_TOKEN not found! Falling back to public endpoints (may be rate limited).")
+            
+            # Try each model in the fallback chain
+            for model_id in Config.MODEL_FALLBACK_CHAIN:
+                try:
+                    logger.info(f"🔄 Attempting to connect to: {model_id}")
+                    llm = HuggingFaceEndpoint(
+                        repo_id=model_id,
+                        task="text-generation",
+                        max_new_tokens=512,
+                        top_k=50,
+                        temperature=0.3,
+                        huggingfacehub_api_token=token
+                    )
+                    # Test connection with a simple prompt
+                    test_response = llm.invoke("Say 'ok' if you're working.")
+                    if test_response:
+                        self._llm = llm
+                        self._current_model = model_id
+                        logger.info(f"☁️ Connected to: {model_id}")
+                        return self._llm
+                except Exception as e:
+                    error_str = str(e).lower()
+                    if "rate" in error_str or "limit" in error_str or "429" in error_str:
+                        logger.warning(f"⚠️ Rate limited on {model_id}, trying next...")
+                    elif "503" in error_str or "unavailable" in error_str:
+                        logger.warning(f"⚠️ Model {model_id} unavailable, trying next...")
+                    else:
+                        logger.warning(f"⚠️ Error with {model_id}: {e}")
+                    import time
+                    time.sleep(Config.MODEL_RETRY_DELAY)
+                    continue
+            
+            logger.error("❌ All models in fallback chain failed!")
+            self._llm = None
         return self._llm
     
     # ==================== CHAIN-OF-THOUGHT REASONING ====================
