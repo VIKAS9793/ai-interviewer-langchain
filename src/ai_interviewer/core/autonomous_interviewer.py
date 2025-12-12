@@ -304,14 +304,14 @@ class AutonomousInterviewer:
         confidence = 0.5
         
         try:
-           # Call Reflexion Loop logic here
-           # Simulating call to engine.generate_question which now integrates critique
-           result = self.reasoning_engine.generate_question(context)
+           # Call the correct method: generate_human_like_question
+           result = self.reasoning_engine.generate_human_like_question(context, question_thought)
            final_question_text = result["question"]
-           confidence = result.get("confidence", 0.8)
-        except Exception:
-           # Fallback
-           final_question_text = f"Could you explain your experience with {session.topic}?"
+           confidence = result.get("metadata", {}).get("confidence", 0.8)
+        except Exception as e:
+           # Fallback with logging
+           logger.warning(f"Question generation failed: {e}, using fallback")
+           final_question_text = f"Could you tell me more about your approach to {session.topic}?"
            
         return {
             "question": final_question_text,
