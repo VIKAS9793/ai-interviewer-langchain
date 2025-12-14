@@ -103,13 +103,38 @@ class InterviewGraph:
         return self._compiled_graph
     
     def analyze_resume(self, text: str) -> dict:
-        """Analyze resume (Proxy to AutonomousInterviewer logic)"""
-        # Minimal implementation to satisfy interface
-        return {
-            "skills": ["Python", "JavaScript", "Communication"], 
-            "experience_level": "Mid",
-            "detected_role": "Software Engineer"
-        }
+        """Analyze resume to extract skills and experience."""
+        if not text or len(text.strip()) < 50:
+            return {
+                "skills": [],
+                "experience_level": "Entry",
+                "detected_role": None
+            }
+        
+        # Delegate to the interviewer's reasoning engine
+        try:
+            result = self.interviewer.analyze_resume(text)
+            return {
+                "skills": result.get("skills", []),
+                "experience_level": self._map_experience_level(result.get("experience_years", 0)),
+                "detected_role": result.get("suggested_topics", [None])[0] if result.get("suggested_topics") else None
+            }
+        except Exception as e:
+            logger.warning(f"Resume analysis failed: {e}")
+            return {
+                "skills": [],
+                "experience_level": "Mid",
+                "detected_role": None
+            }
+    
+    def _map_experience_level(self, years: int) -> str:
+        """Map years of experience to level."""
+        if years >= 8:
+            return "Senior"
+        elif years >= 3:
+            return "Mid"
+        else:
+            return "Entry"
 
     def _build_graph(self) -> StateGraph:
         """Build the interview flow graph (Stateful Loop)."""
