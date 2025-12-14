@@ -117,7 +117,7 @@ class InterviewGraph:
         
         # Add nodes
         graph.add_node("extract_context", self._extract_context_node)
-        graph.add_node("greeting", self._greeting_node)
+        graph.add_node("generate_greeting", self._greeting_node)
         graph.add_node("generate_question", self._question_node)
         graph.add_node("validate_question", self._validate_question_node)
         graph.add_node("await_answer", self._await_answer_node)
@@ -127,8 +127,8 @@ class InterviewGraph:
         
         # Define edges (linear flow with conditional branch)
         graph.add_edge(START, "extract_context")
-        graph.add_edge("extract_context", "greeting")
-        graph.add_edge("greeting", "generate_question")
+        graph.add_edge("extract_context", "generate_greeting")
+        graph.add_edge("generate_greeting", "generate_question")
         graph.add_edge("generate_question", "validate_question")
         graph.add_edge("validate_question", "await_answer")
         graph.add_edge("await_answer", "evaluate")
