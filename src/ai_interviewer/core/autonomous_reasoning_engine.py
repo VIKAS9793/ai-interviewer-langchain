@@ -33,7 +33,29 @@ from ..modules.learning_service import ReasoningBank
 from .metacognitive import MetacognitiveSystem
 from ..modules.critic_service import ReflectAgent
 
+# Pydantic for structured output (Architecture Audit P1)
+try:
+    from pydantic import BaseModel, Field
+    PYDANTIC_AVAILABLE = True
+except ImportError:
+    PYDANTIC_AVAILABLE = False
+    BaseModel = None
+
 logger = logging.getLogger(__name__)
+
+
+# ==================== PYDANTIC MODELS (P1: Structured Output) ====================
+
+if PYDANTIC_AVAILABLE:
+    class ResumeAnalysis(BaseModel):
+        """Structured output for resume analysis - ensures type safety."""
+        skills: list = Field(default_factory=list, description="Technical and soft skills extracted from resume")
+        experience_years: int = Field(default=0, description="Total years of professional experience")
+        key_qualifications: list = Field(default_factory=list, description="Key qualifications and certifications")
+        suggested_topics: list = Field(default_factory=list, description="Suggested interview topics based on resume")
+        summary: str = Field(default="", description="Brief summary of candidate profile")
+else:
+    ResumeAnalysis = None
 
 
 
@@ -542,7 +564,7 @@ class AutonomousReasoningEngine:
     def analyze_resume(self, resume_text: str) -> Dict[str, Any]:
         """
         Analyze resume to extract skills, experience, and key qualifications.
-        Used for personalized interview questions.
+        Uses Pydantic structured output for reliability (Architecture Audit P1).
         """
         if not resume_text or len(resume_text.strip()) < 50:
             return {
@@ -553,6 +575,33 @@ class AutonomousReasoningEngine:
                 "analysis_type": "empty"
             }
         
+        # Method 1: Try Pydantic structured output (most reliable)
+        if PYDANTIC_AVAILABLE and ResumeAnalysis:
+            try:
+                llm = self._get_llm()
+                if llm and hasattr(llm, 'with_structured_output'):
+                    structured_llm = llm.with_structured_output(ResumeAnalysis)
+                    prompt = f"""Analyze this resume and extract key information.
+
+RESUME:
+{resume_text[:3000]}
+
+Extract: skills (technical & soft), experience_years, key_qualifications, suggested_topics, and a brief summary."""
+                    
+                    result = structured_llm.invoke(prompt)
+                    if result:
+                        return {
+                            "skills": result.skills if hasattr(result, 'skills') else [],
+                            "experience_years": result.experience_years if hasattr(result, 'experience_years') else 0,
+                            "key_qualifications": result.key_qualifications if hasattr(result, 'key_qualifications') else [],
+                            "suggested_topics": result.suggested_topics if hasattr(result, 'suggested_topics') else [],
+                            "summary": result.summary if hasattr(result, 'summary') else "",
+                            "analysis_type": "pydantic_structured"
+                        }
+            except Exception as e:
+                logger.warning(f"Pydantic structured output failed: {e}, falling back to regex")
+        
+        # Method 2: Try LLM with manual JSON parsing (legacy fallback)
         try:
             llm = self._get_llm()
             if llm:
@@ -572,21 +621,42 @@ Return JSON only:
                 end = response.rfind('}') + 1
                 if start != -1 and end > start:
                     result = json.loads(response[start:end])
-                    result["analysis_type"] = "llm"
+                    result["analysis_type"] = "llm_json"
                     return result
         except Exception as e:
-            logger.warning(f"Resume LLM analysis failed: {e}")
+            logger.warning(f"LLM JSON parsing failed: {e}, using heuristic")
         
-        # Heuristic fallback
+        # Method 3: Heuristic fallback (always works)
+        return self._heuristic_resume_analysis(resume_text)
+    
+    def _heuristic_resume_analysis(self, resume_text: str) -> Dict[str, Any]:
+        """Keyword-based resume analysis when LLM is unavailable."""
         skills = []
         text_lower = resume_text.lower()
         
+        # Comprehensive skill keywords
         skill_keywords = {
-            "python": "Python", "javascript": "JavaScript", "java": "Java",
-            "react": "React", "node": "Node.js", "sql": "SQL",
-            "aws": "AWS", "docker": "Docker", "kubernetes": "Kubernetes",
-            "machine learning": "Machine Learning", "data science": "Data Science",
-            "api": "API Development", "agile": "Agile", "scrum": "Scrum"
+            # Programming Languages
+            "python": "Python", "javascript": "JavaScript", "typescript": "TypeScript",
+            "java": "Java", "c++": "C++", "c#": "C#", "go": "Go", "rust": "Rust",
+            "ruby": "Ruby", "php": "PHP", "swift": "Swift", "kotlin": "Kotlin",
+            # Frameworks & Libraries
+            "react": "React", "angular": "Angular", "vue": "Vue.js", "node": "Node.js",
+            "django": "Django", "flask": "Flask", "spring": "Spring", "express": "Express",
+            "fastapi": "FastAPI", "next.js": "Next.js", "tensorflow": "TensorFlow",
+            "pytorch": "PyTorch", "langchain": "LangChain",
+            # Cloud & DevOps
+            "aws": "AWS", "azure": "Azure", "gcp": "GCP", "docker": "Docker",
+            "kubernetes": "Kubernetes", "terraform": "Terraform", "ci/cd": "CI/CD",
+            # Databases
+            "sql": "SQL", "postgresql": "PostgreSQL", "mongodb": "MongoDB",
+            "redis": "Redis", "elasticsearch": "Elasticsearch",
+            # AI/ML
+            "machine learning": "Machine Learning", "deep learning": "Deep Learning",
+            "nlp": "NLP", "computer vision": "Computer Vision", "data science": "Data Science",
+            # Soft Skills & Methodologies
+            "agile": "Agile", "scrum": "Scrum", "product management": "Product Management",
+            "leadership": "Leadership", "communication": "Communication"
         }
         
         for kw, skill in skill_keywords.items():
