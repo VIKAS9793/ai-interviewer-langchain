@@ -335,22 +335,85 @@ class AutonomousInterviewer:
         }
     
     def _infer_strengths(self, session: InterviewSession, avg_score: float) -> list:
-        """Infer strengths when not available from evaluations."""
+        """Infer strengths using LLM analysis of actual answers."""
+        # Try LLM-based inference first
+        try:
+            llm = self.reasoning_engine._get_llm()
+            if llm and session.qa_pairs:
+                # Build context from actual answers
+                answers_summary = "\n".join([
+                    f"Q: {qa['question'][:50]}... A: {qa['answer'][:100]}..."
+                    for qa in session.qa_pairs[:3]
+                ])
+                
+                prompt = f"""[INST] Analyze these interview answers and identify 2-3 specific strengths.
+Topic: {session.topic}
+
+{answers_summary}
+
+Return ONLY a comma-separated list of strengths (e.g., "Clear API knowledge, Good examples, Strong debugging skills").
+Be specific to what they actually demonstrated.
+[/INST]"""
+                
+                response = llm.invoke(prompt).strip()
+                if response and "," in response:
+                    strengths = [s.strip() for s in response.split(",")][:3]
+                    if strengths and len(strengths[0]) < 50:  # Sanity check
+                        return strengths
+        except Exception as e:
+            logger.warning(f"LLM strength inference failed: {e}")
+        
+        # Fallback to heuristic-based inference
         if avg_score >= 8:
-            return ["Excellent technical understanding", "Clear communication", "Strong problem-solving"]
+            return [f"Strong {session.topic} knowledge", "Clear communication", "Practical examples"]
         elif avg_score >= 6:
-            return ["Good foundational knowledge", "Solid communication skills"]
+            return ["Good foundational knowledge", "Solid communication"]
         else:
             return ["Showed effort and engagement"]
     
     def _infer_improvements(self, session: InterviewSession, avg_score: float) -> list:
-        """Infer areas for improvement when not available from evaluations."""
+        """Infer areas for improvement using LLM analysis."""
+        # Try LLM-based inference first
+        try:
+            llm = self.reasoning_engine._get_llm()
+            if llm and session.qa_pairs:
+                # Find lower-scoring answers
+                weak_answers = [
+                    qa for qa in session.qa_pairs 
+                    if qa.get("evaluation", {}).get("score", 5) < 7
+                ][:2]
+                
+                if weak_answers:
+                    context = "\n".join([
+                        f"Q: {qa['question'][:50]}... Score: {qa.get('evaluation', {}).get('score', 5)}/10"
+                        for qa in weak_answers
+                    ])
+                    
+                    prompt = f"""[INST] Based on these lower-scoring answers, suggest 2-3 specific improvement areas.
+Topic: {session.topic}
+
+{context}
+
+Return ONLY a comma-separated list of actionable improvements (e.g., "Explain the 'why' behind your approach, Connect more to {session.topic} concepts").
+Be constructive and specific.
+[/INST]"""
+                    
+                    response = llm.invoke(prompt).strip()
+                    if response and "," in response:
+                        improvements = [s.strip() for s in response.split(",")][:3]
+                        if improvements and len(improvements[0]) < 60:
+                            return improvements
+        except Exception as e:
+            logger.warning(f"LLM improvement inference failed: {e}")
+        
+        # Fallback with topic-specific suggestions
+        topic_lower = session.topic.lower()
         if avg_score >= 8:
-            return ["Consider edge cases in complex scenarios"]
+            return [f"Explore edge cases in {session.topic}"]
         elif avg_score >= 6:
-            return ["Add more specific examples", "Deepen technical explanations"]
+            return [f"Connect more directly to {session.topic} concepts", "Explain the 'why' behind your approach"]
         else:
-            return ["Review core concepts", "Practice with examples", "Focus on fundamentals"]
+            return [f"Review {session.topic} fundamentals", "Practice with hands-on examples"]
 
     def _generate_next_question_autonomous(self, session: InterviewSession) -> Dict[str, Any]:
         # Implementation relying on reasoning engine / Reflexion Loop
