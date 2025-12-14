@@ -112,10 +112,11 @@ class InterviewGraph:
         }
 
     def _build_graph(self) -> StateGraph:
-        """Build the interview flow graph."""
+        """Build the interview flow graph (Stateful Loop)."""
         graph = StateGraph(InterviewState)
         
         # Add nodes
+        graph.add_node("check_resume", self._check_resume_node)
         graph.add_node("extract_context", self._extract_context_node)
         graph.add_node("generate_greeting", self._greeting_node)
         graph.add_node("generate_question", self._question_node)
@@ -125,8 +126,20 @@ class InterviewGraph:
         graph.add_node("decide", self._decide_node)
         graph.add_node("report", self._report_node)
         
-        # Define edges (linear flow with conditional branch)
-        graph.add_edge(START, "extract_context")
+        # Define edges
+        graph.add_edge(START, "check_resume")
+        
+        # Conditional Edge after START to determine entry point
+        graph.add_conditional_edges(
+            "check_resume",
+            self._determine_entry_point,
+            {
+                "new": "extract_context",
+                "answer": "evaluate",
+                "resume": "generate_question"
+            }
+        )
+        
         graph.add_edge("extract_context", "generate_greeting")
         graph.add_edge("generate_greeting", "generate_question")
         graph.add_edge("generate_question", "validate_question")
@@ -145,19 +158,34 @@ class InterviewGraph:
         )
         graph.add_edge("report", END)
         
-        
-        logger.info("🔷 Interview graph built with 8 nodes")
+        logger.info("🔷 Interview graph built (Stateful Loop)")
         return graph.compile(interrupt_before=["await_answer"])
     
     # ==================== GRAPH NODES ====================
     
+    def _check_resume_node(self, state: InterviewState) -> dict:
+        """Pass-through node (logic in conditional edge)."""
+        return {}
+
+    def _determine_entry_point(self, state: InterviewState) -> str:
+        """Router: determine where to start/resume flow."""
+        q_num = state.get("question_number", 0)
+        curr_ans = state.get("current_answer")
+        
+        if q_num == 0:
+            logger.info("🔷 New Session -> Extract Context")
+            return "new"
+        
+        if curr_ans:
+            logger.info(f"🔷 Answer Received for Q{q_num} -> Evaluate")
+            return "answer"
+            
+        logger.info(f"🔷 Resuming at Q{q_num} -> Generate Question")
+        return "resume"
+
     def _extract_context_node(self, state: InterviewState) -> dict:
         """
         Extract context from resume and JD.
-        
-        From AI_RESEARCH_FINDINGS.md:
-        - Agent retrieves context from Vector DB
-        - Agent generates question *using* retrieved context
         """
         logger.info("🔷 [Node] Extracting context from resume/JD...")
         
@@ -172,7 +200,7 @@ class InterviewGraph:
         # Determine target role (from JD or topic)
         target_role = state.get("target_role") or state.get("topic", "Technical Interview")
         
-        # Clean up role name (avoid "Technical Interview interview" repetition)
+        # Clean up role name
         if "interview" in target_role.lower():
             target_role = target_role.replace(" Interview", "").replace(" interview", "")
         
@@ -182,22 +210,14 @@ class InterviewGraph:
         }
     
     def _greeting_node(self, state: InterviewState) -> dict:
-        """
-        Generate personalized greeting using context.
-        
-        From GEMINI_RESEARCH.md:
-        - Use role-specific greeting
-        - Reference candidate's background
-        """
+        """Generate personalized greeting."""
         logger.info("🔷 [Node] Generating greeting...")
         
         candidate_name = state.get("candidate_name", "Candidate")
         target_role = state.get("target_role", state.get("topic", "Technical"))
         
-        # Generate role-specific greeting
         greeting = f"Hello {candidate_name}, welcome to your {target_role} interview."
         
-        # Add personalization if we have resume context
         if state.get("resume_skills"):
             top_skills = state["resume_skills"][:3]
             skills_str = ", ".join(top_skills)
@@ -205,10 +225,11 @@ class InterviewGraph:
         else:
             greeting += " I'll be asking you a series of questions to assess your skills."
         
+        # Logic Fix: Only set question_number to 0 if undefined
         return {
             "greeting": greeting,
             "phase": "introduction",
-            "question_number": 0
+            "question_number": state.get("question_number", 0)
         }
     
     def _question_node(self, state: InterviewState) -> dict:
