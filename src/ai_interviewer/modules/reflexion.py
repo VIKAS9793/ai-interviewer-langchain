@@ -8,7 +8,8 @@ Cycles: Draft -> Critique -> Revise -> Critique -> ... -> Final
 import logging
 from typing import Dict, Any, TypedDict, List
 from langgraph.graph import StateGraph, END
-from .autonomous_reasoning_engine import AutonomousReasoningEngine, InterviewContext
+from typing import Any  # For CompiledStateGraph type annotation
+from ..core.autonomous_reasoning_engine import AutonomousReasoningEngine, InterviewContext
 
 logger = logging.getLogger(__name__)
 
@@ -38,9 +39,9 @@ class ReflexionLoop:
     
     def __init__(self, reasoning_engine: AutonomousReasoningEngine):
         self.engine = reasoning_engine
-        self.graph = self._build_graph()
+        self.graph: Any = self._build_graph()  # CompiledStateGraph
         
-    def _build_graph(self) -> StateGraph:
+    def _build_graph(self) -> Any:  # CompiledStateGraph (returned by graph.compile())
         """Build the LangGraph workflow"""
         workflow = StateGraph(ReflexionState)
         

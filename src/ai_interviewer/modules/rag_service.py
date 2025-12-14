@@ -336,6 +336,7 @@ class KnowledgeGrounding:
     
     def __init__(self):
         """Initialize Knowledge Grounding with Vector Store"""
+        self.store: Optional[KnowledgeStore] = None
         try:
             self.store = KnowledgeStore()
             self._bootstrap_if_empty()
@@ -349,13 +350,14 @@ class KnowledgeGrounding:
         # This is a naive check, but fine for MVP
         # Ideally we check collection count
         try:
-            if self.store.collection.count() == 0:
+            if self.store is not None and self.store.collection.count() == 0:
                 logger.info("🚀 Bootstrapping Knowledge Store with default concepts...")
-                for topic, facts in self.BOOTSTRAP_KNOWLEDGE.items():
-                    self.store.add_texts(
-                        texts=facts, 
-                        metadatas=[{"topic": topic, "source": "bootstrap"} for _ in facts]
-                    )
+                if self.store is not None:
+                    for topic, facts in self.BOOTSTRAP_KNOWLEDGE.items():
+                        self.store.add_texts(
+                            texts=facts, 
+                            metadatas=[{"topic": topic, "source": "bootstrap"} for _ in facts]
+                        )
         except Exception as e:
             logger.warning(f"Bootstrap failed: {e}")
             
@@ -439,7 +441,7 @@ class KnowledgeGrounding:
 
     def update_knowledge(self, topic: str, concept: str, new_definition: str, source: str) -> None:
         """Add new knowledge to Vector Store"""
-        if self.store:
+        if self.store is not None:
             text = f"{concept}: {new_definition}"
             self.store.add_texts(
                 texts=[text], 

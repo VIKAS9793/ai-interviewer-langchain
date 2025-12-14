@@ -83,7 +83,7 @@ class ReflectAgent:
         self.extracted_sops: List[SOP] = []
         
         # Configurable thresholds
-        self.config = {
+        self.config: Dict[str, Any] = {
             "min_score_justification_length": 20,
             "score_consistency_tolerance": 2.0,
             "extreme_score_threshold": (2, 9),
@@ -436,9 +436,9 @@ class ReflectAgent:
             "timestamp": datetime.now().isoformat()
         }
         # Type annotations for mypy
-        question_fairness: List[str] = results["question_fairness"]  # type: ignore[assignment]
-        scoring_consistency: List[str] = results["scoring_consistency"]  # type: ignore[assignment]
-        recommendations: List[str] = results["recommendations"]  # type: ignore[assignment]
+        question_fairness: List[str] = results.get("question_fairness", [])
+        scoring_consistency: List[str] = results.get("scoring_consistency", [])
+        recommendations: List[str] = results.get("recommendations", [])
         
         failed_count = 0
         warning_count = 0

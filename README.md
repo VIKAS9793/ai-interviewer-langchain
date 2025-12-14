@@ -21,7 +21,7 @@ license: mit
 [![CI/CD](https://github.com/VIKAS9793/ai-interviewer-langchain/actions/workflows/sync_to_hub.yml/badge.svg)](https://github.com/VIKAS9793/ai-interviewer-langchain/actions)
 [![License](https://img.shields.io/badge/License-MIT-22C55E?style=for-the-badge)](LICENSE)
 
-![Version](https://img.shields.io/badge/Release-v3.2.1-blue?style=flat-square&logo=git)
+![Version](https://img.shields.io/badge/Release-v3.2.3-blue?style=flat-square&logo=git)
 ![Python](https://img.shields.io/badge/Python-3.9-3776AB?style=flat-square&logo=python&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?style=flat-square&logo=docker&logoColor=white)
 ![Gradio](https://img.shields.io/badge/Gradio-4.44.0-FF7C00?style=flat-square)
@@ -249,6 +249,7 @@ python main.py
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| **v3.2.3** | 2025-12-14 | 🔍 **Type Safety & Code Quality** (Mypy integration, comprehensive type annotations) |
 | **v3.2.2** | 2025-12-14 | 🔒 **Security Hardening** (SSRF protection, input validation, session expiration) |
 | **v3.2.1** | 2025-12-14 | 🧠 **Intelligence Hardening** (Fix loops, scoring, RAG verified) |
 | **v3.2.0** | 2025-12-14 | 🏢 **Company Intelligence** (Strategy Injection) & 🏗️ **UI Modularization** (Clean Arch) |

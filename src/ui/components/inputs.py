@@ -1,5 +1,5 @@
 import gradio as gr
-from typing import List, Optional
+from typing import List, Optional, Literal, cast
 
 def create_text_input(
     label: str,
@@ -58,9 +58,12 @@ def create_primary_button(
     size: str = "lg"
 ) -> gr.Button:
     """Create a CTA button"""
+    # Cast to Literal types expected by Gradio
+    variant_literal = cast(Literal["primary", "secondary", "stop", "huggingface"], variant)
+    size_literal = cast(Literal["sm", "md", "lg"], size)
     return gr.Button(
         value=text,
-        variant=variant,
-        size=size,
+        variant=variant_literal,
+        size=size_literal,
         elem_classes=["pill-btn"] if variant == "primary" else []
     )

@@ -140,7 +140,7 @@ class InterviewGraph:
         else:
             return "Entry"
 
-    def _build_graph(self) -> StateGraph:
+    def _build_graph(self) -> Any:  # CompiledStateGraph (returned by graph.compile())
         """Build the interview flow graph (Stateful Loop)."""
         graph = StateGraph(InterviewState)
         
@@ -276,6 +276,8 @@ class InterviewGraph:
         # Get session for interviewer
         try:
             session = self.session_manager.get_session(state["session_id"])
+            if session is None:
+                raise ValueError("Session not found")
             result = self.interviewer._generate_next_question_autonomous(session)
             question = result.get("question", f"Tell me about your experience with {state.get('topic', 'this topic')}.")
         except Exception as e:
@@ -351,9 +353,10 @@ class InterviewGraph:
         
         try:
             session = self.session_manager.get_session(state["session_id"])
+            current_answer = state.get("current_answer") or ""
             result = self.interviewer.process_answer(
                 state["session_id"],
-                state.get("current_answer", "")
+                current_answer
             )
             
             evaluation = result.get("evaluation", {})
@@ -400,6 +403,8 @@ class InterviewGraph:
         
         try:
             session = self.session_manager.get_session(state["session_id"])
+            if session is None:
+                raise ValueError("Session not found")
             result = self.interviewer._complete_interview(session)
             
             return {

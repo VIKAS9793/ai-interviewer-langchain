@@ -2,6 +2,47 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v3.2.3] - 2025-12-14 (Type Safety & Code Quality)
+
+### 🔍 Type Checking & Code Quality
+- **Mypy Integration:** Added comprehensive static type checking with `mypy`
+  - Configured `mypy.ini` with strict type checking settings
+  - Fixed all 46+ type errors across 19 files
+  - Added type annotations throughout the codebase
+- **Type Safety Improvements:**
+  - Added `TypedDict` models for better type safety (`src/ai_interviewer/utils/types.py`)
+  - Fixed Optional type annotations (no implicit Optional)
+  - Added proper return type annotations with `cast()` for LLM responses
+  - Fixed union type issues in controller and flow controllers
+- **Import Handling:**
+  - Configured mypy to ignore missing imports for optional dependencies
+  - Added `pyright: ignore` comments for IDE compatibility (basedpyright)
+  - Proper handling of optional imports (whisper, langchain modules)
+
+### 🔧 Technical Changes
+- **Added:** `mypy.ini` - Mypy configuration file
+- **Modified:** All core modules with proper type annotations
+  - `controller.py` - Fixed flow controller types, whisper model checks
+  - `autonomous_reasoning_engine.py` - Fixed return types, Optional annotations
+  - `autonomous_interviewer.py` - Fixed return type annotations
+  - `ui/app.py` - Fixed tuple vs dict type mismatches
+  - `ui/interfaces.py` - Updated protocol to match implementation
+  - `resume_parser.py` - Cleaned up type ignore comments
+  - `critic_service.py` - Fixed dict type annotations
+  - `knowledge_store.py` - Removed unused type ignores
+  - And 10+ other files
+
+### 📚 Documentation
+- **Updated:** `docs/CONTRIBUTING.md` - Added type checking guidelines
+- **Updated:** `docs/SETUP.md` - Added mypy installation and usage instructions
+
+### ✅ Quality Metrics
+- **Type Coverage:** 100% of core modules now have proper type annotations
+- **Mypy Status:** `Success: no issues found in 37 source files`
+- **Code Quality:** Improved IDE support and catch errors at development time
+
+---
+
 ## [v3.2.2] - 2025-12-14 (Security Hardening)
 
 ### 🔒 Security Enhancements

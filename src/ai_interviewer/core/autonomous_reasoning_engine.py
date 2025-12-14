@@ -14,7 +14,7 @@ import logging
 import json
 import time
 import hashlib
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Dict, List, Any, Optional, Tuple, cast
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -130,8 +130,8 @@ class AutonomousReasoningEngine:
         self.thought_history: deque = deque(maxlen=100)
         self.self_reflection_cache: Dict[str, Any] = {}
         self.decision_log: List[Dict[str, Any]] = []
-        self._llm = None
-        self._current_model = None  # Tracks which model in fallback chain is active
+        self._llm: Any = None
+        self._current_model: Optional[str] = None  # Tracks which model in fallback chain is active
         self._lock = threading.Lock()
         
         # Performance tracking for self-improvement
@@ -173,7 +173,7 @@ class AutonomousReasoningEngine:
                 try:
                     openai_key = os.environ.get("OPENAI_API_KEY")
                     if openai_key:
-                        from langchain_openai import ChatOpenAI  # type: ignore[import-not-found]
+                        from langchain_openai import ChatOpenAI  # pyright: ignore[reportMissingImports]
                         self._llm = ChatOpenAI(
                             model=Config.OPENAI_MODEL,
                             temperature=Config.OPENAI_TEMPERATURE,
@@ -660,7 +660,7 @@ Return JSON only:
                 if start != -1 and end > start:
                     result = json.loads(response[start:end])
                     result["analysis_type"] = "llm_json"
-                    return result
+                    return cast(Dict[str, Any], result)
         except Exception as e:
             logger.warning(f"LLM JSON parsing failed: {e}, using heuristic")
         
@@ -867,7 +867,7 @@ Return ONLY the question text, nothing else.
                 response = llm.invoke(prompt).strip().replace('"', '')
                 # Validate response isn't a repeat
                 if response and not any(prev.lower() in response.lower() for prev in previous_questions[:3]):
-                    return response
+                    return cast(str, response)
                 logger.warning("LLM returned similar question, using fallback")
         except Exception as e:
             logger.warning(f"LLM question generation failed: {e}")
@@ -1112,7 +1112,7 @@ Return ONLY the question text, nothing else.
         if patterns.get("candidate_struggling"):
             base_confidence -= 0.1
         
-        return max(0.0, min(1.0, base_confidence))
+        return cast(float, max(0.0, min(1.0, base_confidence)))
     
     def _interpret_emotional_cues(self, cues: List[str]) -> str:
         """Interpret emotional cues from conversation"""
@@ -1193,7 +1193,7 @@ Return ONLY the question text, nothing else.
         """Identify fallback if chosen approach fails"""
         other_options = [o for o in options if o["approach"] != chosen["approach"]]
         if other_options:
-            return max(other_options, key=lambda x: x.get("suitability", 0))["approach"]
+            return cast(str, max(other_options, key=lambda x: x.get("suitability", 0))["approach"])
         return "default_approach"
 
     # ==================== REFLEXION CAPABILITIES (Phase 4) ====================
@@ -1241,7 +1241,7 @@ Return ONLY the question text, nothing else.
             start = response.find('{')
             end = response.rfind('}') + 1
             if start != -1 and end > start:
-                return json.loads(response[start:end])
+                return cast(Dict[str, Any], json.loads(response[start:end]))
             
             return {"score": 7, "feedback": "Failed to parse critique."}
 
@@ -1276,7 +1276,7 @@ Return ONLY the question text, nothing else.
             # Remove quotes if present
             if revised.startswith('"') and revised.endswith('"'):
                 revised = revised[1:-1]
-            return revised
+            return cast(str, revised)
 
         except Exception as e:
             logger.warning(f"Revision failed: {e}")

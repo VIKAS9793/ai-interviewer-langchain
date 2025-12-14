@@ -1,4 +1,5 @@
 import gradio as gr
+from typing import Dict, Any
 from src.ui.styles.theme import create_theme, MINIMAL_CSS
 from src.ui.components.feedback import create_progress_display
 from src.ui.tabs.interview_tab import create_interview_tab
@@ -220,7 +221,9 @@ def create_interface(app: InterviewApp) -> gr.Blocks:
             final_transcription = transcription if mode == "🎤 Voice" else ""
             
             response = app.process_answer(final_text, final_transcription)
-            return InterviewHandlers.handle_process_answer(response)
+            # process_answer returns InterviewResponse (dict)
+            response_dict: Dict[str, Any] = response
+            return InterviewHandlers.handle_process_answer(response_dict)
         
         submit_btn.click(
             fn=on_submit_answer,
@@ -258,4 +261,4 @@ def create_interface(app: InterviewApp) -> gr.Blocks:
             outputs=[answer_input, audio_input, transcription_output]
         )
     
-    return interface
+    return interface  # type: ignore[no-any-return]

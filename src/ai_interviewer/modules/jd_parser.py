@@ -259,7 +259,7 @@ class JDParser:
         return title.strip()
     
     @classmethod
-    def extract_role_parts(cls, role_title: str) -> Dict[str, str]:
+    def extract_role_parts(cls, role_title: str) -> Dict[str, Optional[str]]:
         """
         Extract core role and specific area from full role title.
         
@@ -304,7 +304,7 @@ class JDParser:
         return {"core_role": role_title, "specific_area": None, "full_title": role_title}
     
     @classmethod
-    def get_interview_context(cls, role_title: str) -> Dict[str, str]:
+    def get_interview_context(cls, role_title: str) -> Dict[str, Optional[str]]:
         """
         Get interview context for natural question generation.
         
@@ -332,7 +332,7 @@ class JDParser:
             "Technical Program Manager": "technical program management",
         }
         
-        topic = topic_map.get(core, core.lower() if core else "technical skills")
+        topic = topic_map.get(core or "", core.lower() if core else "technical skills")
         
         return {
             "topic": topic,

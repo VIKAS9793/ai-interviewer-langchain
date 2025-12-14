@@ -416,7 +416,7 @@ class MetacognitiveSystem:
             trend = "stable"
         
         # Topic breakdown
-        by_topic = {}
+        by_topic: Dict[str, Any] = {}
         for r in recent:
             topic = r.get("topic", "unknown")
             by_topic[topic] = by_topic.get(topic, [])

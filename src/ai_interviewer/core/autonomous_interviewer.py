@@ -13,7 +13,7 @@ import logging
 import time
 import json
 import uuid
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Dict, List, Any, Optional, Tuple, cast
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -533,7 +533,7 @@ Evaluate the answer and respond with ONLY this JSON:
                         logger.warning(f"Consistency check failed: {re}")
                 
                 logger.info(f"✅ Prometheus evaluation: {raw_score}/5 -> {display_score}/10")
-                return result
+                return cast(Dict[str, Any], result)
             else:
                 logger.warning(f"⚠️ No JSON found in response: {response[:150]}...")
                 return self._heuristic_evaluation(session)
@@ -688,7 +688,7 @@ Write 1-2 sentences of constructive feedback. Be specific, not generic.
                 # Clean response
                 feedback = response.strip()
                 if len(feedback) > 20 and len(feedback) < 200:  # Sanity check
-                    return feedback
+                    return cast(str, feedback)
         except Exception as e:
             logger.warning(f"LLM feedback generation failed: {e}")
         

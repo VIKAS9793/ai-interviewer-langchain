@@ -2,7 +2,7 @@ import logging
 import time
 import os
 import gradio as gr
-from typing import Tuple, Optional, Any, Dict
+from typing import Tuple, Optional, Any, Dict, Union
 
 from src.ai_interviewer.utils.config import Config
 from src.ai_interviewer.utils.input_validator import InputValidator
@@ -74,10 +74,11 @@ class InterviewApplication:
     
     def __init__(self):
         # Initialize Core Logic
+        # Type: can be InterviewGraph or AutonomousFlowController
         if Config.LANGGRAPH_ENABLED:
             try:
                 from src.ai_interviewer.core.interview_graph import InterviewGraph
-                self.flow_controller = InterviewGraph()
+                self.flow_controller: Any = InterviewGraph()
                 logger.info("🔷 Using LangGraph Engine (v3.1)")
             except ImportError as e:
                 logger.error(f"Failed to load LangGraph: {e}. Falling back to Legacy Controller.")
@@ -101,8 +102,8 @@ class InterviewApplication:
     def _init_speech_recognition(self):
         """Initialize speech recognition model (lazy loading)"""
         try:
-            import whisper  # type: ignore[reportMissingImports, import-untyped]  # Optional dependency
-            self.whisper_model = None  # Lazy load on first use
+            import whisper  # pyright: ignore[reportMissingImports]  # Optional dependency
+            self.whisper_model: Any = None  # Lazy load on first use
             self.speech_available = True
             logger.info("Speech recognition available (Whisper)")
         except ImportError:
@@ -118,12 +119,12 @@ class InterviewApplication:
         try:
             # Lazy load Whisper model
             if self.whisper_model is None and self.speech_available:
-                import whisper  # type: ignore[reportMissingImports, import-untyped]  # Optional dependency
+                import whisper  # pyright: ignore[reportMissingImports]  # Optional dependency
                 logger.info("Loading Whisper model (first use)...")
                 self.whisper_model = whisper.load_model("base")
                 logger.info("Whisper model loaded")
             
-            if not self.speech_available:
+            if not self.speech_available or self.whisper_model is None:
                 return "❌ Speech recognition not available. Please install: pip install openai-whisper"
             
             # Extract audio array
@@ -137,14 +138,14 @@ class InterviewApplication:
             if len(audio_array.shape) > 1:
                 audio_array = audio_array.mean(axis=1)
             
-            # Transcribe
-            result = self.whisper_model.transcribe(
+            # Transcribe (whisper_model is guaranteed to be not None here)
+            result: Dict[str, Any] = self.whisper_model.transcribe(
                 audio_array,
                 language="en",
                 fp16=False
             )
             
-            transcription = result["text"].strip()
+            transcription: str = str(result.get("text", "")).strip()
             
             if not transcription:
                 return "⚠️ No speech detected. Please try recording again."
@@ -281,7 +282,7 @@ class InterviewApplication:
                 return {"success": False, "message": "Could not extract text from resume."}
             
             # Build context
-            custom_context = {"resume_text": resume_text}
+            custom_context: Dict[str, Any] = {"resume_text": resume_text}
             
             # Process JD with intelligent parsing
             final_jd = ""
@@ -330,12 +331,12 @@ class InterviewApplication:
             if jd_role:
                 # Extract proper interview context (core role + specific area)
                 interview_context = JDParser.get_interview_context(jd_role)
-                topic = interview_context["topic"]  # e.g., "product management"
-                greeting_role = interview_context["greeting_role"]  # e.g., "Product Manager"
+                topic = interview_context["topic"] or "technical skills"  # e.g., "product management"
+                greeting_role = interview_context["greeting_role"] or "Technical"  # e.g., "Product Manager"
                 area_context = interview_context["area_context"]  # e.g., "YouTube Channel Memberships"
                 logger.info(f"🎯 JD context: topic='{topic}', role='{greeting_role}', area='{area_context}'")
             else:
-                topic = analysis.get("detected_role") or analysis.get("suggested_topics", ["Technical Interview"])[0]
+                topic = analysis.get("detected_role") or analysis.get("suggested_topics", ["Technical Interview"])[0] or "Technical Interview"
                 greeting_role = topic
                 area_context = None
                 logger.info(f"🎯 Using resume-detected role: {topic}")
@@ -379,7 +380,7 @@ class InterviewApplication:
                 "first_question": result.get("first_question", ""),
                 "question_number": 1,
                 "total_questions": Config.MAX_QUESTIONS,
-                "topic": topic,
+                "topic": topic or "technical skills",
                 "experience_level": experience_level,
                 "detected_skills": resume_skills,  # Use extracted skills from line 273
                 "job_title": jd_role or topic,

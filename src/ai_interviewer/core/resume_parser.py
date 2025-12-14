@@ -5,19 +5,19 @@ import io
 
 # Optional imports with graceful fallback
 try:
-    from pypdf import PdfReader  # type: ignore[import-not-found]
+    from pypdf import PdfReader
 except ImportError:
-    PdfReader = None  # type: ignore[assignment]
+    PdfReader = None
 
 try:
-    from docx import Document  # type: ignore[import-not-found]
+    from docx import Document
 except ImportError:
-    Document = None  # type: ignore[assignment]
+    Document = None
 
 try:
     import bleach  # type: ignore[import-untyped]
 except ImportError:
-    bleach = None  # type: ignore[assignment]
+    bleach = None
 
 logger = logging.getLogger(__name__)
 
