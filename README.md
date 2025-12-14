@@ -231,8 +231,9 @@ python main.py
 | 🔧 [Troubleshooting](docs/TROUBLESHOOTING.md) | Common issues |
 | 🔒 [Security Audit](docs/AUDIT_REPORT.md) | Security audit findings |
 | 🛡️ [Security Implementation](docs/SECURITY_IMPLEMENTATION.md) | Security fixes & hardening |
-| 📜 [Changelog](CHANGELOG.md) | Version history |
-| 🤝 [Contributing](CONTRIBUTING.md) | Contribution guide |
+| 📜 [Changelog](docs/CHANGELOG.md) | Version history |
+| 📝 [Release Notes](docs/RELEASE_NOTES.md) | Detailed release information |
+| 🤝 [Contributing](docs/CONTRIBUTING.md) | Contribution guide |
 
 ---
 
@@ -253,7 +254,7 @@ python main.py
 | **v3.2.0** | 2025-12-14 | 🏢 **Company Intelligence** (Strategy Injection) & 🏗️ **UI Modularization** (Clean Arch) |
 | **v3.1.0** | 2025-12-12 | 🔷 LangGraph + JD Parser, Smart Role Parsing, Context-Aware Greetings |
 | **v3.0.1** | 2025-12-12 | 🔥 Hotfix: Fixed scoring, question counter, feedback, topics |
-| **v3.0.0** | 2025-12-12 | [**The Cognitive Upgrade**](RELEASE_NOTES.md): Reasoning, RAG, Reflexion, Micro-Services |
+| **v3.0.0** | 2025-12-12 | [**The Cognitive Upgrade**](docs/RELEASE_NOTES.md): Reasoning, RAG, Reflexion, Micro-Services |
 | **v2.6.0** | 2025-12-12 | 🎨 UI Overhaul (Dark Mode, Pill Buttons, High Contrast) |
 | **v2.5.1** | 2025-12-11 | Hotfix: Gradio 4.44 downgrade, Torch/Triton conflict |
 | **v2.5.0** | 2025-12-11 | Practice Mode (Resume + JD), 11 bug fixes |
