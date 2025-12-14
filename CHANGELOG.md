@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v3.2.1] - 2025-12-14 (Hybrid LLM + Architecture Alignment)
+
+### 🔌 Hybrid LLM Support
+- **OpenAI Integration:** Added `langchain-openai` for native structured output support
+- **Provider Selection:** New `LLM_PROVIDER` config (openai/huggingface/hybrid)
+- **Instructor Library:** Added for Pydantic-based structured output with any LLM
+
+### 🎯 Resume Parsing Improvements
+- **Pydantic Model:** Added `ResumeAnalysis` model for type-safe skill extraction
+- **3-Tier Fallback:** Pydantic structured → JSON parsing → Heuristic keywords
+- **Expanded Keywords:** Skill detection from 13 to 40+ (TypeScript, FastAPI, GCP, etc.)
+
+### 💬 Feedback Improvements
+- **LLM-Generated Feedback:** Replaced hardcoded "Strong answer!" templates
+- **Personalized Strengths:** LLM analysis of actual answers for growth areas
+- **Dynamic Confidence:** Removed hardcoded 70% placeholders where possible
+
+### 📝 Documentation
+- **Current Limitations:** Added user-friendly limitations section to README
+- **Practice Mode Disclaimer:** Updated from negative "Limitation Note" to positive "What to Expect"
+- **SETUP.md:** Added OpenAI API key configuration instructions
+
+### 🐛 Bug Fixes
+- Fixed `detected_skills` showing "Not detected" (wrong key: `found_skills` → `skills`)
+- Fixed `InterviewGraph.analyze_resume()` hardcoded stub (now delegates to reasoning engine)
+- Verified complete call chain: controller → interview_graph → interviewer → reasoning_engine
+
+---
+
 ## [v3.2.0] - 2025-12-14 (Modular UI & Company Intelligence)
 
 ### 🏢 Company Intelligence
