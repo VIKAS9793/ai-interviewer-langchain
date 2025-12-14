@@ -84,7 +84,6 @@ class InterviewContext:
     conversation_flow: List[Dict[str, Any]] = field(default_factory=list)
     emotional_cues: List[str] = field(default_factory=list)
     time_spent_per_question: List[float] = field(default_factory=list)
-    time_spent_per_question: List[float] = field(default_factory=list)
     company_name: Optional[str] = None
     previous_questions: List[str] = field(default_factory=list)
 
@@ -730,31 +729,112 @@ Return JSON only:
         return random.choice(acknowledgments[category])
     
     def get_progressive_question(self, topic: str, question_number: int, approach: str, previous_questions: List[str] = None) -> str:
-        """Generate progressive question using LLM"""
-        # ... logic ...
+        """Generate progressive question using LLM with smart fallback."""
+        if previous_questions is None:
+            previous_questions = []
+            
+        # Build prompt with explicit history
+        history_str = "\n".join([f"- {q}" for q in previous_questions]) if previous_questions else "None"
+        
         prompt = f"""[INST] You are an expert technical interviewer.
 Generate a unique, challenging interview question about {topic}.
 
 Phase: Question {question_number} of {Config.MAX_QUESTIONS}
 Strategy: {approach}
 
-CONSTRAINTS:
-1. Do NOT ask: "Tell me about yourself" (already done)
-2. Do NOT ask: {previous_questions if previous_questions else "[]"}
-3. Be specific and technical.
+PREVIOUSLY ASKED (DO NOT REPEAT):
+{history_str}
 
-Return ONLY the question text.
+CONSTRAINTS:
+1. Ask something DIFFERENT from all previous questions.
+2. Be specific and technical.
+3. Focus on practical experience or problem-solving.
+
+Return ONLY the question text, nothing else.
 [/INST]"""
                 
         try:
-             llm = self._get_llm()
-             if llm:
-                 return llm.invoke(prompt).strip().replace('"', '')
-        except Exception:
-             pass
+            llm = self._get_llm()
+            if llm:
+                response = llm.invoke(prompt).strip().replace('"', '')
+                # Validate response isn't a repeat
+                if response and not any(prev.lower() in response.lower() for prev in previous_questions[:3]):
+                    return response
+                logger.warning("LLM returned similar question, using fallback")
+        except Exception as e:
+            logger.warning(f"LLM question generation failed: {e}")
              
-        # Fallback to templates if LLM fails
-        return f"Describe a challenging situation involving {topic}."
+        # Smart fallback: Use question banks with deduplication
+        fallback_questions = self._get_fallback_questions(topic)
+        
+        # Filter out already asked questions
+        available = [q for q in fallback_questions if q not in previous_questions]
+        
+        if available:
+            idx = (question_number - 1) % len(available)
+            return available[idx]
+        
+        # Ultimate fallback: Generic but numbered
+        return f"Question {question_number}: Describe a challenging {topic} scenario you've handled."
+    
+    def _get_fallback_questions(self, topic: str) -> List[str]:
+        """Get fallback question bank for a topic."""
+        banks = {
+            "Python/Backend Development": [
+                "What are Python decorators and when would you use them?",
+                "How do you handle database transactions in a Python application?",
+                "Explain the difference between threads and async in Python.",
+                "How would you design a scalable API rate limiting system?",
+                "What strategies do you use for error handling in production code?"
+            ],
+            "JavaScript/Frontend Development": [
+                "Explain how the event loop works in JavaScript.",
+                "What are closures and how have you used them?",
+                "How do you manage state in a complex React application?",
+                "What strategies do you use for optimizing frontend performance?",
+                "Explain the concept of virtual DOM and reconciliation."
+            ],
+            "System Design & Architecture": [
+                "Design a URL shortening service. Focus on database schema and ID generation.",
+                "How does Consistent Hashing help when scaling a distributed cache?",
+                "Explain the CAP theorem with a real-world example.",
+                "How would you handle a distributed transaction across microservices?",
+                "Design a notification system that prevents duplicate sends."
+            ],
+            "Cloud & DevOps (AWS/GCP/Azure)": [
+                "How do you implement blue-green deployments?",
+                "Explain the difference between containers and VMs.",
+                "How would you design a CI/CD pipeline for a microservices app?",
+                "What's your approach to infrastructure as code?",
+                "How do you handle secrets management in cloud environments?"
+            ],
+            "Database & SQL": [
+                "Explain database indexing and when to use it.",
+                "What's the difference between SQL and NoSQL databases?",
+                "How do you optimize a slow SQL query?",
+                "Explain ACID properties with examples.",
+                "How do you handle database migrations in production?"
+            ]
+        }
+        
+        # Try exact match first
+        if topic in banks:
+            return banks[topic]
+        
+        # Try partial match
+        topic_lower = topic.lower()
+        for key, questions in banks.items():
+            if any(word in topic_lower for word in key.lower().split()):
+                return questions
+        
+        # Generic fallback
+        return [
+            f"What's the most challenging {topic} problem you've solved?",
+            f"How do you stay updated with developments in {topic}?",
+            f"Describe a recent project involving {topic}.",
+            f"What best practices do you follow when working with {topic}?",
+            f"How would you explain {topic} to a junior developer?"
+        ]
     
     def _generate_natural_transition(self, context: InterviewContext) -> str:
         """Generate natural transition to next question"""
@@ -1226,86 +1306,6 @@ Return ONLY the question text.
             "progressive_challenge": f"Describe a complex {topic} problem you've solved."
         })
     
-    def get_progressive_question(self, topic: str, question_number: int, 
-                                  approach: str = "default") -> str:
-        """Get a unique question based on question number to avoid repetition."""
-        # Question banks by topic with 5 progressive questions each
-        question_banks = {
-            "Machine Learning/AI": [
-                "Can you explain the difference between supervised and unsupervised learning?",
-                "How do you handle overfitting in machine learning models?",
-                "Explain the concept of gradient descent and its variants.",
-                "How would you approach a classification problem with imbalanced data?",
-                "What are transformers and why are they important in modern AI?"
-            ],
-            "Python/Backend Development": [
-                "What are Python decorators and when would you use them?",
-                "How do you handle database transactions in a Python application?",
-                "Explain the difference between threads and async in Python.",
-                "How would you design a scalable API rate limiting system?",
-                "What strategies do you use for error handling in production code?"
-            ],
-            "JavaScript/Frontend Development": [
-                "Explain how the event loop works in JavaScript.",
-                "What are closures and how have you used them?",
-                "How do you manage state in a complex React application?",
-                "What strategies do you use for optimizing frontend performance?",
-                "Explain the concept of virtual DOM and reconciliation."
-            ],
-            "System Design & Architecture": [
-                # 1. Fundamentals
-                "Design a RESTful API for a social media feed. How do you handle pagination and partial updates?",
-                "Compare gRPC and REST. When would you choose one over the other for inter-service communication?",
-                "How does a JWT work? What are the security risks if not handled correctly?",
-                
-                # 2. Distributed Data
-                "We need to scale a distributed cache. How does Consistent Hashing help when adding/removing nodes?",
-                "What does it mean for an API to be idempotent? How do you implement it for a payment processing endpoint?",
-                "How can we efficiently check if a username is already taken without hitting the DB every time? (Bloom Filters)",
-                
-                # 3. Architecture Patterns
-                "The team wants to move to microservices. When would you argue to stay with a Modular Monolith?",
-                "How do you handle a distributed transaction across Order, Payment, and Inventory services? (Saga Pattern)",
-                "How do you handle breaking changes in a public API without disrupting existing clients?",
-                
-                # 4. Deep Dives
-                "In a distributed DB, explain the trade-off between Consistency and Availability during a partition (CAP Theorem).",
-                "How would you design a URL shortening service (e.g. TinyURL)? Focus on the database schema and ID generation.",
-                "Explain your approach to designing a Global Leaderboard service handling millions of writes per second.",
-                "What are the tradeoffs between SQL and NoSQL databases for a financial ledger system?",
-                "How do you allow a user to upload a 5GB file reliably over an unstable connection? (Multipart/Resumable)",
-                "Design a Notification System that prevents duplicate sends to the user.",
-                "How do you secure user passwords in a database? Explain Salting and Hashing."
-            ],
-            "Data Structures & Algorithms": [
-                "Explain the time complexity of common sorting algorithms.",
-                "When would you use a hash table vs a binary search tree?",
-                "How do you approach solving dynamic programming problems?",
-                "Explain how a priority queue works internally.",
-                "What graph algorithms are you familiar with?"
-            ]
-        }
-        
-        # Clean topic to avoid word repetition ("interview interview")
-        topic_clean = topic
-        if "interview" in topic.lower():
-            topic_clean = topic.lower().replace(" interview", "").replace("interview ", "").strip()
-            topic_clean = topic_clean.title() if topic_clean else "technical skills"
-        
-        # Default questions for unknown topics
-        default_questions = [
-            f"Tell me about your background in {topic_clean}.",
-            f"What's the most challenging {topic_clean} problem you've solved?",
-            f"How do you stay updated with developments in {topic_clean}?",
-            f"Describe a recent project involving {topic_clean}.",
-            f"What best practices do you follow when working with {topic_clean}?"
-        ]
-        
-        questions = question_banks.get(topic, default_questions)
-        
-        # Get question based on number (0-indexed, wrap around)
-        idx = (question_number - 1) % len(questions)
-        return questions[idx]
 
     
     def get_performance_report(self) -> Dict[str, Any]:
