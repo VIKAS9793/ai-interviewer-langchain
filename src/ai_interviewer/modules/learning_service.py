@@ -18,6 +18,7 @@ Research Reference:
 import logging
 import json
 import hashlib
+import os
 from datetime import datetime
 from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass, field, asdict
@@ -25,7 +26,77 @@ from pathlib import Path
 import sqlite3
 from contextlib import contextmanager
 
+try:
+    from huggingface_hub import HfApi, hf_hub_download
+    from huggingface_hub.utils import RepositoryNotFoundError, RevisionNotFoundError
+    HF_Hub_Available = True
+except ImportError:
+    HF_Hub_Available = False
+
 logger = logging.getLogger(__name__)
+
+class HuggingFacePersistence:
+    """
+    Persistence layer for HuggingFace Spaces.
+    
+    Synchronizes local SQLite memory bank with a private Dataset on HF Hub.
+    Strategy:
+    1. On Init: Download 'memory.db' from Hub to local ephemeral storage.
+    2. On Save: Upload 'memory.db' to Hub (periodically or on trigger).
+    
+    Requires: HF_TOKEN in environment variables.
+    """
+    
+    def __init__(self, repo_id: str, filename: str = "reasoning_bank.db"):
+        self.repo_id = repo_id
+        self.filename = filename
+        self.api = HfApi()
+        self.token = os.getenv("HF_TOKEN")
+        
+        if not self.token:
+            logger.warning("⚠️ HF_TOKEN not found. Persistence disabled.")
+            self.enabled = False
+        else:
+            self.enabled = True
+            
+    def sync_down(self, local_path: Path) -> bool:
+        """Download remote DB to local path."""
+        if not self.enabled: return False
+        
+        try:
+            logger.info(f"⬇️ Syncing memory from {self.repo_id}...")
+            hf_hub_download(
+                repo_id=self.repo_id,
+                filename=self.filename,
+                repo_type="dataset",
+                local_dir=str(local_path.parent),
+                local_dir_use_symlinks=False
+            )
+            logger.info("✅ Memory sync complete")
+            return True
+        except (RepositoryNotFoundError, RevisionNotFoundError):
+            logger.info("🆕 Remote memory not found. Starting fresh.")
+            return False
+        except Exception as e:
+            logger.error(f"❌ Memory sync failed: {e}")
+            return False
+            
+    def sync_up(self, local_path: Path):
+        """Upload local DB to remote Hub."""
+        if not self.enabled: return
+        
+        try:
+            logger.info(f"⬆️ pushing memory to {self.repo_id}...")
+            self.api.upload_file(
+                path_or_fileobj=str(local_path),
+                path_in_repo=self.filename,
+                repo_id=self.repo_id,
+                repo_type="dataset",
+                commit_message=f"Auto-save procedural memory: {datetime.now().isoformat()}"
+            )
+            logger.info("✅ Memory push complete")
+        except Exception as e:
+            logger.error(f"❌ Memory push failed: {e}")
 
 
 @dataclass
@@ -60,6 +131,36 @@ class MemoryItem:
     def get_id(self) -> str:
         """Generate unique ID from title hash"""
         return hashlib.md5(self.title.encode()).hexdigest()[:12]
+
+
+@dataclass
+class SkillModule:
+    """
+    Procedural Memory Unit: A learned behavior sequence.
+    
+    Unlike declarative MemoryItem (text knowledge), a SkillModule
+    is an executable pattern of thought:
+    Trigger -> [Action Sequence] -> Outcome
+    """
+    skill_id: str
+    trigger_context: str
+    action_chain: List[str]
+    success_rate: float = 0.5
+    usage_count: int = 0
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat())
+    
+    def to_memory_item(self) -> MemoryItem:
+        """Convert skill to storage format (MemoryItem)"""
+        return MemoryItem(
+            title=f"[SKILL] {self.trigger_context}",
+            description="Learned procedural skill module",
+            content=json.dumps(self.action_chain),
+            source_type="skill_module",
+            topic="procedural",
+            confidence=self.success_rate,
+            usage_count=self.usage_count,
+            created_at=self.created_at
+        )
 
 
 @dataclass
@@ -100,6 +201,15 @@ class ReasoningBank:
         """Initialize the ReasoningBank memory system."""
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(exist_ok=True)
+        
+        # Initialize Remote Persistence
+        self.persistence = None
+        if os.getenv("HF_TOKEN") and HF_Hub_Available:
+            repo_id = os.getenv("HF_MEMORY_REPO", "VIKAS9793/ai-interviewer-memory")
+            self.persistence = HuggingFacePersistence(repo_id=repo_id)
+            # Sync Down on startup
+            self.persistence.sync_down(self.db_path)
+            
         self._init_database()
         
         # In-memory cache for fast retrieval
@@ -249,6 +359,15 @@ class ReasoningBank:
                 """, (datetime.now().isoformat(), item_id))
                 conn.commit()
     
+    def sync(self):
+        """Force synchronization with remote hub."""
+        if self.persistence:
+            self.persistence.sync_up(self.db_path)
+
+    def save_skill(self, skill: SkillModule):
+        """Save a functional skill module."""
+        self.add_memory(skill.to_memory_item())
+
     # =========================================================================
     # CONSTRUCT: Extract memories from completed interviews
     # =========================================================================
@@ -274,14 +393,6 @@ class ReasoningBank:
         Extract memory items from interview trajectory.
         
         Distills both success strategies and failure lessons.
-        
-        Args:
-            trajectory: Completed interview trajectory
-            
-        Returns:
-            List of extracted MemoryItems
-        
-        Reference: arXiv:2509.25140, Section 3.2 "Memory Construction"
         """
         memories = []
         
@@ -295,6 +406,11 @@ class ReasoningBank:
         # Store all extracted memories
         for memory in memories:
             self.add_memory(memory)
+            
+        # Auto-sync after significant update
+        if self.persistence and memories:
+            logger.info("☁️ Triggering cloud sync for new memories...")
+            self.sync()
         
         logger.info(
             f"💡 Distilled {len(memories)} memories from trajectory "

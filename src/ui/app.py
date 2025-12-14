@@ -4,6 +4,7 @@ from src.ui.components.feedback import create_progress_display
 from src.ui.tabs.interview_tab import create_interview_tab
 from src.ui.tabs.practice_tab import create_practice_tab
 from src.ui.interfaces import InterviewApp
+from src.ui.handlers import InterviewHandlers
 
 def create_interface(app: InterviewApp) -> gr.Blocks:
     """
@@ -146,8 +147,10 @@ def create_interface(app: InterviewApp) -> gr.Blocks:
             elem_classes=["text-center"]
         )
         
+
+
         # ====================================================================
-        # EVENT HANDLERS
+        # EVENT HANDLERS (Adapters)
         # ====================================================================
         
         # Toggle Input Mode
@@ -170,9 +173,13 @@ def create_interface(app: InterviewApp) -> gr.Blocks:
             outputs=[transcription_output]
         )
         
-        # Start Topic Interview
+        # Start Topic Interview Adapter
+        def on_start_interview(topic, name):
+            response = app.start_topic_interview(topic, name)
+            return InterviewHandlers.handle_start_interview(response)
+        
         interview_tab.start_btn.click(
-            fn=app.start_topic_interview,
+            fn=on_start_interview,
             inputs=[interview_tab.topic_dropdown, interview_tab.candidate_name],
             outputs=[
                 interview_display,
@@ -184,9 +191,13 @@ def create_interface(app: InterviewApp) -> gr.Blocks:
             ]
         )
         
-        # Start Practice Interview
+        # Start Practice Interview Adapter
+        def on_start_practice(resume, text, url, name):
+            response = app.start_practice_interview(resume, text, url, name)
+            return InterviewHandlers.handle_practice_start(response)
+
         practice_tab.start_btn.click(
-            fn=app.start_practice_interview,
+            fn=on_start_practice,
             inputs=[
                 practice_tab.resume_upload, 
                 practice_tab.jd_text, 
@@ -203,15 +214,16 @@ def create_interface(app: InterviewApp) -> gr.Blocks:
             ]
         )
         
-        # Submit Answer
-        def submit_answer_handler(mode: str, text: str, transcription: str):
-            if mode == "🎤 Voice":
-                return app.process_answer("", transcription)
-            else:
-                return app.process_answer(text, "")
+        # Submit Answer Adapter
+        def on_submit_answer(mode: str, text: str, transcription: str):
+            final_text = text
+            final_transcription = transcription if mode == "🎤 Voice" else ""
+            
+            response = app.process_answer(final_text, final_transcription)
+            return InterviewHandlers.handle_process_answer(response)
         
         submit_btn.click(
-            fn=submit_answer_handler,
+            fn=on_submit_answer,
             inputs=[input_mode, answer_input, transcription_output],
             outputs=[
                 interview_display,
@@ -225,7 +237,7 @@ def create_interface(app: InterviewApp) -> gr.Blocks:
         
         # Submit on Enter (Text only)
         answer_input.submit(
-            fn=lambda text: app.process_answer(text, ""),
+            fn=lambda text: on_submit_answer("✏️ Text", text, ""),
             inputs=[answer_input],
             outputs=[
                 interview_display,

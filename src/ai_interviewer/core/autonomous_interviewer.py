@@ -362,10 +362,22 @@ class AutonomousInterviewer:
         confidence = 0.5
         
         try:
-           # Call the correct method: generate_human_like_question
            result = self.reasoning_engine.generate_human_like_question(context, question_thought)
            final_question_text = result["question"]
            confidence = result.get("metadata", {}).get("confidence", 0.8)
+           
+           # METACOGNITIVE CHECK: Fairness & Safety
+           if self.reflect_agent:
+               fairness = self.reflect_agent.evaluate_question_fairness(
+                   final_question_text, 
+                   session.topic
+               )
+               if fairness.outcome.value == "failed":
+                   logger.warning(f"⛔ Fairness Check BLOCKED question: {fairness.message}")
+                   final_question_text = f"Let's switch gears. What other aspects of {session.topic} are you familiar with?"
+               elif fairness.outcome.value == "warning":
+                    logger.info(f"⚠️ Fairness Warning: {fairness.message}")
+
         except Exception as e:
            # Fallback with logging
            logger.warning(f"Question generation failed: {e}, using fallback")
@@ -434,6 +446,23 @@ Evaluate the answer and respond with ONLY this JSON:
                     result["strengths"] = ["Attempted to answer the question"]
                 if not result.get("improvements"):
                     result["improvements"] = ["Consider adding more detail"]
+                
+                # METACOGNITIVE CHECK: Scoring Consistency
+                if self.reflect_agent:
+                    try:
+                        scores = session.performance_history
+                        consistency = self.reflect_agent.evaluate_scoring_consistency(
+                            session.current_answer or "", 
+                            raw_score, # Use 1-5 scale for consistency check
+                            result.get("feedback", ""), 
+                            session.topic, 
+                            scores
+                        )
+                        if consistency.outcome.value == "failed":
+                            logger.warning(f"⚠️ Consistency Check FAILED: {consistency.message}")
+                            # Adjust score if needed? For now, just log.
+                    except Exception as re:
+                        logger.warning(f"Consistency check failed: {re}")
                 
                 logger.info(f"✅ Prometheus evaluation: {raw_score}/5 -> {display_score}/10")
                 return result
@@ -684,7 +713,8 @@ Evaluate the answer and respond with ONLY this JSON:
             performance_history=session.performance_history,
             knowledge_gaps=session.knowledge_gaps,
             strengths=session.strengths,
-            candidate_state=session.candidate_state
+            candidate_state=session.candidate_state,
+            company_name=session.metadata.get("company_name")
         )
 
     def _generate_human_greeting(self, session: InterviewSession, thought: ThoughtChain) -> str:

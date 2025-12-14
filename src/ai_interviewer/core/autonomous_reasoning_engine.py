@@ -84,6 +84,7 @@ class InterviewContext:
     conversation_flow: List[Dict[str, Any]] = field(default_factory=list)
     emotional_cues: List[str] = field(default_factory=list)
     time_spent_per_question: List[float] = field(default_factory=list)
+    company_name: Optional[str] = None
 
 
 class AutonomousReasoningEngine:
@@ -218,11 +219,22 @@ class AutonomousReasoningEngine:
                 "timestamp": datetime.now().isoformat()
             })
             
-            # Step 2: Consider Options
-            options = self._generate_options(context, action_type, situation_analysis)
+            # Step 2: Consider Options (Hybrid: Hardcoded + Learned Skills)
+            # Pass retrieved memories to option generation
+            memories = []
+            if self.reasoning_bank:
+                try:
+                    memories = self.reasoning_bank.retrieve(
+                        context=f"{action_type} for {context.topic}",
+                        topic=context.topic
+                    )
+                except Exception:
+                    memories = []
+
+            options = self._generate_options(context, action_type, situation_analysis, memories)
             thought_chain.thoughts.append({
                 "step": "options_generation",
-                "thought": f"Generated {len(options)} possible approaches",
+                "thought": f"Generated {len(options)} possible approaches (including {len(memories)} learned skills)",
                 "options": options,
                 "timestamp": datetime.now().isoformat()
             })
@@ -283,12 +295,15 @@ class AutonomousReasoningEngine:
             return ReasoningMode.ADAPTIVE
     
     def _generate_options(self, context: InterviewContext, action_type: str,
-                         situation: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Generate possible approaches based on situation"""
+                         situation: Dict[str, Any],
+                         learned_skills: List[Any] = None) -> List[Dict[str, Any]]:
+        """
+        Generate possible approaches based on situation + learned skills (Procedural Memory).
+        """
         options = []
         
+        # 1. Base Strategies (Hardcoded Best Practices)
         if action_type == "generate_question":
-            # Different questioning strategies
             options.extend([
                 {
                     "approach": "progressive_challenge",
@@ -330,6 +345,43 @@ class AutonomousReasoningEngine:
                     "suitability": 0.7 if situation["candidate_state"] == "nervous" else 0.4
                 }
             ])
+            
+
+
+        # 1.5 Company-Specific Strategies
+        if context.company_name:
+            cn = context.company_name.lower()
+            if "amazon" in cn:
+                options.append({
+                    "approach": "leadership_principles",
+                    "description": "Probe for Amazon Leadership Principles (Customer Obsession, Ownership, Bias for Action)",
+                    "suitability": 0.9
+                })
+            elif "google" in cn:
+                options.append({
+                    "approach": "gca_check",
+                    "description": "Google Cognitive Ability (GCA) and 'Googliness' check",
+                    "suitability": 0.9
+                })
+            elif "meta" in cn or "facebook" in cn:
+                options.append({
+                    "approach": "move_fast",
+                    "description": "Focus on rapid iteration and impact",
+                    "suitability": 0.9
+                })
+            
+        # 2. Learned Skills (Procedural Memory Injection)
+        if learned_skills:
+            for skill in learned_skills:
+                # Skill title is usually: "Progressive difficulty for Python"
+                # We map it to an option
+                options.append({
+                    "approach": f"learned_skill:{skill.get_id()}",
+                    "description": f"Skill: {skill.title} ({skill.description})",
+                    "suitability": min(0.95, skill.confidence + 0.1), # Boost usage of learned skills
+                    "source": "procedural_memory",
+                    "content": skill.content
+                })
         
         return options
     
@@ -1170,12 +1222,30 @@ Return JSON only:
                 "What strategies do you use for optimizing frontend performance?",
                 "Explain the concept of virtual DOM and reconciliation."
             ],
-            "System Design": [
-                "How would you design a URL shortening service?",
-                "Explain your approach to designing a distributed cache.",
-                "How would you handle millions of concurrent users?",
-                "What are the tradeoffs between SQL and NoSQL databases?",
-                "How do you ensure data consistency in distributed systems?"
+            "System Design & Architecture": [
+                # 1. Fundamentals
+                "Design a RESTful API for a social media feed. How do you handle pagination and partial updates?",
+                "Compare gRPC and REST. When would you choose one over the other for inter-service communication?",
+                "How does a JWT work? What are the security risks if not handled correctly?",
+                
+                # 2. Distributed Data
+                "We need to scale a distributed cache. How does Consistent Hashing help when adding/removing nodes?",
+                "What does it mean for an API to be idempotent? How do you implement it for a payment processing endpoint?",
+                "How can we efficiently check if a username is already taken without hitting the DB every time? (Bloom Filters)",
+                
+                # 3. Architecture Patterns
+                "The team wants to move to microservices. When would you argue to stay with a Modular Monolith?",
+                "How do you handle a distributed transaction across Order, Payment, and Inventory services? (Saga Pattern)",
+                "How do you handle breaking changes in a public API without disrupting existing clients?",
+                
+                # 4. Deep Dives
+                "In a distributed DB, explain the trade-off between Consistency and Availability during a partition (CAP Theorem).",
+                "How would you design a URL shortening service (e.g. TinyURL)? Focus on the database schema and ID generation.",
+                "Explain your approach to designing a Global Leaderboard service handling millions of writes per second.",
+                "What are the tradeoffs between SQL and NoSQL databases for a financial ledger system?",
+                "How do you allow a user to upload a 5GB file reliably over an unstable connection? (Multipart/Resumable)",
+                "Design a Notification System that prevents duplicate sends to the user.",
+                "How do you secure user passwords in a database? Explain Salting and Hashing."
             ],
             "Data Structures & Algorithms": [
                 "Explain the time complexity of common sorting algorithms.",

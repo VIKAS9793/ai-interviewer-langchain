@@ -5,12 +5,7 @@ import gradio as gr
 from typing import Tuple, Optional, Any, Dict
 
 from src.ai_interviewer.utils.config import Config
-from src.ui.components.feedback import (
-    create_progress_display,
-    format_question_display,
-    format_feedback_display,
-    format_final_report
-)
+
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -57,12 +52,25 @@ class InterviewApplication:
     and handles session persistence.
     """
     
+    
     def __init__(self):
         # Initialize Core Logic
-        self.flow_controller = AutonomousFlowController(
-            model_name=Config.DEFAULT_MODEL,
-            temperature=Config.MODEL_TEMPERATURE
-        )
+        if Config.LANGGRAPH_ENABLED:
+            try:
+                from src.ai_interviewer.core.interview_graph import InterviewGraph
+                self.flow_controller = InterviewGraph()
+                logger.info("🔷 Using LangGraph Engine (v3.1)")
+            except ImportError as e:
+                logger.error(f"Failed to load LangGraph: {e}. Falling back to Legacy Controller.")
+                self.flow_controller = AutonomousFlowController(
+                    model_name=Config.DEFAULT_MODEL,
+                    temperature=Config.MODEL_TEMPERATURE
+                )
+        else:
+            self.flow_controller = AutonomousFlowController(
+                model_name=Config.DEFAULT_MODEL,
+                temperature=Config.MODEL_TEMPERATURE
+            )
         
         self.current_session: Optional[Dict[str, Any]] = None
         
@@ -136,19 +144,12 @@ class InterviewApplication:
         self,
         topic: str,
         candidate_name: str
-    ) -> Tuple:
-        """Start topic-based interview"""
+    ) -> Dict[str, Any]:
+        """Start topic-based interview (Returns Data Dict)"""
         
         # Validation
         if not candidate_name or not candidate_name.strip():
-            return (
-                "⚠️ Please enter your name to begin.",
-                create_progress_display(0, 0),
-                "",
-                gr.update(visible=True),  # tabs visible
-                gr.update(interactive=True),   # start enabled
-                gr.update(interactive=True)    # practice enabled
-            )
+            return {"success": False, "message": "Please enter your name to begin."}
         
         try:
             # Start interview
@@ -158,15 +159,7 @@ class InterviewApplication:
             )
             
             if result["status"] != "started":
-                error_msg = result.get('message', 'Failed to start interview')
-                return (
-                    f"❌ **Error:** {error_msg}",
-                    create_progress_display(0, 0),
-                    "",
-                    gr.update(visible=True),
-                    gr.update(interactive=True),
-                    gr.update(interactive=True)
-                )
+                return {"success": False, "message": result.get('message', 'Failed to start interview')}
             
             # Initialize session
             self.current_session = {
@@ -175,39 +168,19 @@ class InterviewApplication:
                 "question_count": 1
             }
             
-            # Format welcome message
-            first_question = result.get("first_question", "Let's begin!")
-            greeting = result.get("greeting", f"Welcome, {candidate_name}!")
-            
-            welcome_msg = f"""
-# 👋 {greeting}
-
-**Topic:** {topic}
-
-{format_question_display(first_question, 1, Config.MAX_QUESTIONS)}
-"""
-            
-            progress = create_progress_display(1, 0)
-            
-            return (
-                welcome_msg,
-                progress,
-                "",  # Clear answer box
-                gr.update(visible=False), # Hide tabs
-                gr.update(interactive=False), # Disable start
-                gr.update(interactive=False)  # Disable practice
-            )
+            return {
+                "success": True,
+                "session_id": result["session_id"],
+                "greeting": result.get("greeting", f"Welcome, {candidate_name}!"),
+                "first_question": result.get("first_question", "Let's begin!"),
+                "question_number": 1,
+                "total_questions": Config.MAX_QUESTIONS,
+                "topic": topic
+            }
             
         except Exception as e:
             logger.error(f"Error starting interview: {e}", exc_info=True)
-            return (
-                f"❌ System Error: {str(e)}",
-                create_progress_display(0, 0),
-                "",
-                gr.update(visible=True),
-                gr.update(interactive=True),
-                gr.update(interactive=True)
-            )
+            return {"success": False, "message": f"System Error: {str(e)}"}
     
     # ========================================================================
     # INTERVIEW FLOW - Practice Mode (Resume-based)
@@ -219,82 +192,40 @@ class InterviewApplication:
         jd_text: str,
         jd_url: str,
         candidate_name: str
-    ) -> Tuple:
-        """Start practice mode with resume analysis"""
+    ) -> Dict[str, Any]:
+        """Start practice mode (Returns Data Dict)"""
         
         # Validation
         if not candidate_name or not candidate_name.strip():
-            return (
-                "⚠️ Please enter your name first.",
-                create_progress_display(0, 0),
-                "",
-                gr.update(visible=True),
-                gr.update(interactive=True),
-                gr.update(interactive=True)
-            )
+            return {"success": False, "message": "Please enter your name first."}
         
         if not resume_file:
-            return (
-                "⚠️ Please upload a resume to start Practice Mode.",
-                create_progress_display(0, 0),
-                "",
-                gr.update(visible=True),
-                gr.update(interactive=True),
-                gr.update(interactive=True)
-            )
+            return {"success": False, "message": "Please upload a resume to start Practice Mode."}
         
         try:
             # Process resume
             if not MODULES_AVAILABLE:
-                return (
-                    "❌ Practice Mode requires full module installation.",
-                    create_progress_display(0, 0),
-                    "",
-                    gr.update(visible=True),
-                    gr.update(interactive=True),
-                    gr.update(interactive=True)
-                )
+                return {"success": False, "message": "Practice Mode requires full module installation."}
             
             # Get file path (Gradio 4.44 uses .name attribute)
             file_path = resume_file.name if hasattr(resume_file, 'name') else resume_file
             
             if not os.path.exists(file_path):
-                return (
-                    f"❌ File not found: {os.path.basename(file_path)}",
-                    create_progress_display(0, 0),
-                    "",
-                    gr.update(visible=True),
-                    gr.update(interactive=True),
-                    gr.update(interactive=True)
-                )
+                return {"success": False, "message": f"File not found: {os.path.basename(file_path)}"}
             
             # Security scan
             with open(file_path, 'rb') as f:
                 is_safe, reason = SecurityScanner.scan_file(f, file_path)
             
             if not is_safe:
-                return (
-                    f"❌ Security Alert: {reason}",
-                    create_progress_display(0, 0),
-                    "",
-                    gr.update(visible=True),
-                    gr.update(interactive=True),
-                    gr.update(interactive=True)
-                )
+                return {"success": False, "message": f"Security Alert: {reason}"}
             
             # Parse resume
             with open(file_path, 'rb') as f:
                 resume_text = ResumeParser.extract_text(f, file_path)
             
             if not resume_text:
-                return (
-                    "❌ Could not extract text from resume. Please try a different format.",
-                    create_progress_display(0, 0),
-                    "",
-                    gr.update(visible=True),
-                    gr.update(interactive=True),
-                    gr.update(interactive=True)
-                )
+                return {"success": False, "message": "Could not extract text from resume."}
             
             # Build context
             custom_context = {"resume_text": resume_text}
@@ -375,14 +306,7 @@ class InterviewApplication:
             )
             
             if result['status'] != 'started':
-                return (
-                    f"❌ Error: {result.get('message')}",
-                    create_progress_display(0, 0),
-                    "",
-                    gr.update(visible=True),
-                    gr.update(interactive=True),
-                    gr.update(interactive=True)
-                )
+                return {"success": False, "message": result.get("message")}
             
             # Initialize session
             self.current_session = {
@@ -394,48 +318,21 @@ class InterviewApplication:
                 "mode": "practice"
             }
             
-            # Format welcome
-            skills = ', '.join(analysis.get('found_skills', [])[:5])
-            
-            welcome_msg = f"""
-# 🎯 Practice Session Started
-
-**Target Role:** {topic}  
-**Experience Level:** {experience_level}  
-**Detected Skills:** {skills}
-
----
-
-{result.get('greeting', 'Welcome!')}
-
-{format_question_display(result.get('first_question', ''), 1, Config.MAX_QUESTIONS)}
-
----
-
-> ℹ️ **Note:** This is a simulated interview based on your resume and the job description.
-"""
-            
-            progress = create_progress_display(1, 0)
-            
-            return (
-                welcome_msg,
-                progress,
-                "",
-                gr.update(visible=False), # Hide tabs
-                gr.update(interactive=False), # Disable start
-                gr.update(interactive=False)  # Disable practice
-            )
+            return {
+                "success": True,
+                "session_id": result['session_id'],
+                "greeting": result.get("greeting", "Welcome!"),
+                "first_question": result.get("first_question", ""),
+                "question_number": 1,
+                "total_questions": Config.MAX_QUESTIONS,
+                "topic": topic,
+                "experience_level": experience_level,
+                "detected_skills": analysis.get('found_skills', [])
+            }
             
         except Exception as e:
             logger.error(f"Practice mode error: {e}", exc_info=True)
-            return (
-                f"❌ System Error: {str(e)}",
-                create_progress_display(0, 0),
-                "",
-                gr.update(visible=True),
-                gr.update(interactive=True),
-                gr.update(interactive=True)
-            )
+            return {"success": False, "message": f"System Error: {str(e)}"}
     
     # ========================================================================
     # ANSWER PROCESSING
@@ -445,35 +342,27 @@ class InterviewApplication:
         self,
         answer_text: str,
         transcription_text: str = ""
-    ) -> Tuple:
-        """Process candidate's answer (from either text or voice)"""
+    ) -> Dict[str, Any]:
+        """Process answer (Returns Data Dict)"""
         
         # Check session
         if not self.current_session:
-            return (
-                "❌ No active session. Please start an interview first.",
-                create_progress_display(0, 0),
-                "",
-                gr.update(visible=True),
-                gr.update(interactive=True),
-                gr.update(interactive=True)
-            )
+            return {"success": False, "message": "No active session."}
         
-        # Use transcription if provided, otherwise text input
+        # Use transcription if provided
         final_answer = transcription_text if transcription_text else answer_text
         
         # Validate input
         if not final_answer or not final_answer.strip():
-            elapsed = int(time.time() - self.current_session["start_time"])
-            q_num = self.current_session["question_count"]
-            return (
-                "⚠️ Please provide an answer before submitting.",
-                create_progress_display(q_num, elapsed),
-                final_answer,  # Keep existing text
-                gr.update(visible=False),
-                gr.update(interactive=True), # Keep enabled to retry
-                gr.update(interactive=False) # Practice disabled
-            )
+            return {
+                "success": False, 
+                "message": "Please provide an answer.",
+                "current_data": {
+                    "answer": final_answer,
+                    "elapsed": int(time.time() - self.current_session["start_time"]),
+                    "question_number": self.current_session["question_count"]
+                }
+            }
         
         try:
             # Process with AI
@@ -488,66 +377,36 @@ class InterviewApplication:
             if result["status"] == "continue":
                 self.current_session["question_count"] = result.get("question_number", 2)
                 
-                evaluation = result.get("evaluation", {})
-                feedback = result.get("feedback", "")
-                next_question = result.get("next_question", "")
-                reasoning = result.get("reasoning", {})
-                q_num = result.get("question_number", 2)
-                
-                display = format_feedback_display(
-                    evaluation.get("score", 5),
-                    feedback,
-                    next_question,
-                    q_num,
-                    reasoning
-                )
-                
-                progress = create_progress_display(q_num, elapsed)
-                
-                return (
-                    display,
-                    progress,
-                    "",  # Clear answer
-                    gr.update(visible=False),
-                    gr.update(interactive=True), # Enable for next question
-                    gr.update(interactive=False)
-                )
+                return {
+                    "success": True,
+                    "status": "continue",
+                    "evaluation": result.get("evaluation", {}),
+                    "feedback": result.get("feedback", ""),
+                    "next_question": result.get("next_question", ""),
+                    "reasoning": result.get("reasoning", {}),
+                    "question_number": result.get("question_number", 2),
+                    "elapsed": elapsed
+                }
             
             # Handle completion
             elif result["status"] == "completed":
                 summary = result.get("summary", {})
-                
-                display = format_final_report(summary, elapsed)
-                progress = create_progress_display(Config.MAX_QUESTIONS, elapsed)
-                
                 self.current_session = None
                 
-                return (
-                    display,
-                    progress,
-                    "",
-                    gr.update(visible=True),
-                    gr.update(interactive=True),
-                    gr.update(interactive=True)
-                )
+                return {
+                    "success": True,
+                    "status": "completed",
+                    "summary": summary,
+                    "elapsed": elapsed
+                }
             
             else:
-                return (
-                    f"❌ Error: {result.get('message', 'Unexpected error')}",
-                    create_progress_display(0, elapsed),
-                    final_answer,
-                    gr.update(visible=False),
-                    gr.update(interactive=True), # Enable to retry
-                    gr.update(interactive=False)
-                )
+                 return {
+                    "success": False, 
+                    "message": result.get('message', 'Unexpected error'),
+                    "current_data": {"answer": final_answer, "elapsed": elapsed}
+                }
                 
         except Exception as e:
             logger.error(f"Error processing answer: {e}", exc_info=True)
-            return (
-                f"❌ System Error: {str(e)}",
-                create_progress_display(0, 0),
-                final_answer,
-                gr.update(visible=True), # Recover
-                gr.update(interactive=True),
-                gr.update(interactive=True)
-            )
+            return {"success": False, "message": f"System Error: {str(e)}"}

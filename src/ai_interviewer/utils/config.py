@@ -71,6 +71,9 @@ class Config:
     VOICE_MAX_TRANSCRIPT_LENGTH = 2000  # Security: Max characters
     VOICE_RATE_LIMIT_MS = 3000  # Anti-DoS: Minimum time between recordings
     
+    # Feature Flags
+    LANGGRAPH_ENABLED = True  # v3.1: Use LangGraph engine
+    
     @classmethod
     def get_topic_mapping(cls) -> Dict[str, str]:
         """Get mapping from display names to internal names"""
