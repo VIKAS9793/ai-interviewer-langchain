@@ -1,7 +1,7 @@
 # 🛠️ Setup & Installation Guide
 
-> **Last Updated:** 2025-12-12
-> **Version:** 3.0.1 (Hotfix Release)
+> **Last Updated:** 2025-12-14
+> **Version:** 3.2.0 (Modular UI Release)
 
 ## 📋 Prerequisites
 

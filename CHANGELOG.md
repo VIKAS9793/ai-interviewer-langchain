@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v3.2.0] - 2025-12-14 (Modular UI & Company Intelligence)
+
+### 🏢 Company Intelligence
+- **Strategy Injection:** Customized evaluation for Amazon (Leadership Principles), Google (GCA), and Meta (Move Fast).
+- **Context Awareness:** JD analysis now triggers specific questioning strategies.
+
+### 🏗️ Architecture Modularization
+- **UI Refactoring:** Decoupled `controller.py` from Gradio dependencies.
+- **Clean Architecture:** Moved all UI logic to `src/ui/`.
+- **Adapter Pattern:** Implemented `InterviewHandlers` to bridge Core and UI.
+- **Micro-Components:** Refactored `feedback.py`, `inputs.py`, and `tabs/` modules.
+
+---
+
 ## [v3.1.0] - 2025-12-12 (LangGraph + Intelligence Layer)
 
 ### 🔷 LangGraph Integration

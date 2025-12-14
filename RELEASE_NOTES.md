@@ -1,3 +1,27 @@
+# 🚀 AI Interviewer v3.2.0: Modular Architecture
+
+**Release Date:** December 14, 2025  
+**Tag:** `v3.2.0`  
+**Focus:** Clean Architecture, Modular UI, and Company Intelligence.
+
+---
+
+## 🌟 Major Highlights
+
+### 1. Modular UI Architecture (Clean Architecture)
+We have successfully decoupled the Presentation Layer (`src/ui/`) from the Business Logic (`controller.py`).
+*   **Decoupled Logic:** The Controller now returns pure data dictionaries, making it testable without a browser.
+*   **Adapter Pattern:** `InterviewHandlers` acts as the bridge, converting raw data into Gradio UI updates.
+*   **Scalability:** New features can be added to the UI without risking the core intelligence engine.
+
+### 2. Company-Specific Intelligence
+The system can now adapt its questioning strategy based on the detected target company.
+*   **Amazon:** Focuses on "Leadership Principles" (Customer Obsession, Ownership).
+*   **Google:** Focuses on "Googleyness" and General Cognitive Ability (GCA).
+*   **Dynamic Injection:** Strategies are injected into the reasoning engine at runtime based on JD parsing.
+
+---
+
 # 🚀 AI Interviewer v3.0.0: The Cognitive Upgrade
 
 **Release Date:** December 12, 2025  

@@ -16,11 +16,12 @@ An **Autonomous AI Technical Interviewer** with human-like capabilities, deploye
 
 ```mermaid
 flowchart TD
-    User([User]) <--> UI[Gradio UI]
-    UI <--> Main[App Controller (Main)]
+    User([User]) <--> View[Gradio UI (src/ui)]
+    View <--> Handler[InterviewHandlers]
+    Handler <--> Ctrl[Controller (Logic)]
     
     subgraph "Core Engine (Orchestrator)"
-        AutoInt[AutonomousInterviewer]
+        Ctrl --> AutoInt[AutonomousInterviewer]
     end
     
     subgraph "State Layer"
@@ -38,7 +39,6 @@ flowchart TD
         Learn <--> RB[(Reasoning Bank)]
     end
     
-    Main --> AutoInt
     AutoInt --> SM
     
     AutoInt -- "Context" --> RAG
