@@ -542,8 +542,16 @@ Evaluate the answer and respond with ONLY this JSON:
         if has_explanation:
             base_score += 1
         
-        # Topic relevance bonus (0-1 points)
-        base_score += topic_relevance
+        # Topic relevance bonus (0-2 points) - High reward for relevance
+        if topic_relevance > 0.4:
+            base_score += 2
+        elif topic_relevance > 0.2:
+            base_score += 1
+            
+        # DENSITY BONUS: High relevance + low word count = precise answer (not penalty)
+        if topic_relevance > 0.5 and word_count < 30:
+            base_score += 2
+            strengths.append("Concise and precise")
         
         # Clamp score
         score = int(max(1, min(10, base_score)))
@@ -714,7 +722,10 @@ Evaluate the answer and respond with ONLY this JSON:
             knowledge_gaps=session.knowledge_gaps,
             strengths=session.strengths,
             candidate_state=session.candidate_state,
-            company_name=session.metadata.get("company_name")
+            candidate_state=session.candidate_state,
+            company_name=session.metadata.get("company_name"),
+            # INJECT HISTORY: Pass previous questions to context to prevent repetition
+            previous_questions=[q["question"] for q in session.qa_pairs]
         )
 
     def _generate_human_greeting(self, session: InterviewSession, thought: ThoughtChain) -> str:

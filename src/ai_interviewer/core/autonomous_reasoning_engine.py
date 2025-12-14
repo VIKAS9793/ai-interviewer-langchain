@@ -84,7 +84,9 @@ class InterviewContext:
     conversation_flow: List[Dict[str, Any]] = field(default_factory=list)
     emotional_cues: List[str] = field(default_factory=list)
     time_spent_per_question: List[float] = field(default_factory=list)
+    time_spent_per_question: List[float] = field(default_factory=list)
     company_name: Optional[str] = None
+    previous_questions: List[str] = field(default_factory=list)
 
 
 class AutonomousReasoningEngine:
@@ -678,7 +680,8 @@ Return JSON only:
         question = self.get_progressive_question(
             context.topic, 
             context.question_number + 1,  # Next question number
-            approach
+            approach,
+            context.previous_questions # Pass history to filtering logic
         )
         
         # Determine difficulty based on performance
@@ -725,6 +728,33 @@ Return JSON only:
         
         import random
         return random.choice(acknowledgments[category])
+    
+    def get_progressive_question(self, topic: str, question_number: int, approach: str, previous_questions: List[str] = None) -> str:
+        """Generate progressive question using LLM"""
+        # ... logic ...
+        prompt = f"""[INST] You are an expert technical interviewer.
+Generate a unique, challenging interview question about {topic}.
+
+Phase: Question {question_number} of {Config.MAX_QUESTIONS}
+Strategy: {approach}
+
+CONSTRAINTS:
+1. Do NOT ask: "Tell me about yourself" (already done)
+2. Do NOT ask: {previous_questions if previous_questions else "[]"}
+3. Be specific and technical.
+
+Return ONLY the question text.
+[/INST]"""
+                
+        try:
+             llm = self._get_llm()
+             if llm:
+                 return llm.invoke(prompt).strip().replace('"', '')
+        except Exception:
+             pass
+             
+        # Fallback to templates if LLM fails
+        return f"Describe a challenging situation involving {topic}."
     
     def _generate_natural_transition(self, context: InterviewContext) -> str:
         """Generate natural transition to next question"""
