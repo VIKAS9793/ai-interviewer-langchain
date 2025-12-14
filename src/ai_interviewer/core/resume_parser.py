@@ -5,12 +5,12 @@ import io
 
 # Optional imports with graceful fallback
 try:
-    from pypdf import PdfReader
+    from pypdf import PdfReader  # pyright: ignore[reportMissingImports]
 except ImportError:
     PdfReader = None
 
 try:
-    from docx import Document
+    from docx import Document  # pyright: ignore[reportMissingImports]
 except ImportError:
     Document = None
 
@@ -48,7 +48,11 @@ class ResumeParser:
                 if Document is None:
                     logger.error("python-docx not installed")
                     return None
-                doc = Document(file_obj)
+                # Type narrowing: Document is not None after the check above
+                # Use cast to help mypy understand the type
+                from typing import cast, Any, Callable
+                doc_func = cast(Callable[[Any], Any], Document)
+                doc = doc_func(file_obj)
                 for para in doc.paragraphs:
                     text += para.text + "\n"
             

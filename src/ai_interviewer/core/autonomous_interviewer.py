@@ -22,7 +22,7 @@ from ..utils.config import Config
 from .session_manager import SessionManager, InterviewSession, InterviewPhase, CandidateState
 
 import os
-from langchain_huggingface import HuggingFaceEndpoint
+from langchain_huggingface import HuggingFaceEndpoint  # pyright: ignore[reportMissingImports]
 from langchain_core.prompts import PromptTemplate
 
 from .autonomous_reasoning_engine import (
@@ -140,6 +140,7 @@ class AutonomousInterviewer:
             try:
                 self._llm = HuggingFaceEndpoint(
                     repo_id=self.model_name,
+                    model=self.model_name,  # Some versions require both repo_id and model
                     task="text-generation",
                     max_new_tokens=512,
                     do_sample=True,

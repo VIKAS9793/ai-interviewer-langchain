@@ -25,7 +25,7 @@ import threading
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 
 import os
-from langchain_huggingface import HuggingFaceEndpoint
+from langchain_huggingface import HuggingFaceEndpoint  # pyright: ignore[reportMissingImports]
 from langchain_core.prompts import PromptTemplate
 
 
@@ -35,11 +35,12 @@ from ..modules.critic_service import ReflectAgent
 
 # Pydantic for structured output (Architecture Audit P1)
 try:
-    from pydantic import BaseModel, Field
+    from pydantic import BaseModel, Field, SecretStr
     PYDANTIC_AVAILABLE = True
 except ImportError:
     PYDANTIC_AVAILABLE = False
     BaseModel = None  # type: ignore[assignment, misc]
+    SecretStr = None  # type: ignore[assignment, misc]
 
 logger = logging.getLogger(__name__)
 
@@ -174,10 +175,16 @@ class AutonomousReasoningEngine:
                     openai_key = os.environ.get("OPENAI_API_KEY")
                     if openai_key:
                         from langchain_openai import ChatOpenAI  # pyright: ignore[reportMissingImports]
+                        # Convert str to SecretStr for type safety
+                        api_key_secret: Any
+                        if PYDANTIC_AVAILABLE and SecretStr is not None:
+                            api_key_secret = SecretStr(openai_key)
+                        else:
+                            api_key_secret = openai_key
                         self._llm = ChatOpenAI(
                             model=Config.OPENAI_MODEL,
                             temperature=Config.OPENAI_TEMPERATURE,
-                            api_key=openai_key
+                            api_key=api_key_secret
                         )
                         self._current_model = f"openai/{Config.OPENAI_MODEL}"
                         logger.info(f"✅ Connected to OpenAI: {Config.OPENAI_MODEL}")
@@ -200,6 +207,7 @@ class AutonomousReasoningEngine:
                     logger.info(f"🔄 Attempting to connect to: {model_id}")
                     llm = HuggingFaceEndpoint(
                         repo_id=model_id,
+                        model=model_id,  # Some versions require both repo_id and model
                         task="text-generation",
                         max_new_tokens=512,
                         top_k=50,

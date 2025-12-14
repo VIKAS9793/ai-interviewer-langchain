@@ -6,9 +6,9 @@ Wrapper for ChromaDB and SentenceTransformers
 import logging
 import os
 from typing import List, Dict, Any, Optional
-import chromadb
-from chromadb.config import Settings
-from sentence_transformers import SentenceTransformer
+import chromadb  # pyright: ignore[reportMissingImports]
+from chromadb.config import Settings  # pyright: ignore[reportMissingImports]
+from sentence_transformers import SentenceTransformer  # pyright: ignore[reportMissingImports]
 
 logger = logging.getLogger(__name__)
 
@@ -70,10 +70,14 @@ class KnowledgeStore:
             # Convert our Dict[str, Any] to the expected format
             chroma_metadatas = None
             if metadatas is not None:
-                chroma_metadatas = [
-                    {k: v for k, v in md.items() if isinstance(v, (str, int, float, bool))}
-                    for md in metadatas
-                ]
+                from typing import cast, List, Mapping
+                chroma_metadatas = cast(
+                    List[Mapping[str, str | int | float | bool]],
+                    [
+                        {k: v for k, v in md.items() if isinstance(v, (str, int, float, bool))}
+                        for md in metadatas
+                    ]
+                )
             self.collection.add(
                 documents=texts,
                 metadatas=chroma_metadatas,
