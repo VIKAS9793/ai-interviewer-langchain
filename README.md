@@ -128,9 +128,9 @@ license: mit
 
 ```mermaid
 flowchart TD
-    User([User]) <--> View[Gradio UI (src/ui)]
+    User([User]) <--> View["Gradio UI (src/ui)"]
     View <--> Handler[InterviewHandlers]
-    Handler <--> Ctrl[Controller (Logic)]
+    Handler <--> Ctrl["Controller (Logic)"]
     
     subgraph "Core Engine (Orchestrator)"
         Ctrl --> AutoInt[AutonomousInterviewer]
