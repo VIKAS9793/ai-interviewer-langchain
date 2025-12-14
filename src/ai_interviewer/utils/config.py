@@ -21,6 +21,17 @@ class Config:
     MAX_NEW_TOKENS = 512
     MODEL_RETRY_DELAY = 2  # Seconds between model switch attempts
     
+    # OpenAI Settings (Hybrid A+B: Native structured output)
+    OPENAI_MODEL = "gpt-4o-mini"  # Cost-effective with structured output support
+    OPENAI_TEMPERATURE = 0.3
+    
+    # LLM Provider Priority (controls which provider to try first)
+    # Options: "openai", "huggingface", "hybrid"
+    # - "openai": Use OpenAI for all LLM calls (requires OPENAI_API_KEY)
+    # - "huggingface": Use HuggingFace only (free, uses HF_TOKEN)
+    # - "hybrid": Try OpenAI first for structured output, fallback to HF
+    LLM_PROVIDER = os.getenv("LLM_PROVIDER", "hybrid")
+    
     # Interview Settings
     MAX_QUESTIONS = 5
     DEFAULT_TOPIC = "JavaScript/Frontend Development"

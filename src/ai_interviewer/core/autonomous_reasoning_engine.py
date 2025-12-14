@@ -157,12 +157,42 @@ class AutonomousReasoningEngine:
         # Initialize with lazy loading
         logger.info("🧠 Autonomous Reasoning Engine initialized")
     
-    def _get_llm(self) -> HuggingFaceEndpoint:
-        """Lazy load Cloud LLM with intelligent fallback chain"""
+    def _get_llm(self):
+        """
+        Lazy load LLM with hybrid provider support (Arch Audit A+B).
+        Priority based on Config.LLM_PROVIDER:
+        - "openai": Use OpenAI only
+        - "huggingface": Use HuggingFace only
+        - "hybrid": Try OpenAI first for structured output, fallback to HF
+        """
         if self._llm is None:
+            provider = Config.LLM_PROVIDER
+            
+            # Try OpenAI first if hybrid or openai mode
+            if provider in ("openai", "hybrid"):
+                try:
+                    openai_key = os.environ.get("OPENAI_API_KEY")
+                    if openai_key:
+                        from langchain_openai import ChatOpenAI
+                        self._llm = ChatOpenAI(
+                            model=Config.OPENAI_MODEL,
+                            temperature=Config.OPENAI_TEMPERATURE,
+                            api_key=openai_key
+                        )
+                        self._current_model = f"openai/{Config.OPENAI_MODEL}"
+                        logger.info(f"✅ Connected to OpenAI: {Config.OPENAI_MODEL}")
+                        return self._llm
+                    elif provider == "openai":
+                        logger.warning("⚠️ OPENAI_API_KEY not found but LLM_PROVIDER=openai")
+                except Exception as e:
+                    logger.warning(f"⚠️ OpenAI connection failed: {e}")
+                    if provider == "openai":
+                        raise  # Don't fallback if explicitly set to openai
+            
+            # Fallback to HuggingFace
             token = os.environ.get("HF_TOKEN")
             if not token:
-                logger.warning("⚠️ HF_TOKEN not found! Falling back to public endpoints (may be rate limited).")
+                logger.warning("⚠️ HF_TOKEN not found! Falling back to public endpoints.")
             
             # Try each model in the fallback chain
             for model_id in Config.MODEL_FALLBACK_CHAIN:
