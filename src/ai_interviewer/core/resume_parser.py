@@ -14,7 +14,7 @@ try:
     DOCX_AVAILABLE = True
 except ImportError:
     DOCX_AVAILABLE = False
-    Document = None
+    # Don't assign None to Document - use DOCX_AVAILABLE flag instead
 
 try:
     import bleach  # type: ignore[import-untyped]

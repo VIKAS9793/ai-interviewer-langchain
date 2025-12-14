@@ -1,5 +1,5 @@
 import gradio as gr
-from typing import Dict, Any
+from typing import Dict, Any, cast
 from src.ui.styles.theme import create_theme, MINIMAL_CSS
 from src.ui.components.feedback import create_progress_display
 from src.ui.tabs.interview_tab import create_interview_tab
@@ -261,4 +261,4 @@ def create_interface(app: InterviewApp) -> gr.Blocks:
             outputs=[answer_input, audio_input, transcription_output]
         )
     
-    return interface  # type: ignore[no-any-return]
+    return cast(gr.Blocks, interface)
