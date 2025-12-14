@@ -19,6 +19,7 @@ from datetime import datetime
 
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
+from langgraph.checkpoint.memory import MemorySaver  # P2: Session persistence
 
 from .autonomous_interviewer import AutonomousInterviewer
 from .session_manager import SessionManager
@@ -93,13 +94,18 @@ class InterviewGraph:
         self._graph = None
         self._compiled_graph = None
         self._active_states: Dict[str, InterviewState] = {}  # Persistence for wiring
-        logger.info("🔷 LangGraph Interview Engine initialized")
+        
+        # P2: Checkpointing for session persistence
+        self.memory = MemorySaver()
+        logger.info("🔷 LangGraph Interview Engine initialized with checkpointing")
     
     @property
     def graph(self):
-        """Lazy load compiled graph."""
+        """Lazy load compiled graph with checkpointer."""
         if self._compiled_graph is None:
-            self._compiled_graph = self._build_graph()
+            graph = self._build_graph()
+            # Compile with checkpointer for session persistence
+            self._compiled_graph = graph.compile(checkpointer=self.memory)
         return self._compiled_graph
     
     def analyze_resume(self, text: str) -> dict:
