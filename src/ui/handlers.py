@@ -74,12 +74,20 @@ class InterviewHandlers:
             
         topic = response.get("topic", "Practice")
         experience = response.get("experience_level", "Mid")
-        skills = ", ".join(response.get("detected_skills", [])[:5])
+        skills_list = response.get("detected_skills", [])
+        skills = ", ".join(skills_list[:5]) if skills_list else "Not detected"
+        job_title = response.get("job_title", topic)
+        company = response.get("company_name")
+        
+        # Build role line with company if available
+        role_line = f"**Target Role:** {job_title}"
+        if company:
+            role_line += f" @ {company}"
         
         welcome_msg = f"""
 # 🎯 Practice Session Started
 
-**Target Role:** {topic}  
+{role_line}  
 **Experience Level:** {experience}  
 **Detected Skills:** {skills}
 
@@ -91,7 +99,7 @@ class InterviewHandlers:
 
 ---
 
-> ℹ️ **Note:** This is a simulated interview based on your resume.
+> ℹ️ **Tip:** Take your time to think through your answer. Quality over speed!
 """
         
         progress = create_progress_display(1, 0)

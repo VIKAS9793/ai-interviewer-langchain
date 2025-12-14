@@ -257,7 +257,12 @@ class AutonomousInterviewer:
             "feedback": self._generate_human_feedback(session, evaluation),
             "next_question": next_question_result["question"],
             "question_number": session.question_number,  # Fixed: Return updated question number
-            "phase": session.phase.value
+            "phase": session.phase.value,
+            "reasoning": {
+                "confidence": next_question_result.get("confidence", 0.7),
+                "question_approach": next_question_result.get("approach", "adaptive"),
+                "candidate_state": session.candidate_state.value
+            }
         }
 
     def _complete_interview(self, session: InterviewSession) -> Dict[str, Any]:
