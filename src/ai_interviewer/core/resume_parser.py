@@ -11,7 +11,9 @@ except ImportError:
 
 try:
     from docx import Document  # pyright: ignore[reportMissingImports]
+    DOCX_AVAILABLE = True
 except ImportError:
+    DOCX_AVAILABLE = False
     Document = None
 
 try:
@@ -45,14 +47,12 @@ class ResumeParser:
                     text += page.extract_text() + "\n"
                     
             elif filename.endswith('.docx'):
-                if Document is None:
+                if not DOCX_AVAILABLE:
                     logger.error("python-docx not installed")
                     return None
-                # Type narrowing: Document is not None after the check above
-                # Use cast to help mypy understand the type
-                from typing import cast, Any, Callable
-                doc_func = cast(Callable[[Any], Any], Document)
-                doc = doc_func(file_obj)
+                # Re-import Document to get the actual class (type narrowing)
+                from docx import Document  # pyright: ignore[reportMissingImports]
+                doc = Document(file_obj)
                 for para in doc.paragraphs:
                     text += para.text + "\n"
             

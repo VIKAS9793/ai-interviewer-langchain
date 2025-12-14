@@ -81,7 +81,7 @@ class AutonomousInterviewer:
         self.reasoning_engine = AutonomousReasoningEngine(model_name)
         # REFACTOR: Using SessionManager service
         self.session_manager = SessionManager()
-        self._llm = None
+        self._llm: Optional[Any] = None
         
         # Interview personality traits
         self.personality = {
