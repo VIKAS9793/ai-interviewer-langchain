@@ -654,15 +654,8 @@ Evaluate the answer and respond with ONLY this JSON:
         if not improvements:
             improvements.append("Consider edge cases in your solution")
         
-        # Generate contextual feedback
-        if score >= 8:
-            feedback = f"Strong answer! You covered key aspects of {topic} effectively."
-        elif score >= 6:
-            feedback = f"Good foundation. Your understanding of {topic} is solid, but could go deeper."
-        elif score >= 4:
-            feedback = "Adequate response. Try to be more specific and provide concrete examples."
-        else:
-            feedback = "Consider reviewing the core concepts and try to structure your answer more clearly."
+        # Generate contextual feedback using LLM if available
+        feedback = self._generate_llm_feedback(topic, score, strengths, improvements)
         
         return {
             "score": score,
@@ -677,6 +670,37 @@ Evaluate the answer and respond with ONLY this JSON:
                 "keyword_matches": keyword_matches
             }
         }
+    
+    def _generate_llm_feedback(self, topic: str, score: int, strengths: list, improvements: list) -> str:
+        """Generate personalized feedback using LLM instead of templates."""
+        try:
+            llm = self.reasoning_engine._get_llm()
+            if llm:
+                prompt = f"""[INST] Generate a brief, personalized feedback for an interview answer.
+Topic: {topic}
+Score: {score}/10
+Strengths: {', '.join(strengths[:2])}
+Areas to improve: {', '.join(improvements[:2])}
+
+Write 1-2 sentences of constructive feedback. Be specific, not generic.
+[/INST]"""
+                response = llm.invoke(prompt)
+                # Clean response
+                feedback = response.strip()
+                if len(feedback) > 20 and len(feedback) < 200:  # Sanity check
+                    return feedback
+        except Exception as e:
+            logger.warning(f"LLM feedback generation failed: {e}")
+        
+        # Fallback to score-based template (but with topic specificity)
+        if score >= 8:
+            return f"Excellent response! Your {topic} knowledge shows depth and practical understanding."
+        elif score >= 6:
+            return f"Good foundation in {topic}. Adding specific examples would strengthen your answer."
+        elif score >= 4:
+            return f"You've covered the basics of {topic}. Try explaining the 'why' behind your approach."
+        else:
+            return f"Consider structuring your {topic} answer more clearly with concrete examples."
 
     def _update_candidate_state(self, session: InterviewSession, evaluation: Dict[str, Any]):
         """

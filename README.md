@@ -102,10 +102,22 @@ license: mit
 - XSS prevention
 
 </td>
-</tr>
 </table>
 
 ---
+
+## ⚠️ Current Limitations (Please Read)
+
+> **This is an AI practice tool, not a replacement for real interviews.**
+
+| What Works Well | What May Vary |
+|-----------------|---------------|
+| ✅ Detects common skills (Python, React, AWS, etc.) | ⚠️ May miss niche or proprietary technologies |
+| ✅ Generates adaptive questions | ⚠️ Questions may occasionally repeat |
+| ✅ Provides score-based feedback | ⚠️ Feedback is AI-generated, not human-reviewed |
+| ✅ Works with most resumes (PDF/DOCX) | ⚠️ Complex resume layouts may not parse correctly |
+
+**Best Experience:** For personalized feedback, set `OPENAI_API_KEY` in your environment. Without it, the system uses free models with keyword-based skill detection.
 
 ---
 

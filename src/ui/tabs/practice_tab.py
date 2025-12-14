@@ -27,7 +27,7 @@ def create_practice_tab() -> PracticeTabComponents:
         
         gr.Markdown(
             """
-            > **⚠️ Limitation Note:** Practice Mode is currently experimental. The AI may not evaluate complex technical answers thoroughly even if precise answers are provided. This mode is intended for practicing flow and question familiarity.
+            > **📋 What to Expect:** This AI practice tool detects common skills (Python, React, AWS, etc.) and generates adaptive questions based on your resume. Feedback is AI-generated and may vary. For best results, provide detailed answers with examples. Works best with standard resume formats.
             """
         )
         
