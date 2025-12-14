@@ -11,9 +11,10 @@ try:
     from ..utils.config import Config
 except ImportError:
     # Fallback for testing
-    class Config:
+    class _FallbackConfig:
         SESSION_EXPIRATION_SECONDS = 3600
         SESSION_CLEANUP_INTERVAL_SECONDS = 300
+    Config = _FallbackConfig  # type: ignore[assignment]
 
 logger = logging.getLogger(__name__)
 

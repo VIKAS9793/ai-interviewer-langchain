@@ -127,49 +127,51 @@ class Config:
     @classmethod
     def validate_config(cls) -> Dict[str, Any]:
         """Validate all configuration settings"""
-        validation_results = {
-            "valid": True,
-            "errors": [],
-            "warnings": []
-        }
+        errors: List[str] = []
+        warnings: List[str] = []
+        is_valid = True
         
         # Validate LLM settings (HuggingFace Cloud)
         if not cls.DEFAULT_MODEL or not isinstance(cls.DEFAULT_MODEL, str):
-            validation_results["errors"].append("DEFAULT_MODEL must be a non-empty string")
-            validation_results["valid"] = False
+            errors.append("DEFAULT_MODEL must be a non-empty string")
+            is_valid = False
         
         if not isinstance(cls.MODEL_TEMPERATURE, (int, float)) or not (0.0 <= cls.MODEL_TEMPERATURE <= 2.0):
-            validation_results["errors"].append("MODEL_TEMPERATURE must be a number between 0.0 and 2.0")
-            validation_results["valid"] = False
+            errors.append("MODEL_TEMPERATURE must be a number between 0.0 and 2.0")
+            is_valid = False
         
         # Validate interview settings
         if not isinstance(cls.MAX_QUESTIONS, int) or cls.MAX_QUESTIONS <= 0:
-            validation_results["errors"].append("MAX_QUESTIONS must be a positive integer")
-            validation_results["valid"] = False
+            errors.append("MAX_QUESTIONS must be a positive integer")
+            is_valid = False
         
         if cls.MAX_QUESTIONS > 10:
-            validation_results["warnings"].append("MAX_QUESTIONS is quite high, consider reducing for better user experience")
+            warnings.append("MAX_QUESTIONS is quite high, consider reducing for better user experience")
         
         # Validate topics
         if not cls.AVAILABLE_TOPICS or not isinstance(cls.AVAILABLE_TOPICS, list):
-            validation_results["errors"].append("AVAILABLE_TOPICS must be a non-empty list")
-            validation_results["valid"] = False
+            errors.append("AVAILABLE_TOPICS must be a non-empty list")
+            is_valid = False
         
         # Validate evaluation weights
         if not cls.EVALUATION_WEIGHTS or not isinstance(cls.EVALUATION_WEIGHTS, dict):
-            validation_results["errors"].append("EVALUATION_WEIGHTS must be a dictionary")
-            validation_results["valid"] = False
+            errors.append("EVALUATION_WEIGHTS must be a dictionary")
+            is_valid = False
         else:
             total_weight = sum(cls.EVALUATION_WEIGHTS.values())
             if abs(total_weight - 1.0) > 0.01:  # Allow small floating point errors
-                validation_results["warnings"].append(f"EVALUATION_WEIGHTS sum to {total_weight:.3f}, should sum to 1.0")
+                warnings.append(f"EVALUATION_WEIGHTS sum to {total_weight:.3f}, should sum to 1.0")
         
         # Validate Gradio settings
         if not isinstance(cls.GRADIO_SERVER_PORT, int) or not (1024 <= cls.GRADIO_SERVER_PORT <= 65535):
-            validation_results["errors"].append("GRADIO_SERVER_PORT must be an integer between 1024 and 65535")
-            validation_results["valid"] = False
+            errors.append("GRADIO_SERVER_PORT must be an integer between 1024 and 65535")
+            is_valid = False
         
-        return validation_results
+        return {
+            "valid": is_valid,
+            "errors": errors,
+            "warnings": warnings
+        }
     
     @classmethod
     def get_config_summary(cls) -> Dict[str, Any]:

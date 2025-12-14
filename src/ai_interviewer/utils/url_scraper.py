@@ -58,13 +58,14 @@ class URLScraper:
             }
             
             # Make request with timeout and size limit
+            # Note: requests.get doesn't support max_redirects parameter
+            # Redirects are handled automatically with allow_redirects=True (default)
             response = requests.get(
                 url, 
                 headers=headers, 
                 timeout=10,
                 stream=True,  # Stream to check size
-                allow_redirects=True,
-                max_redirects=5  # Limit redirects
+                allow_redirects=True
             )
             response.raise_for_status()
             

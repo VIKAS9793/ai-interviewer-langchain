@@ -583,7 +583,7 @@ class ReasoningBank:
         )
         failure_count = len(self._memory_cache) - success_count
         
-        topics = {}
+        topics: Dict[str, int] = {}
         for memory in self._memory_cache.values():
             topic = memory.topic or "general"
             topics[topic] = topics.get(topic, 0) + 1

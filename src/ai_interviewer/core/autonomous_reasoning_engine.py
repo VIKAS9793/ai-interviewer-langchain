@@ -122,7 +122,7 @@ class AutonomousReasoningEngine:
     5. Contextual memory and learning
     """
     
-    def __init__(self, model_name: str = None, max_retries: int = 3):
+    def __init__(self, model_name: Optional[str] = None, max_retries: int = 3):
         if model_name is None:
             model_name = Config.DEFAULT_MODEL
         self.model_name = model_name
@@ -828,7 +828,7 @@ Return JSON only:
         import random
         return random.choice(acknowledgments[category])
     
-    def get_progressive_question(self, topic: str, question_number: int, approach: str, previous_questions: List[str] = None) -> str:
+    def get_progressive_question(self, topic: str, question_number: int, approach: str, previous_questions: Optional[List[str]] = None) -> str:
         """Generate progressive question using LLM with smart fallback."""
         if previous_questions is None:
             previous_questions = []

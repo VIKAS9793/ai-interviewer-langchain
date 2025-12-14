@@ -5,19 +5,19 @@ import io
 
 # Optional imports with graceful fallback
 try:
-    from pypdf import PdfReader
+    from pypdf import PdfReader  # type: ignore[import-not-found]
 except ImportError:
-    PdfReader = None
+    PdfReader = None  # type: ignore[assignment]
 
 try:
-    from docx import Document
+    from docx import Document  # type: ignore[import-not-found]
 except ImportError:
-    Document = None
+    Document = None  # type: ignore[assignment]
 
 try:
-    import bleach
+    import bleach  # type: ignore[import-untyped]
 except ImportError:
-    bleach = None
+    bleach = None  # type: ignore[assignment]
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,7 @@ class ResumeParser:
                     text += page.extract_text() + "\n"
                     
             elif filename.endswith('.docx'):
-                if not Document:
+                if Document is None:
                     logger.error("python-docx not installed")
                     return None
                 doc = Document(file_obj)

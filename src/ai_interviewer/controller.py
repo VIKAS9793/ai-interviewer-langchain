@@ -40,7 +40,7 @@ except ImportError as e:
     MODULES_AVAILABLE = False
     
     # Minimal fallback implementation
-    class AutonomousFlowController:
+    class _FallbackFlowController:
         def __init__(self, **kwargs): pass
         def start_interview(self, topic, candidate_name, **kwargs): 
             return {
@@ -60,6 +60,9 @@ except ImportError as e:
             }
         def analyze_resume(self, text):
             return {"detected_role": "Software Engineer", "experience_level": "Mid"}
+    
+    # Type alias for fallback (mypy sees this as assignment, not redefinition)
+    AutonomousFlowController = _FallbackFlowController  # type: ignore[assignment]
 
 class InterviewApplication:
     """

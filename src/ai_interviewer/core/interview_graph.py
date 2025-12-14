@@ -302,23 +302,24 @@ class InterviewGraph:
         """
         logger.info("🔷 [Node] Validating question (Critic Agent)...")
         
-        question = state.get("current_question", "")
+        question = state.get("current_question") or ""
         
         # Basic validation (full Critic Agent in v3.2)
         is_valid = True
         issues = []
         
         # Check for word repetition
-        words = question.lower().split()
-        for i in range(len(words) - 1):
-            if words[i] == words[i + 1]:
+        if question:
+            words = question.lower().split()
+            for i in range(len(words) - 1):
+                if words[i] == words[i + 1]:
+                    is_valid = False
+                    issues.append(f"Word repetition: '{words[i]}'")
+            
+            # Check for "interview interview" pattern
+            if "interview interview" in question.lower():
                 is_valid = False
-                issues.append(f"Word repetition: '{words[i]}'")
-        
-        # Check for "interview interview" pattern
-        if "interview interview" in question.lower():
-            is_valid = False
-            issues.append("Double 'interview' detected")
+                issues.append("Double 'interview' detected")
         
         if not is_valid:
             logger.warning(f"⚠️ Question validation failed: {issues}")
@@ -434,7 +435,7 @@ class InterviewGraph:
         resume_skills: Optional[List[str]] = None,
         jd_requirements: Optional[List[str]] = None,
         experience_years: int = 0,
-        max_questions: int = None
+        max_questions: Optional[int] = None
     ) -> InterviewState:
         """Create initial state for a new interview."""
         
@@ -463,6 +464,7 @@ class InterviewGraph:
             "candidate_state": "neutral",
             "phase": "starting",
             "is_complete": False,
+            "greeting": None,  # Will be set by greeting node
             "final_report": None,
             "messages": []
         }

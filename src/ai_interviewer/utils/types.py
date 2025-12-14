@@ -28,6 +28,10 @@ class InterviewResponse(TypedDict, total=False):
     elapsed: Optional[int]
     message: Optional[str]
     current_data: Optional[Dict[str, Any]]
+    # Error response fields (when success=False)
+    error_code: Optional[str]
+    details: Optional[Dict[str, Any]]
+    timestamp: Optional[str]
 
 
 class ErrorResponse(TypedDict):
@@ -53,6 +57,10 @@ class PracticeModeResponse(TypedDict, total=False):
     job_title: Optional[str]
     company_name: Optional[str]
     message: Optional[str]
+    # Error response fields (when success=False)
+    error_code: Optional[str]
+    details: Optional[Dict[str, Any]]
+    timestamp: Optional[str]
 
 
 class EvaluationResult(TypedDict, total=False):
@@ -104,6 +112,10 @@ class InterviewStartResponse(TypedDict, total=False):
     first_question: str
     message: Optional[str]
     error_code: Optional[str]
+    # Error response fields (when status="error")
+    success: Optional[bool]
+    details: Optional[Dict[str, Any]]
+    timestamp: Optional[str]
 
 
 class AnswerProcessResponse(TypedDict, total=False):
@@ -117,6 +129,10 @@ class AnswerProcessResponse(TypedDict, total=False):
     summary: Optional[Dict[str, Any]]
     message: Optional[str]
     error_code: Optional[str]
+    # Error response fields (when status="error")
+    success: Optional[bool]
+    details: Optional[Dict[str, Any]]
+    timestamp: Optional[str]
 
 
 class SessionStatusResponse(TypedDict, total=False):
@@ -138,6 +154,12 @@ class SystemStatusResponse(TypedDict, total=False):
     avg_response_time: float
     autonomous_decisions: int
     self_recoveries: int
+    # Additional fields that may be included
+    status: Optional[str]
+    autonomous_features: Optional[Dict[str, Any]]
+    performance: Optional[Dict[str, Any]]
+    interviewer_stats: Optional[Dict[str, Any]]
+    capacity: Optional[int]
 
 
 class ResumeAnalysisResponse(TypedDict, total=False):

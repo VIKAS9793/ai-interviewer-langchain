@@ -43,7 +43,7 @@ class AutonomousFlowController:
     - Graceful error recovery
     """
     
-    def __init__(self, max_concurrent_sessions: int = 20, model_name: str = None, **kwargs):
+    def __init__(self, max_concurrent_sessions: int = 20, model_name: Optional[str] = None, **kwargs):
         if model_name is None:
             model_name = Config.DEFAULT_MODEL
         self.interviewer = AutonomousInterviewer(model_name)

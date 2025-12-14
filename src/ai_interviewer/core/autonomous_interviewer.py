@@ -74,7 +74,7 @@ class AutonomousInterviewer:
     Autonomous AI Interviewer with Human-Like Capabilities
     """
     
-    def __init__(self, model_name: str = None):
+    def __init__(self, model_name: Optional[str] = None):
         if model_name is None:
             model_name = Config.DEFAULT_MODEL
         self.model_name = model_name
@@ -205,10 +205,10 @@ class AutonomousInterviewer:
         }
     
     def process_answer(self, session_id: str, answer: str) -> Dict[str, Any]:
-        if not self.session_manager.get_session(session_id):
+        session = self.session_manager.get_session(session_id)
+        if session is None:
             return {"status": "error", "message": "Session not found"}
         
-        session = self.session_manager.get_session(session_id)
         session.current_answer = answer
         
         context = self._build_context(session)
@@ -616,17 +616,17 @@ Evaluate the answer and respond with ONLY this JSON:
         elif topic_relevance > 0.2:
             base_score += 1
             
-        # DENSITY BONUS: High relevance + low word count = precise answer (not penalty)
-        if topic_relevance > 0.5 and word_count < 30:
-            base_score += 2
-            strengths.append("Concise and precise")
-        
         # Clamp score
         score = int(max(1, min(10, base_score)))
         
         # Generate varied feedback
-        strengths = []
-        improvements = []
+        strengths: List[str] = []
+        improvements: List[str] = []
+        
+        # DENSITY BONUS: High relevance + low word count = precise answer (not penalty)
+        if topic_relevance > 0.5 and word_count < 30:
+            base_score += 2
+            strengths.append("Concise and precise")
         
         if word_count >= 50:
             strengths.append("Provided a detailed response")
@@ -899,7 +899,7 @@ Write 1-2 sentences of constructive feedback. Be specific, not generic.
     def get_session_status(self, session_id: str) -> Dict[str, Any]:
         """Get status of a session"""
         session = self.session_manager.get_session(session_id)
-        if not session:
+        if session is None:
             return {"status": "not_found"}
         
         return {
@@ -911,6 +911,7 @@ Write 1-2 sentences of constructive feedback. Be specific, not generic.
         }
         
     def get_interviewer_stats(self) -> Dict[str, Any]:
+        active_sessions_count = len(self.session_manager.active_sessions) if hasattr(self, 'session_manager') else 0
         return {
-            "active_sessions": len(self.session_manager.active_sessions if hasattr(self, 'session_manager') else 0)
+            "active_sessions": active_sessions_count
         }

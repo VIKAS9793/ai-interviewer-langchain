@@ -53,7 +53,7 @@ class KnowledgeStore:
             logger.error(f"Failed to initialize KnowledgeStore: {e}")
             raise
 
-    def add_texts(self, texts: List[str], metadatas: List[Dict[str, Any]] = None, ids: List[str] = None):
+    def add_texts(self, texts: List[str], metadatas: Optional[List[Dict[str, Any]]] = None, ids: Optional[List[str]] = None):
         """
         Add texts to the vector store.
         """
@@ -75,7 +75,7 @@ class KnowledgeStore:
         except Exception as e:
             logger.error(f"Failed to add texts: {e}")
 
-    def search(self, query: str, k: int = 3, filter_criteria: Dict = None) -> List[Dict[str, Any]]:
+    def search(self, query: str, k: int = 3, filter_criteria: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         """
         Semantic search for relevant documents.
         """

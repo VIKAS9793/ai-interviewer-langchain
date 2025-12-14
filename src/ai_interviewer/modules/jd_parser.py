@@ -153,7 +153,7 @@ class JDParser:
         text = jd_text.strip()
         text_lower = text.lower()
         
-        result = {
+        result: Dict[str, Any] = {
             "role_title": None,
             "company_name": None,
             "requirements": [],
@@ -207,7 +207,7 @@ class JDParser:
         Returns:
             Dict with role_title, company_name, requirements
         """
-        result = {
+        result: Dict[str, Any] = {
             "role_title": None,
             "company_name": None,
             "requirements": [],
@@ -230,8 +230,9 @@ class JDParser:
             result["requirements"] = text_result.get("requirements", [])
         
         # Clean up role title
-        if result["role_title"]:
-            result["role_title"] = cls._clean_role_title(result["role_title"])
+        role_title = result.get("role_title")
+        if role_title and isinstance(role_title, str):
+            result["role_title"] = cls._clean_role_title(role_title)
         
         return result
     
@@ -269,7 +270,7 @@ class JDParser:
             "Tell me about your product management experience, particularly with YouTube."
         """
         if not role_title:
-            return {"core_role": "technical", "specific_area": None, "full_title": role_title}
+            return {"core_role": "technical", "specific_area": None, "full_title": role_title or ""}
         
         role_lower = role_title.lower()
         core_role = None

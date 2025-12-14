@@ -400,38 +400,40 @@ class AIExplainability:
     def explain_adaptation(self, adaptation: Dict[str, Any],
                           candidate_state: str) -> Dict[str, Any]:
         """Explain why system adapted its behavior"""
-        explanation = {
-            "trigger": candidate_state,
-            "adaptations_made": [],
-            "rationale": "",
-            "human_readable": ""
-        }
+        adaptations_made: List[str] = []
         
         # Document each adaptation
         if adaptation.get("difficulty_adjustment", 0) != 0:
             adj = adaptation["difficulty_adjustment"]
-            explanation["adaptations_made"].append(
+            adaptations_made.append(
                 f"Difficulty {'increased' if adj > 0 else 'decreased'}"
             )
         
         if adaptation.get("tone_adjustment") and adaptation["tone_adjustment"] != "neutral":
-            explanation["adaptations_made"].append(
+            adaptations_made.append(
                 f"Tone adjusted to: {adaptation['tone_adjustment']}"
             )
         
         if adaptation.get("support_level") and adaptation["support_level"] != "standard":
-            explanation["adaptations_made"].append(
+            adaptations_made.append(
                 f"Support level: {adaptation['support_level']}"
             )
         
         # Generate rationale
-        explanation["rationale"] = self._generate_adaptation_rationale(
-            candidate_state, explanation["adaptations_made"]
+        rationale = self._generate_adaptation_rationale(
+            candidate_state, adaptations_made
         )
+        
+        explanation = {
+            "trigger": candidate_state,
+            "adaptations_made": adaptations_made,
+            "rationale": rationale,
+            "human_readable": ""
+        }
         
         explanation["human_readable"] = (
             f"Detected candidate state: {candidate_state}. "
-            f"Adaptations: {', '.join(explanation['adaptations_made']) or 'None required'}."
+            f"Adaptations: {', '.join(adaptations_made) or 'None required'}."
         )
         
         return explanation
@@ -721,7 +723,7 @@ class ResponsibleAI:
     
     def validate_and_explain_evaluation(self, evaluation: Dict[str, Any],
                                         answer: str, question: str,
-                                        context: Dict[str, Any] = None) -> Dict[str, Any]:
+                                        context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Validate evaluation and provide explanation"""
         # Check fairness
         fairness_result = self.guardrails.check_evaluation_fairness(evaluation, context)
