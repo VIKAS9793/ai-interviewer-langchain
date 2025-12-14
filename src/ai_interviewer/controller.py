@@ -327,7 +327,9 @@ class InterviewApplication:
                 "total_questions": Config.MAX_QUESTIONS,
                 "topic": topic,
                 "experience_level": experience_level,
-                "detected_skills": analysis.get('found_skills', [])
+                "detected_skills": resume_skills,  # Use extracted skills from line 273
+                "job_title": jd_role or topic,
+                "company_name": jd_company
             }
             
         except Exception as e:
