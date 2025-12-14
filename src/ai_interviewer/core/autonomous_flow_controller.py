@@ -13,6 +13,20 @@ import threading
 from queue import Queue
 
 from ..utils.config import Config
+from ..utils.types import (
+    InterviewStartResponse,
+    AnswerProcessResponse,
+    ResumeAnalysisResponse,
+    SessionStatusResponse,
+    SystemStatusResponse
+)
+from ..exceptions import (
+    SessionError,
+    LLMError,
+    ResourceError,
+    ProcessingError
+)
+from ..utils.error_handler import ErrorHandler
 from .autonomous_interviewer import AutonomousInterviewer, InterviewSession
 
 logger = logging.getLogger(__name__)
@@ -48,7 +62,7 @@ class AutonomousFlowController:
         
         logger.info(f"🤖 Autonomous Flow Controller initialized (max sessions: {max_concurrent_sessions})")
     
-    def start_interview(self, topic: str, candidate_name: str, custom_context: Dict[str, Any] = None) -> Dict[str, Any]:
+    def start_interview(self, topic: str, candidate_name: str, custom_context: Optional[Dict[str, Any]] = None) -> InterviewStartResponse:
         """Start interview with autonomous AI interviewer"""
         try:
             # Check concurrency
@@ -72,18 +86,26 @@ class AutonomousFlowController:
             
             return result
             
-        except Exception as e:
-            logger.error(f"Error starting interview: {e}")
-            # Self-recovery
+        except (SessionError, LLMError, ResourceError) as e:
+            ErrorHandler.log_error(e, {"operation": "start_interview", "topic": topic})
             with self.session_lock:
                 self.metrics["self_recoveries"] += 1
+            error_response = ErrorHandler.from_exception(e, {"operation": "start_interview"})
             return {
                 "status": "error",
-                "message": f"Failed to start: {str(e)}",
-                "error_code": "START_ERROR"
+                **error_response
+            }
+        except Exception as e:
+            ErrorHandler.log_error(e, {"operation": "start_interview", "topic": topic})
+            with self.session_lock:
+                self.metrics["self_recoveries"] += 1
+            error_response = ErrorHandler.from_exception(e, {"operation": "start_interview"})
+            return {
+                "status": "error",
+                **error_response
             }
     
-    def process_answer(self, session_id: str, answer: str) -> Dict[str, Any]:
+    def process_answer(self, session_id: str, answer: str) -> AnswerProcessResponse:
         """Process answer with autonomous reasoning"""
         try:
             start_time = time.time()
@@ -100,18 +122,30 @@ class AutonomousFlowController:
             
             return result
             
-        except Exception as e:
-            logger.error(f"Error processing answer: {e}")
+        except (SessionError, LLMError, ProcessingError) as e:
+            ErrorHandler.log_error(e, {"operation": "process_answer", "session_id": session_id})
             with self.session_lock:
                 self.metrics["self_recoveries"] += 1
+            error_response = ErrorHandler.from_exception(e, {"operation": "process_answer", "session_id": session_id})
             return {
                 "status": "error",
-                "message": f"Processing error: {str(e)}",
                 "evaluation": {"score": 0},
-                "feedback": "System error occurred."
+                "feedback": "System error occurred.",
+                **error_response
+            }
+        except Exception as e:
+            ErrorHandler.log_error(e, {"operation": "process_answer", "session_id": session_id})
+            with self.session_lock:
+                self.metrics["self_recoveries"] += 1
+            error_response = ErrorHandler.from_exception(e, {"operation": "process_answer", "session_id": session_id})
+            return {
+                "status": "error",
+                "evaluation": {"score": 0},
+                "feedback": "System error occurred.",
+                **error_response
             }
 
-    def analyze_resume(self, resume_text: str) -> Dict[str, Any]:
+    def analyze_resume(self, resume_text: str) -> ResumeAnalysisResponse:
         """Delegate resume analysis to interviewer"""
         return self.interviewer.analyze_resume(resume_text)
 
@@ -125,11 +159,11 @@ class AutonomousFlowController:
                 alpha * processing_time
             )
     
-    def get_session_status(self, session_id: str) -> Dict[str, Any]:
+    def get_session_status(self, session_id: str) -> SessionStatusResponse:
         """Get status of a specific session"""
-        return self.interviewer.get_session_status(session_id)
+        return self.interviewer.get_session_status(session_id)  # type: ignore[return-value]
     
-    def get_system_status(self) -> Dict[str, Any]:
+    def get_system_status(self) -> SystemStatusResponse:
         """Get comprehensive system status"""
         interviewer_stats = self.interviewer.get_interviewer_stats()
         

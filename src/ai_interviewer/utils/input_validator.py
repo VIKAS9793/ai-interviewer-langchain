@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 import ipaddress
 
 from .config import Config
+from ..exceptions import ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -126,8 +127,12 @@ class InputValidator:
         
         try:
             parsed = urlparse(url)
-        except Exception as e:
+        except (ValueError, AttributeError) as e:
             logger.warning(f"URL parse error: {e}")
+            return False, "Invalid URL format"
+        except Exception as e:
+            # Catch-all for unexpected parsing errors
+            logger.warning(f"Unexpected URL parse error: {e}")
             return False, "Invalid URL format"
         
         # Scheme validation

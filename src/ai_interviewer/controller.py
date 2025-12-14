@@ -6,6 +6,21 @@ from typing import Tuple, Optional, Any, Dict
 
 from src.ai_interviewer.utils.config import Config
 from src.ai_interviewer.utils.input_validator import InputValidator
+from src.ai_interviewer.utils.types import (
+    InterviewResponse,
+    PracticeModeResponse,
+    ErrorResponse,
+    SessionData,
+    GradioFile
+)
+from src.ai_interviewer.exceptions import (
+    ValidationError,
+    SessionError,
+    LLMError,
+    ProcessingError,
+    SecurityError
+)
+from src.ai_interviewer.utils.error_handler import ErrorHandler
 
 
 # Configure logging
@@ -92,7 +107,7 @@ class InterviewApplication:
             self.speech_available = False
             logger.warning("Whisper not available - voice mode will use fallback")
     
-    def transcribe_audio(self, audio_data) -> str:
+    def transcribe_audio(self, audio_data: Optional[Any]) -> str:
         """Transcribe audio to text using Whisper"""
         if audio_data is None:
             return "⚠️ No audio recorded. Please record your answer first."
@@ -142,9 +157,13 @@ class InterviewApplication:
             
             return transcription
             
+        except ProcessingError as e:
+            ErrorHandler.log_error(e, {"operation": "transcribe_audio"})
+            return f"❌ Transcription failed: {e.message}"
         except Exception as e:
-            logger.error(f"Transcription error: {e}", exc_info=True)
-            return f"❌ Transcription failed: {str(e)}"
+            ErrorHandler.log_error(e, {"operation": "transcribe_audio"})
+            error_response = ErrorHandler.from_exception(e, {"operation": "transcribe_audio"})
+            return f"❌ Transcription failed: {error_response['message']}"
     
     # ========================================================================
     # INTERVIEW FLOW - Topic-Based
@@ -154,15 +173,17 @@ class InterviewApplication:
         self,
         topic: str,
         candidate_name: str
-    ) -> Dict[str, Any]:
+    ) -> InterviewResponse:
         """Start topic-based interview (Returns Data Dict)"""
         
-        # Input validation
-        is_valid, error_msg = InputValidator.validate_name(candidate_name)
-        if not is_valid:
-            return {"success": False, "message": error_msg or "Please enter your name to begin."}
-        
         try:
+            # Input validation
+            is_valid, error_msg = InputValidator.validate_name(candidate_name)
+            if not is_valid:
+                raise ValidationError(
+                    error_msg or "Please enter your name to begin.",
+                    field="candidate_name"
+                )
             # Start interview
             result = self.flow_controller.start_interview(
                 topic=topic,
@@ -189,11 +210,14 @@ class InterviewApplication:
                 "topic": topic
             }
             
+        except (ValidationError, SessionError, LLMError) as e:
+            ErrorHandler.log_error(e, {"operation": "start_topic_interview", "topic": topic})
+            error_response = ErrorHandler.from_exception(e)
+            return {"success": False, **error_response}
         except Exception as e:
-            logger.error(f"Error starting interview: {e}", exc_info=True)
-            is_production = os.getenv("ENVIRONMENT") == "production"
-            safe_message = InputValidator.sanitize_error_message(e, is_production)
-            return {"success": False, "message": safe_message}
+            ErrorHandler.log_error(e, {"operation": "start_topic_interview", "topic": topic})
+            error_response = ErrorHandler.from_exception(e)
+            return {"success": False, **error_response}
     
     # ========================================================================
     # INTERVIEW FLOW - Practice Mode (Resume-based)
@@ -201,11 +225,11 @@ class InterviewApplication:
     
     def start_practice_interview(
         self,
-        resume_file,
+        resume_file: Optional[GradioFile],
         jd_text: str,
         jd_url: str,
         candidate_name: str
-    ) -> Dict[str, Any]:
+    ) -> PracticeModeResponse:
         """Start practice mode (Returns Data Dict)"""
         
         # Input validation
@@ -358,11 +382,14 @@ class InterviewApplication:
                 "company_name": jd_company
             }
             
+        except (ValidationError, SecurityError, ProcessingError) as e:
+            ErrorHandler.log_error(e, {"operation": "start_practice_interview"})
+            error_response = ErrorHandler.from_exception(e)
+            return {"success": False, **error_response}
         except Exception as e:
-            logger.error(f"Practice mode error: {e}", exc_info=True)
-            is_production = os.getenv("ENVIRONMENT") == "production"
-            safe_message = InputValidator.sanitize_error_message(e, is_production)
-            return {"success": False, "message": safe_message}
+            ErrorHandler.log_error(e, {"operation": "start_practice_interview"})
+            error_response = ErrorHandler.from_exception(e)
+            return {"success": False, **error_response}
     
     # ========================================================================
     # ANSWER PROCESSING
@@ -372,26 +399,21 @@ class InterviewApplication:
         self,
         answer_text: str,
         transcription_text: str = ""
-    ) -> Dict[str, Any]:
+    ) -> InterviewResponse:
         """Process answer (Returns Data Dict)"""
         
         # Check session
         if not self.current_session:
-            return {"success": False, "message": "No active session."}
+            raise SessionError("No active session. Please start an interview first.")
         
         # Use transcription if provided, but validate it first
         if transcription_text:
             is_valid, error_msg = InputValidator.validate_voice_transcript(transcription_text)
             if not is_valid:
-                return {
-                    "success": False,
-                    "message": error_msg or "Invalid transcription.",
-                    "current_data": {
-                        "answer": answer_text,
-                        "elapsed": int(time.time() - self.current_session["start_time"]),
-                        "question_number": self.current_session["question_count"]
-                    }
-                }
+                raise ValidationError(
+                    error_msg or "Invalid transcription.",
+                    field="transcription_text"
+                )
             final_answer = transcription_text
         else:
             final_answer = answer_text
@@ -399,15 +421,10 @@ class InterviewApplication:
         # Validate answer text
         is_valid, error_msg = InputValidator.validate_answer_text(final_answer)
         if not is_valid:
-            return {
-                "success": False,
-                "message": error_msg or "Please provide an answer.",
-                "current_data": {
-                    "answer": final_answer[:100],  # Truncate for display
-                    "elapsed": int(time.time() - self.current_session["start_time"]),
-                    "question_number": self.current_session["question_count"]
-                }
-            }
+            raise ValidationError(
+                error_msg or "Please provide an answer.",
+                field="answer_text"
+            )
         
         try:
             # Process with AI
@@ -452,8 +469,23 @@ class InterviewApplication:
                     "current_data": {"answer": final_answer, "elapsed": elapsed}
                 }
                 
+        except (ValidationError, SessionError, LLMError) as e:
+            ErrorHandler.log_error(
+                e,
+                {
+                    "operation": "process_answer",
+                    "session_id": self.current_session.get("session_id") if self.current_session else None
+                }
+            )
+            error_response = ErrorHandler.from_exception(e)
+            return {"success": False, **error_response}
         except Exception as e:
-            logger.error(f"Error processing answer: {e}", exc_info=True)
-            is_production = os.getenv("ENVIRONMENT") == "production"
-            safe_message = InputValidator.sanitize_error_message(e, is_production)
-            return {"success": False, "message": safe_message}
+            ErrorHandler.log_error(
+                e,
+                {
+                    "operation": "process_answer",
+                    "session_id": self.current_session.get("session_id") if self.current_session else None
+                }
+            )
+            error_response = ErrorHandler.from_exception(e)
+            return {"success": False, **error_response}

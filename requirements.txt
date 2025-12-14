@@ -41,3 +41,8 @@ soundfile==0.12.1
 
 # Security
 cryptography==44.0.0
+
+# Development & Code Quality
+mypy>=1.8.0  # Type checking
+types-requests>=2.32.0  # Type stubs for requests
+types-beautifulsoup4>=4.12.0  # Type stubs for beautifulsoup4

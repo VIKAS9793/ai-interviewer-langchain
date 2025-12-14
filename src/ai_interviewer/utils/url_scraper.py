@@ -10,6 +10,8 @@ from typing import Optional
 
 from .input_validator import InputValidator
 from .config import Config
+from ..exceptions import ProcessingError, SecurityError, ResourceError
+from .error_handler import ErrorHandler
 
 logger = logging.getLogger(__name__)
 
@@ -105,11 +107,20 @@ class URLScraper:
             return text
             
         except requests.exceptions.Timeout:
-            logger.error(f"Timeout while scraping URL: {url[:50]}...")
+            ErrorHandler.log_error(
+                ResourceError("URL scraping timeout", resource_type="network", limit="10s"),
+                {"operation": "extract_text", "url": url[:50]}
+            )
             return None
         except requests.exceptions.RequestException as e:
-            logger.error(f"Request error while scraping URL {url[:50]}...: {e}")
+            ErrorHandler.log_error(
+                ProcessingError(f"Request error: {str(e)}", operation="extract_text"),
+                {"operation": "extract_text", "url": url[:50]}
+            )
             return None
         except Exception as e:
-            logger.error(f"Failed to scrape URL {url[:50]}...: {e}", exc_info=True)
+            ErrorHandler.log_error(
+                ProcessingError(f"Unexpected error: {str(e)}", operation="extract_text"),
+                {"operation": "extract_text", "url": url[:50]}
+            )
             return None
