@@ -62,7 +62,7 @@ except ImportError as e:
             return {"detected_role": "Software Engineer", "experience_level": "Mid"}
     
     # Type alias for fallback (mypy sees this as assignment, not redefinition)
-    AutonomousFlowController = _FallbackFlowController  # type: ignore[assignment]
+    AutonomousFlowController = _FallbackFlowController  # type: ignore[assignment, misc]
 
 class InterviewApplication:
     """
@@ -101,7 +101,7 @@ class InterviewApplication:
     def _init_speech_recognition(self):
         """Initialize speech recognition model (lazy loading)"""
         try:
-            import whisper  # type: ignore[reportMissingImports]  # Optional dependency
+            import whisper  # type: ignore[reportMissingImports, import-untyped]  # Optional dependency
             self.whisper_model = None  # Lazy load on first use
             self.speech_available = True
             logger.info("Speech recognition available (Whisper)")
@@ -118,7 +118,7 @@ class InterviewApplication:
         try:
             # Lazy load Whisper model
             if self.whisper_model is None and self.speech_available:
-                import whisper  # type: ignore[reportMissingImports]  # Optional dependency
+                import whisper  # type: ignore[reportMissingImports, import-untyped]  # Optional dependency
                 logger.info("Loading Whisper model (first use)...")
                 self.whisper_model = whisper.load_model("base")
                 logger.info("Whisper model loaded")
@@ -347,7 +347,8 @@ class InterviewApplication:
             
             custom_context["topic"] = topic
             custom_context["target_role"] = greeting_role
-            custom_context["area_context"] = area_context
+            if area_context is not None:
+                custom_context["area_context"] = area_context
             custom_context["resume_skills"] = resume_skills
             custom_context["analysis"] = analysis
             

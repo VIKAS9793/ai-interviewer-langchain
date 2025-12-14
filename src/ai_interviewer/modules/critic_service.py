@@ -428,13 +428,17 @@ class ReflectAgent:
         
         Reference: arXiv:2510.08002, Section 3.4 "Reflect Agent"
         """
-        results = {
+        results: Dict[str, Any] = {
             "question_fairness": [],
             "scoring_consistency": [],
             "overall_quality": ReflectionOutcome.PASSED,
             "recommendations": [],
             "timestamp": datetime.now().isoformat()
         }
+        # Type annotations for mypy
+        question_fairness: List[str] = results["question_fairness"]  # type: ignore[assignment]
+        scoring_consistency: List[str] = results["scoring_consistency"]  # type: ignore[assignment]
+        recommendations: List[str] = results["recommendations"]  # type: ignore[assignment]
         
         failed_count = 0
         warning_count = 0
@@ -442,12 +446,12 @@ class ReflectAgent:
         # Evaluate each question
         for q in questions:
             r = self.evaluate_question_fairness(q, topic)
-            results["question_fairness"].append(r.outcome.value)
+            question_fairness.append(r.outcome.value)
             if r.outcome == ReflectionOutcome.FAILED:
                 failed_count += 1
             elif r.outcome == ReflectionOutcome.WARNING:
                 warning_count += 1
-            results["recommendations"].extend(r.recommendations)
+            recommendations.extend(r.recommendations)
         
         # Evaluate each score
         for i, (ans, score, just) in enumerate(
@@ -457,12 +461,12 @@ class ReflectAgent:
             r = self.evaluate_scoring_consistency(
                 ans, score, just, topic, prev_scores
             )
-            results["scoring_consistency"].append(r.outcome.value)
+            scoring_consistency.append(r.outcome.value)
             if r.outcome == ReflectionOutcome.FAILED:
                 failed_count += 1
             elif r.outcome == ReflectionOutcome.WARNING:
                 warning_count += 1
-            results["recommendations"].extend(r.recommendations)
+            recommendations.extend(r.recommendations)
         
         # Determine overall quality
         if failed_count > 0:
@@ -471,7 +475,9 @@ class ReflectAgent:
             results["overall_quality"] = ReflectionOutcome.WARNING
         
         # Deduplicate recommendations
-        results["recommendations"] = list(set(results["recommendations"]))
+        results["recommendations"] = list(set(recommendations))
+        results["question_fairness"] = question_fairness
+        results["scoring_consistency"] = scoring_consistency
         
         logger.info(
             f"🔍 Interview reflection: {results['overall_quality'].value} "

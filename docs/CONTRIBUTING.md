@@ -15,9 +15,15 @@ We love your input! We want to make contributing to this project as easy and tra
     ```bash
     pytest tests/
     ```
-4.  If you've added code that should be tested, add tests.
-5.  **Shadow Mode:** If adding experimental agent features, please implement them in "Shadow Mode" (non-blocking try/except blocks) first.
-6.  **License:** Ensure your code is compatible with the MIT License.
+4.  **Type checking** (recommended before submitting PR):
+    ```bash
+    pip install mypy
+    mypy src/ --config-file mypy.ini
+    ```
+    The project uses `mypy` for static type checking. All code should pass type checks or include appropriate `# type: ignore` comments for optional dependencies.
+5.  If you've added code that should be tested, add tests.
+6.  **Shadow Mode:** If adding experimental agent features, please implement them in "Shadow Mode" (non-blocking try/except blocks) first.
+7.  **License:** Ensure your code is compatible with the MIT License.
 
 ## Pull Requests
 

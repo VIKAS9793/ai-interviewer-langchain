@@ -232,15 +232,16 @@ class JDParser:
         # Clean up role title
         role_title = result.get("role_title")
         if role_title and isinstance(role_title, str):
-            result["role_title"] = cls._clean_role_title(role_title)
+            cleaned = cls._clean_role_title(role_title)
+            result["role_title"] = cleaned if cleaned is not None else role_title
         
         return result
     
     @classmethod
-    def _clean_role_title(cls, title: str) -> str:
+    def _clean_role_title(cls, title: Optional[str]) -> Optional[str]:
         """Clean and normalize role title."""
         if not title:
-            return ""
+            return None
         
         # Remove common suffixes
         title = re.sub(r"\s*[-–—]\s*\d+.*$", "", title)  # Remove "- 12345" IDs
@@ -270,10 +271,10 @@ class JDParser:
             "Tell me about your product management experience, particularly with YouTube."
         """
         if not role_title:
-            return {"core_role": "technical", "specific_area": None, "full_title": role_title or ""}
+            return {"core_role": "technical", "specific_area": None, "full_title": ""}
         
         role_lower = role_title.lower()
-        core_role = None
+        core_role: Optional[str] = None
         
         # Find core role by matching keywords
         for keyword, role in cls.ROLE_KEYWORDS.items():
@@ -297,7 +298,7 @@ class JDParser:
                             "full_title": role_title
                         }
                 
-                return {"core_role": core_role, "specific_area": None, "full_title": role_title}
+                return {"core_role": core_role or "technical", "specific_area": None, "full_title": role_title}
         
         # No known role found, use full title
         return {"core_role": role_title, "specific_area": None, "full_title": role_title}

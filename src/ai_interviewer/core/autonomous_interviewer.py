@@ -592,7 +592,7 @@ Evaluate the answer and respond with ONLY this JSON:
         if word_count >= 100:
             base_score += 2
         elif word_count >= 50:
-            base_score += 1.5
+            base_score += 1.5  # type: ignore[assignment]
         elif word_count >= 25:
             base_score += 1
         elif word_count < 15:
@@ -600,9 +600,9 @@ Evaluate the answer and respond with ONLY this JSON:
         
         # Structure bonus (0-1 points)
         if has_structure:
-            base_score += 0.5
+            base_score += 0.5  # type: ignore[assignment]
         if sentence_count >= 3:
-            base_score += 0.5
+            base_score += 0.5  # type: ignore[assignment]
         
         # Content quality bonus (0-2 points)
         if has_examples:

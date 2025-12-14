@@ -132,7 +132,7 @@ class BeliefSystem:
                 return belief
         return None
     
-    def get_all_beliefs(self, subject_filter: str = None) -> List[Belief]:
+    def get_all_beliefs(self, subject_filter: Optional[str] = None) -> List[Belief]:
         """Get all beliefs, optionally filtered by subject."""
         beliefs = list(self.beliefs.values())
         if subject_filter:

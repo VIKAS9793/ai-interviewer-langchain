@@ -84,7 +84,15 @@ class AutonomousFlowController:
                 
                 logger.info(f"🎤 Autonomous interview started: {result['session_id']}")
             
-            return result
+            # Convert to InterviewStartResponse format
+            response: InterviewStartResponse = {
+                "status": result.get("status", "error"),
+                "session_id": result.get("session_id", ""),
+                "greeting": result.get("greeting", ""),
+                "first_question": result.get("first_question", ""),
+                "message": result.get("message")
+            }
+            return response
             
         except (SessionError, LLMError, ResourceError) as e:
             ErrorHandler.log_error(e, {"operation": "start_interview", "topic": topic})
@@ -120,7 +128,18 @@ class AutonomousFlowController:
                     self.metrics["autonomous_decisions"] += 1
                     self.metrics["active_sessions"] = len(self.interviewer.session_manager.active_sessions)
             
-            return result
+            # Convert to AnswerProcessResponse format
+            response: AnswerProcessResponse = {
+                "status": result.get("status", "error"),
+                "next_question": result.get("next_question"),
+                "question_number": result.get("question_number", 0),
+                "evaluation": result.get("evaluation"),
+                "feedback": result.get("feedback"),
+                "reasoning": result.get("reasoning"),
+                "summary": result.get("summary"),
+                "message": result.get("message")
+            }
+            return response
             
         except (SessionError, LLMError, ProcessingError) as e:
             ErrorHandler.log_error(e, {"operation": "process_answer", "session_id": session_id})
@@ -147,7 +166,18 @@ class AutonomousFlowController:
 
     def analyze_resume(self, resume_text: str) -> ResumeAnalysisResponse:
         """Delegate resume analysis to interviewer"""
-        return self.interviewer.analyze_resume(resume_text)
+        result = self.interviewer.analyze_resume(resume_text)
+        # Convert to ResumeAnalysisResponse format
+        response: ResumeAnalysisResponse = {
+            "skills": result.get("skills", []),
+            "experience_level": result.get("experience_level", "junior"),
+            "detected_role": result.get("detected_role"),
+            "suggested_topics": result.get("suggested_topics", []),
+            "key_qualifications": result.get("key_qualifications", []),
+            "summary": result.get("summary", ""),
+            "experience_years": result.get("experience_years", 0)
+        }
+        return response
 
     
     def _update_metrics(self, processing_time: float):
@@ -178,11 +208,7 @@ class AutonomousFlowController:
             },
             "performance": self.metrics,
             "interviewer_stats": interviewer_stats,
-            "capacity": {
-                "active": len(self.interviewer.session_manager.active_sessions),
-                "max": self.max_concurrent_sessions,
-                "utilization": len(self.interviewer.session_manager.active_sessions) / self.max_concurrent_sessions * 100
-            }
+            "capacity": len(self.interviewer.session_manager.active_sessions)
         }
     
     def get_learning_analytics(self) -> Dict[str, Any]:

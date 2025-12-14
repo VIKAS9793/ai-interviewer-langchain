@@ -39,7 +39,7 @@ try:
     PYDANTIC_AVAILABLE = True
 except ImportError:
     PYDANTIC_AVAILABLE = False
-    BaseModel = None
+    BaseModel = None  # type: ignore[assignment, misc]
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +55,7 @@ if PYDANTIC_AVAILABLE:
         suggested_topics: list = Field(default_factory=list, description="Suggested interview topics based on resume")
         summary: str = Field(default="", description="Brief summary of candidate profile")
 else:
-    ResumeAnalysis = None
+    ResumeAnalysis = None  # type: ignore[assignment, misc]
 
 
 
@@ -173,7 +173,7 @@ class AutonomousReasoningEngine:
                 try:
                     openai_key = os.environ.get("OPENAI_API_KEY")
                     if openai_key:
-                        from langchain_openai import ChatOpenAI
+                        from langchain_openai import ChatOpenAI  # type: ignore[import-not-found]
                         self._llm = ChatOpenAI(
                             model=Config.OPENAI_MODEL,
                             temperature=Config.OPENAI_TEMPERATURE,
@@ -349,7 +349,7 @@ class AutonomousReasoningEngine:
     
     def _generate_options(self, context: InterviewContext, action_type: str,
                          situation: Dict[str, Any],
-                         learned_skills: List[Any] = None) -> List[Dict[str, Any]]:
+                         learned_skills: Optional[List[Any]] = None) -> List[Dict[str, Any]]:
         """
         Generate possible approaches based on situation + learned skills (Procedural Memory).
         """
@@ -497,47 +497,55 @@ class AutonomousReasoningEngine:
         
         Meta-cognition: Thinking about how we're thinking
         """
-        reflection = {
-            "timestamp": datetime.now().isoformat(),
-            "actions_reviewed": len(recent_actions),
-            "insights": [],
-            "improvements": [],
-            "confidence_in_approach": 0.0
-        }
+        insights: List[str] = []
+        improvements: List[str] = []
         
         try:
             # Analyze recent action quality
             action_quality = self._assess_action_quality(recent_actions)
-            reflection["action_quality"] = action_quality
             
             # Identify patterns
             patterns = self._identify_patterns(recent_actions)
-            reflection["patterns"] = patterns
             
             # Generate self-improvement suggestions
             suggestions = self._generate_improvement_suggestions(action_quality, patterns)
-            reflection["improvements"] = suggestions
+            improvements.extend(suggestions)
             
             # Calculate confidence
-            reflection["confidence_in_approach"] = self._calculate_self_confidence(
-                action_quality, patterns
-            )
+            confidence = self._calculate_self_confidence(action_quality, patterns)
             
             # Insights from reflection
             if action_quality["average_score"] < 0.6:
-                reflection["insights"].append(
+                insights.append(
                     "Performance below target - consider adjusting approach"
                 )
             if patterns.get("candidate_struggling"):
-                reflection["insights"].append(
+                insights.append(
                     "Candidate showing signs of difficulty - increase support"
                 )
+            
+            reflection: Dict[str, Any] = {
+                "timestamp": datetime.now().isoformat(),
+                "actions_reviewed": len(recent_actions),
+                "insights": insights,
+                "improvements": improvements,
+                "confidence_in_approach": confidence,
+                "action_quality": action_quality,
+                "patterns": patterns
+            }
             
             self.self_reflection_cache[datetime.now().isoformat()] = reflection
             
         except Exception as e:
             logger.error(f"Self-reflection error: {e}")
-            reflection["error"] = str(e)
+            reflection = {
+                "timestamp": datetime.now().isoformat(),
+                "actions_reviewed": len(recent_actions),
+                "insights": insights,
+                "improvements": improvements,
+                "confidence_in_approach": 0.0,
+                "error": str(e)
+            }
         
         return reflection
     
@@ -606,7 +614,7 @@ class AutonomousReasoningEngine:
             }
         
         # Method 1: Try Pydantic structured output (most reliable)
-        if PYDANTIC_AVAILABLE and ResumeAnalysis:
+        if PYDANTIC_AVAILABLE and ResumeAnalysis is not None:
             try:
                 llm = self._get_llm()
                 if llm and hasattr(llm, 'with_structured_output'):

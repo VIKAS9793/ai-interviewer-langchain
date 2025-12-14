@@ -112,3 +112,17 @@ Test your installation:
 ```bash
 pytest tests/ -v
 ```
+
+## 🔍 Type Checking (Development)
+
+The project uses `mypy` for static type checking to ensure code quality and type safety:
+
+```bash
+# Install mypy
+pip install mypy
+
+# Run type checking
+mypy src/ --config-file mypy.ini
+```
+
+Type checking is automatically run in CI/CD. All code should pass type checks or include appropriate `# type: ignore` comments for optional dependencies (e.g., `gradio`, `whisper`, `langchain_openai`).

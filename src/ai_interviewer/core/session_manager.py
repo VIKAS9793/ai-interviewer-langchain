@@ -14,7 +14,7 @@ except ImportError:
     class _FallbackConfig:
         SESSION_EXPIRATION_SECONDS = 3600
         SESSION_CLEANUP_INTERVAL_SECONDS = 300
-    Config = _FallbackConfig  # type: ignore[assignment]
+    Config = _FallbackConfig  # type: ignore[assignment, misc]
 
 logger = logging.getLogger(__name__)
 

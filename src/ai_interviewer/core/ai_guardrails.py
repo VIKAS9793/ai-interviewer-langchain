@@ -148,7 +148,7 @@ class AIGuardrails:
         )
     
     def check_evaluation_fairness(self, evaluation: Dict[str, Any],
-                                  context: Dict[str, Any] = None) -> GuardrailResult:
+                                  context: Optional[Dict[str, Any]] = None) -> GuardrailResult:
         """Check if evaluation is fair and unbiased"""
         issues = []
         recommendations = []

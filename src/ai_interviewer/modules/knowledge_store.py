@@ -66,9 +66,17 @@ class KnowledgeStore:
             ids = [hashlib.md5(t.encode()).hexdigest() for t in texts]
             
         try:
+            # ChromaDB expects metadatas to be List[Dict[str, str | int | float | bool]] or None
+            # Convert our Dict[str, Any] to the expected format
+            chroma_metadatas = None
+            if metadatas is not None:
+                chroma_metadatas = [
+                    {k: v for k, v in md.items() if isinstance(v, (str, int, float, bool))}
+                    for md in metadatas
+                ]
             self.collection.add(
                 documents=texts,
-                metadatas=metadatas,
+                metadatas=chroma_metadatas,  # type: ignore[arg-type]
                 ids=ids
             )
             logger.info(f"✅ Added {len(texts)} documents to KnowledgeStore")
