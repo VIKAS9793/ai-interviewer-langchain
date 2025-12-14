@@ -164,8 +164,9 @@ class InterviewGraph:
     # ==================== GRAPH NODES ====================
     
     def _check_resume_node(self, state: InterviewState) -> dict:
-        """Pass-through node (logic in conditional edge)."""
-        return {}
+        """Pass-through node that confirms session_id exists."""
+        # LangGraph requires nodes to update at least one key
+        return {"session_id": state.get("session_id", "")}
 
     def _determine_entry_point(self, state: InterviewState) -> str:
         """Router: determine where to start/resume flow."""
