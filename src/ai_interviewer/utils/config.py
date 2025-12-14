@@ -82,6 +82,21 @@ class Config:
     VOICE_MAX_TRANSCRIPT_LENGTH = 2000  # Security: Max characters
     VOICE_RATE_LIMIT_MS = 3000  # Anti-DoS: Minimum time between recordings
     
+    # Security: Input Validation Limits
+    MAX_NAME_LENGTH = 100  # Maximum candidate name length
+    MAX_ANSWER_LENGTH = 5000  # Maximum answer text length
+    MAX_JD_TEXT_LENGTH = 10000  # Maximum job description text length
+    MAX_JD_URL_LENGTH = 2048  # Maximum URL length (RFC 7230)
+    MAX_SCRAPED_CONTENT_LENGTH = 10000  # Maximum scraped content length
+    
+    # Security: Session Management
+    SESSION_EXPIRATION_SECONDS = 3600  # 1 hour session expiration
+    SESSION_CLEANUP_INTERVAL_SECONDS = 300  # Cleanup every 5 minutes
+    
+    # Security: URL Validation
+    ALLOWED_URL_SCHEMES = ["http", "https"]  # Only HTTP/HTTPS allowed
+    BLOCKED_HOSTNAMES = ["localhost", "127.0.0.1", "0.0.0.0", "::1"]  # SSRF protection
+    
     # Feature Flags
     LANGGRAPH_ENABLED = True  # v3.1: Use LangGraph engine
     

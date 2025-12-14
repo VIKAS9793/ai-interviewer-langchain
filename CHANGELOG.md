@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v3.2.2] - 2025-12-14 (Security Hardening)
+
+### 🔒 Security Enhancements
+- **SSRF Protection:** Added URL validation to prevent Server-Side Request Forgery attacks
+- **Input Validation:** Comprehensive validation for all user inputs (name, answers, URLs, voice transcripts)
+- **Session Expiration:** Automatic session cleanup with activity-based expiration (1 hour default)
+- **Error Sanitization:** Environment-aware error messages (generic in production, detailed in development)
+- **Input Length Limits:** Protection against memory exhaustion (name: 100, answer: 5000, JD: 10000 chars)
+- **Thread-Safe Sessions:** Added locking mechanism for concurrent session access
+
+### 🧪 Testing
+- **Security Test Suite:** Added comprehensive tests for all security fixes (`tests/test_security_fixes.py`)
+- **Coverage:** Input validation, SSRF protection, session expiration, error sanitization
+
+### 📚 Documentation
+- **Audit Report:** Complete security audit findings (`AUDIT_REPORT.md`)
+- **Implementation Guide:** Detailed security implementation documentation (`SECURITY_IMPLEMENTATION.md`)
+
+---
+
 ## [v3.2.1] - 2025-12-14 (Hybrid LLM + Architecture Alignment)
 
 ### 🔌 Hybrid LLM Support

@@ -100,6 +100,10 @@ license: mit
 - File magic byte validation
 - Macro/script detection
 - XSS prevention
+- SSRF protection (URL validation)
+- Comprehensive input validation
+- Session expiration & cleanup
+- Error message sanitization
 
 </td>
 </table>
@@ -225,6 +229,8 @@ python main.py
 | 📝 [ADR](docs/ADR.md) | Architectural decisions |
 | 🗺️ [Roadmap](docs/ROADMAP.md) | Future plans |
 | 🔧 [Troubleshooting](docs/TROUBLESHOOTING.md) | Common issues |
+| 🔒 [Security Audit](docs/AUDIT_REPORT.md) | Security audit findings |
+| 🛡️ [Security Implementation](docs/SECURITY_IMPLEMENTATION.md) | Security fixes & hardening |
 | 📜 [Changelog](CHANGELOG.md) | Version history |
 | 🤝 [Contributing](CONTRIBUTING.md) | Contribution guide |
 
@@ -242,6 +248,7 @@ python main.py
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| **v3.2.2** | 2025-12-14 | 🔒 **Security Hardening** (SSRF protection, input validation, session expiration) |
 | **v3.2.1** | 2025-12-14 | 🧠 **Intelligence Hardening** (Fix loops, scoring, RAG verified) |
 | **v3.2.0** | 2025-12-14 | 🏢 **Company Intelligence** (Strategy Injection) & 🏗️ **UI Modularization** (Clean Arch) |
 | **v3.1.0** | 2025-12-12 | 🔷 LangGraph + JD Parser, Smart Role Parsing, Context-Aware Greetings |

@@ -1,6 +1,6 @@
 # 🛣️ Project Roadmap
 
-> **Last Updated:** 2025-12-12
+> **Last Updated:** 2025-12-14
 
 ## ✅ Completed (v2.0-v2.2.1)
 
@@ -100,14 +100,24 @@
 - [x] Implemented candidate state tracking
 - [x] Updated topics (added Cloud, DB, API Design)
 
-### v3.1 - LangGraph Migration (In Progress - 2025-12-12)
+### v3.1 - LangGraph Migration (Complete - 2025-12-12)
 **Goal:** Unified stateful interview flow.
 - [x] LangGraph core with 8 nodes
 - [x] JD Parser (role extraction from URLs)
 - [x] Smart role parsing (core role + specific area)
 - [x] Context-aware greeting with company/role
-- [ ] Replace AutonomousFlowController with InterviewGraph
-- [ ] Feature flag rollout
+- [x] Replace AutonomousFlowController with InterviewGraph
+- [x] Feature flag rollout
+
+### v3.2.2 - Security Hardening (Complete - 2025-12-14)
+**Goal:** Enterprise-grade security controls.
+- [x] SSRF protection in URL scraper
+- [x] Comprehensive input validation
+- [x] Session expiration and cleanup
+- [x] Error message sanitization
+- [x] Input length limits
+- [x] Thread-safe session management
+- [x] Security test suite
 
 ### v3.2 - Company-Specific Interview Frameworks
 **Goal:** Assess candidates using real interview methodologies from top companies.

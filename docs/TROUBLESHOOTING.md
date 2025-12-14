@@ -1,6 +1,6 @@
 # 🔧 Troubleshooting Guide
 
-> **Last Updated:** 2025-12-12
+> **Last Updated:** 2025-12-14
 
 ## 🌐 HuggingFace API Issues
 
@@ -74,6 +74,36 @@ pip install "gradio==4.44.0"
 ### "Answer does not appear to address the question"
 **Cause:** Semantic similarity below 0.25 threshold.
 **Fix:** Ensure your answer directly addresses the question asked.
+
+---
+
+## 🔒 Security & Validation Issues
+
+### "Invalid URL" Error When Scraping Job Description
+**Cause:** URL validation blocks localhost, private IPs, or dangerous schemes for SSRF protection.
+**Fix:** 
+- Use public URLs only (http:// or https://)
+- Ensure URL points to a public domain, not localhost or internal IPs
+- Check URL format is correct
+
+### "Name too long" or "Answer too long" Error
+**Cause:** Input length limits prevent memory exhaustion attacks.
+**Limits:**
+- Name: 100 characters max
+- Answer: 5000 characters max
+- Job Description: 10000 characters max
+- Voice Transcript: 2000 characters max
+**Fix:** Reduce input length to within limits
+
+### "No active session" After Period of Inactivity
+**Cause:** Sessions expire after 1 hour of inactivity for security.
+**Fix:** Start a new interview session. Completed interviews don't expire.
+
+### Generic Error Messages in Production
+**Cause:** Error messages are sanitized in production to prevent information disclosure.
+**Fix:** 
+- Check application logs for detailed error information
+- Set `ENVIRONMENT=development` for detailed error messages (development only)
 
 ---
 
