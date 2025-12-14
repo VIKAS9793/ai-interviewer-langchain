@@ -722,7 +722,6 @@ Evaluate the answer and respond with ONLY this JSON:
             knowledge_gaps=session.knowledge_gaps,
             strengths=session.strengths,
             candidate_state=session.candidate_state,
-            candidate_state=session.candidate_state,
             company_name=session.metadata.get("company_name"),
             # INJECT HISTORY: Pass previous questions to context to prevent repetition
             previous_questions=[q["question"] for q in session.qa_pairs]
