@@ -1,6 +1,7 @@
 # 🔧 Troubleshooting Guide
 
-> **Last Updated:** 2025-12-14
+> **Last Updated:** 2025-12-14  
+> **See Also:** [Type Checking Guide](TYPE_CHECKING_GUIDE.md) for comprehensive mypy troubleshooting
 
 ## 🌐 HuggingFace API Issues
 

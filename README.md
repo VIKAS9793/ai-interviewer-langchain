@@ -229,6 +229,7 @@ python main.py
 | 📝 [ADR](docs/ADR.md) | Architectural decisions |
 | 🗺️ [Roadmap](docs/ROADMAP.md) | Future plans |
 | 🔧 [Troubleshooting](docs/TROUBLESHOOTING.md) | Common issues |
+| 🔍 [Type Checking Guide](docs/TYPE_CHECKING_GUIDE.md) | Mypy troubleshooting & best practices |
 | 🔒 [Security Audit](docs/AUDIT_REPORT.md) | Security audit findings |
 | 🛡️ [Security Implementation](docs/SECURITY_IMPLEMENTATION.md) | Security fixes & hardening |
 | 📜 [Changelog](docs/CHANGELOG.md) | Version history |
