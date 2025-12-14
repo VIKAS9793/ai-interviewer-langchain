@@ -103,9 +103,7 @@ class InterviewGraph:
     def graph(self):
         """Lazy load compiled graph with checkpointer."""
         if self._compiled_graph is None:
-            graph = self._build_graph()
-            # Compile with checkpointer for session persistence
-            self._compiled_graph = graph.compile(checkpointer=self.memory)
+            self._compiled_graph = self._build_graph()
         return self._compiled_graph
     
     def analyze_resume(self, text: str) -> dict:
@@ -190,7 +188,8 @@ class InterviewGraph:
         graph.add_edge("report", END)
         
         logger.info("🔷 Interview graph built (Stateful Loop)")
-        return graph.compile(interrupt_before=["await_answer"])
+        # P2: Compile with checkpointer for session persistence
+        return graph.compile(checkpointer=self.memory, interrupt_before=["await_answer"])
     
     # ==================== GRAPH NODES ====================
     
@@ -501,7 +500,9 @@ class InterviewGraph:
         )
         
         try:
-            final_state = self.graph.invoke(initial_state)
+            # P2: Pass thread_id config for checkpointing
+            config = {"configurable": {"thread_id": initial_state["session_id"]}}
+            final_state = self.graph.invoke(initial_state, config=config)
             
             # Store state for continuity
             session_id = initial_state["session_id"]
@@ -530,7 +531,9 @@ class InterviewGraph:
         state["current_answer"] = answer
         
         try:
-            final_state = self.graph.invoke(state)
+            # P2: Pass thread_id config for checkpointing
+            config = {"configurable": {"thread_id": session_id}}
+            final_state = self.graph.invoke(state, config=config)
             self._active_states[session_id] = final_state
             
             # Map state to legacy result format
