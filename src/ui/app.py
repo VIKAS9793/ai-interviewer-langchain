@@ -6,6 +6,7 @@ from src.ui.tabs.interview_tab import create_interview_tab
 from src.ui.tabs.practice_tab import create_practice_tab
 from src.ui.interfaces import InterviewApp
 from src.ui.handlers import InterviewHandlers
+from src.ai_interviewer.utils.config import Config  # For MAINTENANCE_MODE flag
 
 def create_interface(app: InterviewApp) -> gr.Blocks:
     """
