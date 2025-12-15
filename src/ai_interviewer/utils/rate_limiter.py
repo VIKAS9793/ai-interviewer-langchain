@@ -358,8 +358,8 @@ def get_rate_limiter() -> APIRateLimiter:
     with _limiter_lock:
         if _rate_limiter is None:
             _rate_limiter = APIRateLimiter(RateLimitConfig(
-                requests_per_minute=10,  # Gemini Flash-Lite free tier (Dec 2025)
-                requests_per_day=20,     # Gemini Flash-Lite free tier (Dec 2025)
+                requests_per_minute=30,     # Gemma-3-12b
+                requests_per_day=14400,     # Gemma-3-12b: 720 interviews/day
                 max_retries=3,
                 initial_delay_seconds=1.0,
                 max_delay_seconds=60.0
