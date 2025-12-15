@@ -90,7 +90,7 @@ class Config:
     
     # Security: Input Validation Limits
     MAX_NAME_LENGTH = 100  # Maximum candidate name length
-    MAX_ANSWER_LENGTH = 5000  # Maximum answer text length
+    MAX_ANSWER_LENGTH = 10000  # Maximum answer text length (allow detailed technical answers)
     MAX_JD_TEXT_LENGTH = 10000  # Maximum job description text length
     MAX_JD_URL_LENGTH = 2048  # Maximum URL length (RFC 7230)
     MAX_SCRAPED_CONTENT_LENGTH = 10000  # Maximum scraped content length
