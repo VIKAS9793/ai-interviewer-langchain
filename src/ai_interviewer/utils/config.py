@@ -107,9 +107,10 @@ class Config:
     LANGGRAPH_ENABLED = True  # v3.1: Use LangGraph engine
     
     # Rate Limiting (Enterprise-grade API cost control)
-    RATE_LIMIT_RPM = 15  # Gemini Flash-Lite: 15 requests per minute
-    RATE_LIMIT_RPD = 1000  # Conservative daily limit (Flash-Lite: 1,500)
-    RATE_LIMIT_MAX_CONCURRENT = 5  # Max concurrent interview sessions
+    # Actual Gemini free tier limits (Dec 2025):
+    RATE_LIMIT_RPM = 10  # Gemini Flash-Lite: 10 requests per minute
+    RATE_LIMIT_RPD = 20  # Gemini Flash-Lite: 20 requests per day (free tier)
+    RATE_LIMIT_MAX_CONCURRENT = 5  # Max concurrent sessions (rate limiter handles quota)
     RATE_LIMIT_TIMEOUT_SECONDS = 30  # Max wait time for rate limit
     RATE_LIMIT_MAX_RETRIES = 3  # Max retry attempts on 429 errors
     

@@ -29,6 +29,8 @@ def create_interface(app: InterviewApp) -> gr.Blocks:
             # 🤖 AI Technical Interviewer
             
             **Powered by Gemini + HuggingFace** | Chain-of-Thought Reasoning | Adaptive Questioning
+            
+            > ℹ️ **Free Tier Notice:** Using Gemini API (20 requests/day). When daily limit is reached, automatically switches to HuggingFace for continued service.
             """
         )
         
