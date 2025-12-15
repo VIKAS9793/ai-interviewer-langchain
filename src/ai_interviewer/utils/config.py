@@ -25,9 +25,9 @@ class Config:
     OPENAI_MODEL = "gpt-4o-mini"  # Cost-effective with structured output support
     OPENAI_TEMPERATURE = 0.3
     
-    # Google Gemini Settings (Free Tier: Gemma-3-12b - Text Generation)
+    # Google Gemini Settings (Free Tier: Gemini 2.5 Flash-Lite)
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-    GEMINI_MODEL = "gemma-3-12b"  # Text generation: 14.4K RPD!
+    GEMINI_MODEL = "gemini-2.5-flash-lite"  # Fastest flash model: 10 RPM, 20 RPD
     GEMINI_TEMPERATURE = 0.3
     
     # LLM Provider Priority (controls which provider to try first)
@@ -107,9 +107,9 @@ class Config:
     LANGGRAPH_ENABLED = True  # v3.1: Use LangGraph engine
     
     # Rate Limiting (Enterprise-grade API cost control)
-    # Gemma-3-12b: 30 RPM, 14.4K RPD
-    RATE_LIMIT_RPM = 30  # Gemma-3-12b actual limit
-    RATE_LIMIT_RPD = 14400  # Gemma-3-12b: 14,400 requests/day
+    # Gemini 2.5 Flash-Lite Free Tier: 10 RPM, 20 RPD (Dec 2025)
+    RATE_LIMIT_RPM = 10  # gemini-2.5-flash-lite actual limit
+    RATE_LIMIT_RPD = 20  # gemini-2.5-flash-lite free tier
     RATE_LIMIT_MAX_CONCURRENT = 5  # Max concurrent sessions (rate limiter handles quota)
     RATE_LIMIT_TIMEOUT_SECONDS = 30  # Max wait time for rate limit
     RATE_LIMIT_MAX_RETRIES = 3  # Max retry attempts on 429 errors
