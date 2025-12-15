@@ -683,12 +683,13 @@ Return JSON only:
 [/INST]"""
                 
                 response = llm.invoke(prompt)
+                response_text = response.content if hasattr(response, 'content') else str(response)
                 
                 import json
-                start = response.find('{')
-                end = response.rfind('}') + 1
+                start = response_text.find('{')
+                end = response_text.rfind('}') + 1
                 if start != -1 and end > start:
-                    result = json.loads(response[start:end])
+                    result = json.loads(response_text[start:end])
                     result["analysis_type"] = "llm_json"
                     return cast(Dict[str, Any], result)
         except Exception as e:
@@ -1266,13 +1267,17 @@ Return ONLY the question text, nothing else.
             """
             
             response = llm.invoke(prompt)
+            response_text = response.content if hasattr(response, 'content') else str(response)
             
-            # Simple JSON extraction
+            # Validate response isn't empty
+            if not response_text or len(response_text) < 10:
+                return {"score": 7, "feedback": "LLM returned empty critique."}
+
             import json
-            start = response.find('{')
-            end = response.rfind('}') + 1
+            start = response_text.find('{')
+            end = response_text.rfind('}') + 1
             if start != -1 and end > start:
-                return cast(Dict[str, Any], json.loads(response[start:end]))
+                return cast(Dict[str, Any], json.loads(response_text[start:end]))
             
             return {"score": 7, "feedback": "Failed to parse critique."}
 
@@ -1359,11 +1364,17 @@ Return ONLY the question text, nothing else.
                 }}
                 """
                 response = llm.invoke(prompt)
+                response_text = response.content if hasattr(response, 'content') else str(response)
+            
+                # 3. Parse JSON or use heuristic
                 import json
-                start = response.find('{')
-                end = response.rfind('}') + 1
+                start = response_text.find('{')
+                end = response_text.rfind('}') + 1
                 if start != -1 and end > start:
-                    result = json.loads(response[start:end])
+                    try:
+                        result = json.loads(response_text[start:end])
+                    except json.JSONDecodeError:
+                        result = {"decision": heuristic_decision, "ui_label": "Standard Mode"}
                 else:
                     result = {"decision": heuristic_decision, "ui_label": "Standard Mode"}
             else:
