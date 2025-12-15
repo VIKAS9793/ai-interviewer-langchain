@@ -34,7 +34,7 @@ T = TypeVar('T')
 class RateLimitConfig:
     """Configuration for rate limiting."""
     # Requests per minute (RPM)
-    requests_per_minute: int = 15  # Gemini Flash-Lite free tier
+    requests_per_minute: int = 15  # Default: conservative limit
     # Requests per day (RPD)
     requests_per_day: int = 1000  # Conservative for 5 users × 20 calls
     # Tokens per minute (TPM) - for future use
