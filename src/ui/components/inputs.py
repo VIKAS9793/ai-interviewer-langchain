@@ -55,7 +55,8 @@ def create_file_upload(
 def create_primary_button(
     text: str,
     variant: str = "primary",  # primary or secondary
-    size: str = "lg"
+    size: str = "lg",
+    interactive: bool = True  # Can be disabled
 ) -> gr.Button:
     """Create a CTA button"""
     # Cast to Literal types expected by Gradio
@@ -65,5 +66,6 @@ def create_primary_button(
         value=text,
         variant=variant_literal,
         size=size_literal,
+        interactive=interactive,
         elem_classes=["pill-btn"] if variant == "primary" else []
     )

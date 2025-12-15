@@ -23,16 +23,41 @@ def create_interface(app: InterviewApp) -> gr.Blocks:
         title="AI Technical Interviewer"
     ) as interface:
         
-        # Header
-        gr.Markdown(
-            """
+        with gr.Column():
+            gr.Markdown(
+            f"""
             # 🤖 AI Technical Interviewer
             
             **Powered by Gemini + HuggingFace** | Chain-of-Thought Reasoning | Adaptive Questioning
-            
-            > ℹ️ **FREE TIER:** Gemini API limited to **1 interview/day**. After the first interview, the system automatically switches to **HuggingFace** for continued service (unlimited, but may be slower).
             """
         )
+            
+            # Maintenance mode warning
+            if Config.MAINTENANCE_MODE:
+                gr.Markdown(
+                    """
+                    ---
+                    ## 🚧 SYSTEM UNDER MAINTENANCE 🚧
+                    
+                    **The interview system is temporarily unavailable.**
+                    
+                    We are implementing critical fixes to prevent quota issues and improve system reliability.
+                    
+                    **Status:** Work in Progress  
+                    **Expected Resume:** Dec 16, 2025  
+                    
+                    We apologize for the inconvenience. Please check back tomorrow.
+                    
+                    ---
+                    """,
+                    elem_classes=["maintenance-banner"]
+                )
+            else:
+                gr.Markdown(
+                    """
+                    > ℹ️ **FREE TIER:** Gemini API limited to **1 interview/day**. After the first interview, the system automatically switches to **HuggingFace** for continued service (unlimited, but may be slower).
+                    """
+                )
         
         # Tabs container (for hiding during interview)
         with gr.Column(visible=True) as tabs_container:

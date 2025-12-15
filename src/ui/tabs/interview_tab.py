@@ -36,7 +36,10 @@ def create_interview_tab() -> InterviewTabComponents:
                 value=Config.AVAILABLE_TOPICS[0] if Config.AVAILABLE_TOPICS else None
             )
             
-        start_btn = create_primary_button("Start Interview")
+        start_btn = create_primary_button(
+            "Start Interview",
+            interactive=not Config.MAINTENANCE_MODE  # Disable in maintenance mode
+        )
         
         return InterviewTabComponents(
             candidate_name=candidate_name,
