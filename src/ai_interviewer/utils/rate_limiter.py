@@ -194,8 +194,9 @@ class GlobalInterviewQuota:
     Enforces hard limit: 1 interview per day for entire system.
     After ANY user completes an interview, block all subsequent users.
     """
-    _instance = None
+    _instance: Optional['GlobalInterviewQuota'] = None
     _lock = threading.Lock()
+    _initialized: bool
     
     def __new__(cls):
         if cls._instance is None:
