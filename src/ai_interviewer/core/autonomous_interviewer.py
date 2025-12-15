@@ -356,7 +356,8 @@ Return ONLY a comma-separated list of strengths (e.g., "Clear API knowledge, Goo
 Be specific to what they actually demonstrated.
 [/INST]"""
                 
-                response = llm.invoke(prompt).strip()
+                response_obj = llm.invoke(prompt)
+                response = (response_obj.content if hasattr(response_obj, 'content') else str(response_obj)).strip()
                 if response and "," in response:
                     strengths = [s.strip() for s in response.split(",")][:3]
                     if strengths and len(strengths[0]) < 50:  # Sanity check
@@ -399,7 +400,8 @@ Return ONLY a comma-separated list of actionable improvements (e.g., "Explain th
 Be constructive and specific.
 [/INST]"""
                     
-                    response = llm.invoke(prompt).strip()
+                    response_obj = llm.invoke(prompt)
+                    response = (response_obj.content if hasattr(response_obj, 'content') else str(response_obj)).strip()
                     if response and "," in response:
                         improvements = [s.strip() for s in response.split(",")][:3]
                         if improvements and len(improvements[0]) < 60:
@@ -687,7 +689,8 @@ Write 1-2 sentences of constructive feedback. Be specific, not generic.
 [/INST]"""
                 response = llm.invoke(prompt)
                 # Clean response
-                feedback = response.strip()
+                feedback_content = response.content if hasattr(response, 'content') else str(response)
+                feedback = feedback_content.strip()
                 if len(feedback) > 20 and len(feedback) < 200:  # Sanity check
                     return cast(str, feedback)
         except Exception as e:

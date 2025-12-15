@@ -894,7 +894,8 @@ Return ONLY the question text, nothing else.
         try:
             llm = self._get_llm()
             if llm:
-                response = llm.invoke(prompt).strip().replace('"', '')
+                response_obj = llm.invoke(prompt)
+                response = (response_obj.content if hasattr(response_obj, 'content') else str(response_obj)).strip().replace('"', '')
                 # Validate response isn't a repeat
                 if response and not any(prev.lower() in response.lower() for prev in previous_questions[:3]):
                     return cast(str, response)
@@ -1302,7 +1303,8 @@ Return ONLY the question text, nothing else.
             Generate ONLY the revised text. Do not add quotes or explanations.
             """
             
-            revised = llm.invoke(prompt).strip()
+            response_obj = llm.invoke(prompt)
+            revised = (response_obj.content if hasattr(response_obj, 'content') else str(response_obj)).strip()
             # Remove quotes if present
             if revised.startswith('"') and revised.endswith('"'):
                 revised = revised[1:-1]
