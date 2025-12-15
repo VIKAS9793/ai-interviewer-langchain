@@ -174,6 +174,19 @@ class DailyQuotaTracker:
             return max(0, self.daily_limit - self._count)
     
     @property
+    def requests_today(self) -> int:
+        """Get number of requests made today."""
+        with self._lock:
+            self._check_reset()
+            return self._count
+    
+    def is_quota_exhausted(self) -> bool:
+        """Check if daily quota is exhausted."""
+        with self._lock:
+            self._check_reset()
+            return self._count >= self.daily_limit
+    
+    @property
     def usage_stats(self) -> dict:
         """Get usage statistics."""
         with self._lock:

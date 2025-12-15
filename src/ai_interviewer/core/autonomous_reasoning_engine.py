@@ -166,30 +166,55 @@ class AutonomousReasoningEngine:
         - "openai": Use OpenAI only
         - "huggingface": Use HuggingFace only
         - "hybrid": Try Gemini -> OpenAI -> HuggingFace
+        
+        Rate Limiting: Checks quota before Gemini, auto-fallback if exhausted.
         """
         if self._llm is None:
             provider = Config.LLM_PROVIDER
             
+            # RATE LIMITER CHECK: Prevent Gemini if quota exhausted
+            from src.ai_interviewer.utils.rate_limiter import get_rate_limiter
+            rate_limiter = get_rate_limiter()
+            
             # Try Gemini first if hybrid or gemini mode
             if provider in ("gemini", "hybrid"):
-                try:
-                    gemini_key = Config.GEMINI_API_KEY or os.environ.get("GEMINI_API_KEY")
-                    if gemini_key:
-                        from langchain_google_genai import ChatGoogleGenerativeAI  # pyright: ignore[reportMissingImports]
-                        self._llm = ChatGoogleGenerativeAI(
-                            model=Config.GEMINI_MODEL,
-                            temperature=Config.GEMINI_TEMPERATURE,
-                            google_api_key=gemini_key
-                        )
-                        self._current_model = f"gemini/{Config.GEMINI_MODEL}"
-                        logger.info(f"✅ Connected to Gemini: {Config.GEMINI_MODEL}")
-                        return self._llm
-                    elif provider == "gemini":
-                        logger.warning("⚠️ GEMINI_API_KEY not found but LLM_PROVIDER=gemini")
-                except Exception as e:
-                    logger.warning(f"⚠️ Gemini connection failed: {e}")
+                # Check if we have quota remaining
+                if rate_limiter.daily_quota.is_quota_exhausted():
+                    logger.warning("⚠️ Gemini quota exhausted (20 RPD), skipping to fallback")
                     if provider == "gemini":
-                        raise  # Don't fallback if explicitly set to gemini
+                        raise Exception("Gemini quota exhausted and no fallback configured")
+                    # Skip to OpenAI/HuggingFace
+                else:
+                    try:
+                        gemini_key = Config.GEMINI_API_KEY or os.environ.get("GEMINI_API_KEY")
+                        if gemini_key:
+                            from langchain_google_genai import ChatGoogleGenerativeAI  # pyright: ignore[reportMissingImports]
+                            self._llm = ChatGoogleGenerativeAI(
+                                model=Config.GEMINI_MODEL,
+                                temperature=Config.GEMINI_TEMPERATURE,
+                                google_api_key=gemini_key
+                            )
+                            self._current_model = f"gemini/{Config.GEMINI_MODEL}"
+                            # Record the request for quota tracking
+                            rate_limiter.daily_quota.record_request()
+                            logger.info(f"✅ Connected to Gemini: {Config.GEMINI_MODEL} ({rate_limiter.daily_quota.requests_today}/{Config.RATE_LIMIT_RPD} RPD used)")
+                            return self._llm
+                        elif provider == "gemini":
+                            logger.warning("⚠️ GEMINI_API_KEY not found but LLM_PROVIDER=gemini")
+                    except Exception as e:
+                        error_str = str(e).lower()
+                        # Detect 429 quota errors
+                        if "429" in error_str or "quota" in error_str or "resourceexhausted" in error_str:
+                            logger.warning(f"⚠️ Gemini quota exhausted (429): {e}")
+                            # Mark quota as exhausted to prevent further attempts
+                            rate_limiter.daily_quota._requests_today = Config.RATE_LIMIT_RPD
+                            if provider == "gemini":
+                                raise  # No fallback available
+                            # Fall through to try OpenAI/HuggingFace
+                        else:
+                            logger.warning(f"⚠️ Gemini connection failed: {e}")
+                            if provider == "gemini":
+                                raise  # Don't fallback if explicitly set to gemini
             
             # Try OpenAI if hybrid or openai mode
             if provider in ("openai", "hybrid"):
