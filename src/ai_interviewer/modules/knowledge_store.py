@@ -70,9 +70,9 @@ class KnowledgeStore:
             # Convert our Dict[str, Any] to the expected format
             chroma_metadatas = None
             if metadatas is not None:
-                from typing import cast, List, Mapping
+                from typing import cast, List, Mapping, Union
                 chroma_metadatas = cast(
-                    List[Mapping[str, str | int | float | bool]],
+                    List[Mapping[str, Union[str, int, float, bool]]],
                     [
                         {k: v for k, v in md.items() if isinstance(v, (str, int, float, bool))}
                         for md in metadatas
