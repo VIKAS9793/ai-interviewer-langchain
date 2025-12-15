@@ -495,14 +495,15 @@ Evaluate the answer and respond with ONLY this JSON:
 [/INST]"""
             
             response = llm.invoke(prompt)
-            logger.info(f"✅ LLM response: {len(response)} chars")
+            response_text = response.content if hasattr(response, 'content') else str(response)
+            logger.info(f"✅ LLM response: {len(response_text)} chars")
             
             # Parse JSON
             import json
-            start = response.find('{')
-            end = response.rfind('}') + 1
+            start = response_text.find('{')
+            end = response_text.rfind('}') + 1
             if start != -1 and end > start:
-                result = json.loads(response[start:end])
+                result = json.loads(response_text[start:end])
                 
                 # Convert 1-5 to 1-10 for UI display
                 raw_score = max(1, min(5, result.get("score", 3)))
@@ -538,7 +539,7 @@ Evaluate the answer and respond with ONLY this JSON:
                 logger.info(f"✅ Prometheus evaluation: {raw_score}/5 -> {display_score}/10")
                 return cast(Dict[str, Any], result)
             else:
-                logger.warning(f"⚠️ No JSON found in response: {response[:150]}...")
+                logger.warning(f"⚠️ No JSON found in response: {response_text[:150]}...")
                 return self._heuristic_evaluation(session)
             
         except json.JSONDecodeError as e:
