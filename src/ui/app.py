@@ -28,7 +28,7 @@ def create_interface(app: InterviewApp) -> gr.Blocks:
             """
             # 🤖 AI Technical Interviewer
             
-            **Powered by Meta LLaMA 3** | Chain-of-Thought Reasoning | Adaptive Questioning
+            **Powered by Gemini + HuggingFace** | Chain-of-Thought Reasoning | Adaptive Questioning
             """
         )
         

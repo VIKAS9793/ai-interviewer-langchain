@@ -162,14 +162,36 @@ class AutonomousReasoningEngine:
         """
         Lazy load LLM with hybrid provider support (Arch Audit A+B).
         Priority based on Config.LLM_PROVIDER:
+        - "gemini": Use Google Gemini only
         - "openai": Use OpenAI only
         - "huggingface": Use HuggingFace only
-        - "hybrid": Try OpenAI first for structured output, fallback to HF
+        - "hybrid": Try Gemini -> OpenAI -> HuggingFace
         """
         if self._llm is None:
             provider = Config.LLM_PROVIDER
             
-            # Try OpenAI first if hybrid or openai mode
+            # Try Gemini first if hybrid or gemini mode
+            if provider in ("gemini", "hybrid"):
+                try:
+                    gemini_key = Config.GEMINI_API_KEY or os.environ.get("GEMINI_API_KEY")
+                    if gemini_key:
+                        from langchain_google_genai import ChatGoogleGenerativeAI  # pyright: ignore[reportMissingImports]
+                        self._llm = ChatGoogleGenerativeAI(
+                            model=Config.GEMINI_MODEL,
+                            temperature=Config.GEMINI_TEMPERATURE,
+                            google_api_key=gemini_key
+                        )
+                        self._current_model = f"gemini/{Config.GEMINI_MODEL}"
+                        logger.info(f"✅ Connected to Gemini: {Config.GEMINI_MODEL}")
+                        return self._llm
+                    elif provider == "gemini":
+                        logger.warning("⚠️ GEMINI_API_KEY not found but LLM_PROVIDER=gemini")
+                except Exception as e:
+                    logger.warning(f"⚠️ Gemini connection failed: {e}")
+                    if provider == "gemini":
+                        raise  # Don't fallback if explicitly set to gemini
+            
+            # Try OpenAI if hybrid or openai mode
             if provider in ("openai", "hybrid"):
                 try:
                     openai_key = os.environ.get("OPENAI_API_KEY")

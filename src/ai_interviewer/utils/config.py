@@ -25,11 +25,17 @@ class Config:
     OPENAI_MODEL = "gpt-4o-mini"  # Cost-effective with structured output support
     OPENAI_TEMPERATURE = 0.3
     
+    # Google Gemini Settings (Free Tier: Flash-Lite recommended)
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+    GEMINI_MODEL = "gemini-2.5-flash-lite"  # Best free tier: 1,500 RPD
+    GEMINI_TEMPERATURE = 0.3
+    
     # LLM Provider Priority (controls which provider to try first)
-    # Options: "openai", "huggingface", "hybrid"
-    # - "openai": Use OpenAI for all LLM calls (requires OPENAI_API_KEY)
+    # Options: "gemini", "openai", "huggingface", "hybrid"
+    # - "gemini": Use Google Gemini (free tier, structured output)
+    # - "openai": Use OpenAI (requires OPENAI_API_KEY)
     # - "huggingface": Use HuggingFace only (free, uses HF_TOKEN)
-    # - "hybrid": Try OpenAI first for structured output, fallback to HF
+    # - "hybrid": Try Gemini -> OpenAI -> HuggingFace
     LLM_PROVIDER = os.getenv("LLM_PROVIDER", "hybrid")
     
     # Interview Settings
@@ -99,6 +105,13 @@ class Config:
     
     # Feature Flags
     LANGGRAPH_ENABLED = True  # v3.1: Use LangGraph engine
+    
+    # Rate Limiting (Enterprise-grade API cost control)
+    RATE_LIMIT_RPM = 15  # Gemini Flash-Lite: 15 requests per minute
+    RATE_LIMIT_RPD = 1000  # Conservative daily limit (Flash-Lite: 1,500)
+    RATE_LIMIT_MAX_CONCURRENT = 5  # Max concurrent interview sessions
+    RATE_LIMIT_TIMEOUT_SECONDS = 30  # Max wait time for rate limit
+    RATE_LIMIT_MAX_RETRIES = 3  # Max retry attempts on 429 errors
     
     @classmethod
     def get_topic_mapping(cls) -> Dict[str, str]:
