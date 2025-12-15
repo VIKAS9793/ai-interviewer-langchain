@@ -187,6 +187,80 @@ class DailyQuotaTracker:
             }
 
 
+class GlobalInterviewQuota:
+    """
+    Track global interview completions per day.
+    
+    Enforces hard limit: 1 interview per day for entire system.
+    After ANY user completes an interview, block all subsequent users.
+    """
+    _instance = None
+    _lock = threading.Lock()
+    
+    def __new__(cls):
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
+                    cls._instance._initialized = False
+        return cls._instance
+    
+    def __init__(self):
+        if self._initialized:
+            return
+        self._interviews_completed = 0
+        self._reset_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        self._lock = threading.Lock()
+        self._initialized = True
+        logger.info("🔒 GlobalInterviewQuota initialized: 1 interview/day limit")
+    
+    def _check_reset(self) -> None:
+        """Reset counter if it's a new day."""
+        current_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        if current_date != self._reset_date:
+            logger.info(f"🔄 Global interview quota reset: {self._reset_date} -> {current_date}")
+            self._interviews_completed = 0
+            self._reset_date = current_date
+    
+    def can_start_interview(self) -> bool:
+        """Check if a new interview can be started today."""
+        with self._lock:
+            self._check_reset()
+            return self._interviews_completed < 1
+    
+    def record_interview_completion(self) -> None:
+        """Record that an interview was completed."""
+        with self._lock:
+            self._check_reset()
+            self._interviews_completed += 1
+            logger.warning(f"⚠️ Daily interview quota exhausted: {self._interviews_completed}/1")
+    
+    @property
+    def is_quota_exhausted(self) -> bool:
+        """Check if daily quota is exhausted."""
+        with self._lock:
+            self._check_reset()
+            return self._interviews_completed >= 1
+    
+    @property
+    def stats(self) -> dict:
+        """Get global quota statistics."""
+        with self._lock:
+            self._check_reset()
+            return {
+                "interviews_completed": self._interviews_completed,
+                "daily_limit": 1,
+                "quota_exhausted": self._interviews_completed >= 1,
+                "reset_date": self._reset_date
+            }
+
+
+# Global singleton
+def get_global_interview_quota() -> GlobalInterviewQuota:
+    """Get the global interview quota tracker."""
+    return GlobalInterviewQuota()
+
+
 class APIRateLimiter:
     """
     Enterprise-grade API rate limiter for LLM calls.

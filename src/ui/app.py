@@ -29,6 +29,8 @@ def create_interface(app: InterviewApp) -> gr.Blocks:
             # 🤖 AI Technical Interviewer
             
             **Powered by Gemini + HuggingFace** | Chain-of-Thought Reasoning | Adaptive Questioning
+            
+            > ⚠️ **FREE TIER LIMIT:** Only **1 interview per day** is allowed globally. After any user completes an interview, the system will be unavailable until the next day (resets at midnight UTC). First come, first served!
             """
         )
         
