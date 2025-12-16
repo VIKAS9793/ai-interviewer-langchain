@@ -284,6 +284,74 @@ class AutonomousReasoningEngine:
             self._llm = None
         return self._llm
     
+    def invoke_with_quota_check(self, *args, **kwargs):
+        """
+        CRITICAL FIX: Invoke wrapper that checks quota BEFORE every call.
+        
+        This solves the caching bug where self._llm bypasses quota checks.
+        Every LLM.invoke() in this file should use this method instead.
+        
+        Behavior:
+        1. Check if Gemini quota exhausted BEFORE invoke
+        2. If exhausted, switch to fallback immediately
+        3. If invoke raises 429, mark quota exhausted and retry with fallback
+        4. Track all Gemini requests for quota management
+        
+        Returns:
+            AIMessage from LLM
+        """
+        from src.ai_interviewer.utils.rate_limiter import get_rate_limiter
+        rate_limiter = get_rate_limiter()
+        
+        # Check if currently using Gemini
+        is_using_gemini = "gemini" in (self._current_model or "").lower()
+        
+        # PRE-INVOKE QUOTA CHECK (prevents caching bug)
+        if is_using_gemini and rate_limiter.daily_quota.is_quota_exhausted():
+            logger.warning(f"⚠️ Gemini quota exhausted ({rate_limiter.daily_quota.requests_today}/{Config.RATE_LIMIT_RPD}). Switching to fallback.")
+            # Force re-initialization with fallback
+            self._llm = None
+            self._current_model = None
+            # Get fallback LLM
+            fallback_llm = self._get_llm()
+            return fallback_llm.invoke(*args, **kwargs)
+        
+        try:
+            # Invoke the current LLM
+            llm = self._get_llm()  # May return cached self._llm
+            response = llm.invoke(*args, **kwargs)
+            
+            # SUCCESS: Track usage if Gemini
+            if is_using_gemini:
+                logger.debug(f"✅ Gemini call successful ({rate_limiter.daily_quota.requests_today}/{Config.RATE_LIMIT_RPD} RPD used)")
+            
+            return response
+            
+        except Exception as e:
+            error_str = str(e).lower()
+            
+            # DETECT 429 QUOTA EXHAUSTION
+            if is_using_gemini and ("429" in error_str or "quota" in error_str or "resourceexhausted" in error_str):
+                logger.warning(f"⚠️ Gemini 429 error detected during invoke: {e}")
+                
+                # Mark quota as exhausted to prevent future attempts
+                rate_limiter.daily_quota._count = Config.RATE_LIMIT_RPD
+                logger.warning(f"📉 Marked Gemini quota as exhausted: {rate_limiter.daily_quota.requests_today}/{Config.RATE_LIMIT_RPD}")
+                
+                # AUTO-FALLBACK: Clear cache and retry with fallback
+                if Config.LLM_PROVIDER == "hybrid":
+                    logger.info("🔄 Auto-fallback to OpenAI/HuggingFace")
+                    self._llm = None
+                    self._current_model = None
+                    fallback_llm = self._get_llm()
+                    return fallback_llm.invoke(*args, **kwargs)
+                else:
+                    # No fallback available
+                    raise Exception(f"Gemini quota exhausted (LLM_PROVIDER={Config.LLM_PROVIDER}, no fallback)") from e
+            else:
+                # Not a quota error, re-raise
+                raise
+    
     # ==================== CHAIN-OF-THOUGHT REASONING ====================
     
     def think_before_acting(self, context: InterviewContext, 
