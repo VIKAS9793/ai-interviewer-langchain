@@ -432,28 +432,55 @@ Be constructive and specific.
         final_question_text = "What is " + session.topic + "?"
         confidence = 0.5
         
-        try:
-           result = self.reasoning_engine.generate_human_like_question(context, question_thought)
-           final_question_text = result["question"]
-           confidence = result.get("metadata", {}).get("confidence", 0.8)
-           
-           # METACOGNITIVE CHECK: Fairness & Safety
-           if self.reflect_agent:
-               fairness = self.reflect_agent.evaluate_question_fairness(
-                   final_question_text, 
-                   session.topic
-               )
-               if fairness.outcome.value == "failed":
-                   logger.warning(f"⛔ Fairness Check BLOCKED question: {fairness.message}")
-                   final_question_text = f"Let's switch gears. What other aspects of {session.topic} are you familiar with?"
-               elif fairness.outcome.value == "warning":
-                    logger.info(f"⚠️ Fairness Warning: {fairness.message}")
-
-        except Exception as e:
-           # Fallback with logging
-           logger.warning(f"Question generation failed: {e}, using fallback")
-           final_question_text = f"Could you tell me more about your approach to {session.topic}?"
-           
+        # QUALITY FIX: Retry loop to enforce fairness (prevents duplicate questions)
+        max_retries = 3
+        final_question_text = None
+        
+        for attempt in range(max_retries):
+            try:
+                result = self.reasoning_engine.generate_human_like_question(context, question_thought)
+                candidate_question = result["question"]
+                confidence = result.get("metadata", {}).get("confidence", 0.8)
+                
+                # METACOGNITIVE CHECK: Fairness & Safety
+                if self.reflect_agent:
+                    fairness = self.reflect_agent.evaluate_question_fairness(
+                        candidate_question, 
+                        session.topic
+                    )
+                    
+                    if fairness.outcome.value == "failed":
+                        logger.warning(f"⛔ Fairness FAILED (attempt {attempt + 1}/{max_retries}): {fairness.message}")
+                        if attempt < max_retries - 1:
+                            logger.info(f"🔄 Regenerating question...")
+                            continue  # Try again
+                        else:
+                            logger.error(f"❌ All {max_retries} retries exhausted, using fallback")
+                            final_question_text = f"Let's explore a different aspect. Can you describe a challenging {session.topic} project you've worked on?"
+                            break
+                    elif fairness.outcome.value == "warning":
+                        logger.info(f"⚠️ Fairness Warning (attempt {attempt + 1}): {fairness.message}")
+                        final_question_text = candidate_question
+                        break
+                    else:
+                        logger.info(f"✅ Question passed fairness (attempt {attempt + 1})")
+                        final_question_text = candidate_question
+                        break
+                else:
+                    final_question_text = candidate_question
+                    break
+                    
+            except Exception as e:
+                logger.warning(f"Question generation failed (attempt {attempt + 1}): {e}")
+                if attempt < max_retries - 1:
+                    continue
+                else:
+                    final_question_text = f"Could you tell me more about your approach to {session.topic}?"
+        
+        # Fallback of last resort
+        if not final_question_text:
+            final_question_text = f"What aspects of {session.topic} are you most familiar with?"
+            
         return {
             "question": final_question_text,
             "approach": question_thought.conclusion,
