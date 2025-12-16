@@ -37,19 +37,14 @@ def create_interface(app: InterviewApp) -> gr.Blocks:
             if Config.MAINTENANCE_MODE:
                 gr.Markdown(
                     """
-                    ---
-                    ## 🚧 SYSTEM UNDER MAINTENANCE 🚧
+                    ## 🔴 SYSTEM OFFLINE
                     
-                    **The interview system is temporarily unavailable.**
+                    **Access Suspended Until Further Notice**
                     
-                    We are implementing critical fixes to prevent quota issues and improve system reliability.
+                    We have disabled the application to perform deep engineering maintenance.
+                    The system is currently producing repetitive questions, which is unacceptable.
                     
-                    **Status:** Work in Progress  
-                    **Expected Resume:** Dec 16, 2025  
-                    
-                    We apologize for the inconvenience. Please check back tomorrow.
-                    
-                    ---
+                    Access will resume only after the root cause is identified and fixed permanently.
                     """,
                     elem_classes=["maintenance-banner"]
                 )
