@@ -203,7 +203,7 @@ class DailyQuotaTracker:
         """Reset the quota counter (for testing purposes)."""
         with self._lock:
             self._count = 0
-            self._reset_date = datetime.now().date()
+            self._reset_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
 
 class GlobalInterviewQuota:

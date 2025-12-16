@@ -207,7 +207,7 @@ class AutonomousReasoningEngine:
                         if "429" in error_str or "quota" in error_str or "resourceexhausted" in error_str:
                             logger.warning(f"⚠️ Gemini quota exhausted (429): {e}")
                             # Mark quota as exhausted to prevent further attempts
-                            rate_limiter.daily_quota._requests_today = Config.RATE_LIMIT_RPD
+                            rate_limiter.daily_quota._count = Config.RATE_LIMIT_RPD
                             if provider == "gemini":
                                 raise  # No fallback available
                             # Fall through to try OpenAI/HuggingFace
