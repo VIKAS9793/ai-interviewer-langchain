@@ -105,7 +105,10 @@ class Config:
     
     # Feature Flags
     LANGGRAPH_ENABLED = True  # v3.1: Use LangGraph engine
-    MAINTENANCE_MODE = os.getenv("MAINTENANCE_MODE", "true").lower() == "true"  # Emergency: System under maintenance
+    # Emergency Maintenance Mode
+    # Set to true to block all interviews and display maintenance banner
+    # UPDATED: Dec 16 - Disabled after rate limiter fix deployed
+    MAINTENANCE_MODE = os.getenv("MAINTENANCE_MODE", "false").lower() == "true"  # Emergency: System under maintenance
     
     # Rate Limiting (Enterprise-grade API cost control)
     # Gemini 2.5 Flash-Lite Free Tier: 10 RPM, 20 RPD (Dec 2025)
