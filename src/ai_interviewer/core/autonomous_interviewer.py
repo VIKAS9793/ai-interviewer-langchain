@@ -442,11 +442,14 @@ Be constructive and specific.
                 candidate_question = result["question"]
                 confidence = result.get("metadata", {}).get("confidence", 0.8)
                 
-                # METACOGNITIVE CHECK: Fairness & Safety
+                # METACOGNITIVE CHECK: Fairness & Safety (including semantic duplicates)
                 if self.reflect_agent:
+                    # Pass previous questions for semantic duplicate detection
+                    previous_q_texts = [qa["question"] for qa in session.qa_pairs] if session.qa_pairs else []
                     fairness = self.reflect_agent.evaluate_question_fairness(
                         candidate_question, 
-                        session.topic
+                        session.topic,
+                        previous_questions=previous_q_texts  # NEW: Enable semantic dedup
                     )
                     
                     if fairness.outcome.value == "failed":

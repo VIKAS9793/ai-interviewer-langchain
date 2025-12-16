@@ -99,7 +99,8 @@ class ReflectAgent:
         self, 
         question: str, 
         topic: str,
-        candidate_context: Optional[Dict] = None
+        candidate_context: Optional[Dict] = None,
+        previous_questions: Optional[List[str]] = None  # NEW: For semantic duplicate detection
     ) -> ReflectionResult:
         """
         Evaluate if a question is fair and appropriate.
@@ -109,12 +110,25 @@ class ReflectAgent:
         - Personal/invasive questions
         - Topic relevance
         - Appropriate difficulty context
+        - Semantic duplication (NEW)
         
         Reference: arXiv:2512.02329, Research Direction 2 (Self-regulation)
         """
         issues = []
         recommendations = []
         question_lower = question.lower()
+        
+        # NEW: Check for semantic duplicates FIRST (most important for quality)
+        if previous_questions:
+            try:
+                from src.ai_interviewer.modules.semantic_dedup import is_semantic_duplicate
+                if is_semantic_duplicate(question, previous_questions):
+                    issues.append("Question is semantically similar to a previous question")
+                    recommendations.append("Generate a question on a different topic or aspect")
+                    logger.warning(f"⚠️ Semantic duplicate detected in fairness check: {question[:50]}...")
+            except Exception as e:
+                logger.warning(f"Semantic duplicate check failed: {e}")
+        
         
         # Check for discriminatory patterns
         discriminatory_patterns = [
