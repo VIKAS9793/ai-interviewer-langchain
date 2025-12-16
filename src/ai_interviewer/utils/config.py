@@ -104,13 +104,13 @@ class Config:
     BLOCKED_HOSTNAMES = ["localhost", "127.0.0.1", "0.0.0.0", "::1"]  # SSRF protection
     
     # Feature Flags
-    LANGGRAPH_ENABLED = True  # v3.1: Use LangGraph engine
+    LANGGRAPH_ENABLED = True  # v3.3: Use LangGraph engine
     # Emergency Maintenance Mode
     # Set to true to block all interviews and display maintenance banner
-    # UPDATED: Dec 16 - Disabled after rate limiter fix deployed
-    # EMERGENCY Dec 16 18:37: Questions STILL repeating - root cause investigation needed
-    # We are blocking access until this pragmatically fixed - no surface fixes.
-    MAINTENANCE_MODE = os.getenv("MAINTENANCE_MODE", "true").lower() == "true"  # CRITICAL: System offline
+    # MAINTENANCE STATUS (Dec 16):
+    # Fixed in v3.3.0 (TTD + Global Quota). 
+    # Ready for production enable.
+    MAINTENANCE_MODE = os.getenv("MAINTENANCE_MODE", "false").lower() == "true"  # SYSTEM ONLINE (v3.3.0)
     
     # Rate Limiting (Enterprise-grade API cost control)
     # Gemini 2.5 Flash-Lite Free Tier: 10 RPM, 20 RPD (Dec 2025)

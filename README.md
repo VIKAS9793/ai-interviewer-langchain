@@ -21,7 +21,7 @@ license: mit
 [![CI/CD](https://github.com/VIKAS9793/ai-interviewer-langchain/actions/workflows/sync_to_hub.yml/badge.svg)](https://github.com/VIKAS9793/ai-interviewer-langchain/actions)
 [![License](https://img.shields.io/badge/License-MIT-22C55E?style=for-the-badge)](LICENSE)
 
-![Version](https://img.shields.io/badge/Release-v3.2.3-blue?style=flat-square&logo=git)
+![Version](https://img.shields.io/badge/Release-v3.3.0-blue?style=flat-square&logo=git)
 ![Python](https://img.shields.io/badge/Python-3.9-3776AB?style=flat-square&logo=python&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?style=flat-square&logo=docker&logoColor=white)
 ![Gradio](https://img.shields.io/badge/Gradio-4.44.0-FF7C00?style=flat-square)
@@ -107,6 +107,15 @@ license: mit
 
 </td>
 </table>
+<div align="center">
+
+### 🛡️ Semantic & Time Test Diffusion (v3.3)
+- **Time Test Diffusion (TTD):** Iterative denoising for high-quality question generation
+- **Semantic Deduplication:** Embedding-based similarity check (0.70 threshold)
+- **Red Team Agent:** Adversarial critique for every question
+- **Global Rate Limiting:** 1 interview/day quota per system
+
+</div>
 
 ---
 
@@ -117,7 +126,7 @@ license: mit
 | What Works Well | What May Vary |
 |-----------------|---------------|
 | ✅ Detects common skills (Python, React, AWS, etc.) | ⚠️ May miss niche or proprietary technologies |
-| ✅ Generates adaptive questions | ⚠️ Questions may occasionally repeat |
+| ✅ Generates adaptive questions | ✅ **Zero Duplicates** (Semantic Deduplication) |
 | ✅ Provides score-based feedback | ⚠️ Feedback is AI-generated, not human-reviewed |
 | ✅ Works with most resumes (PDF/DOCX) | ⚠️ Complex resume layouts may not parse correctly |
 
@@ -160,7 +169,7 @@ flowchart TD
     
     subgraph "Cognitive Services (Modules)"
         RAG[RAG Service]
-        Critic[Critic Service]
+        RTTD[Red Team / TTD]
         Learn[Learning Service]
         
         RAG <--> VDB[(Vector Store)]
@@ -170,7 +179,7 @@ flowchart TD
     AutoInt --> SM
     
     AutoInt -- "Context" --> RAG
-    AutoInt -- "Draft" --> Critic
+    AutoInt -- "Refine" --> RTTD
     AutoInt -- "Trajectory" --> Learn
 ```
 
@@ -250,6 +259,7 @@ python main.py
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| **v3.3.0** | 2025-12-16 | 🧠 **TTD & Semantic Intelligence** (Time Test Diffusion, Red Team Agent, Zero Duplicates) |
 | **v3.2.3** | 2025-12-14 | 🔍 **Type Safety & Code Quality** (Mypy integration, comprehensive type annotations) |
 | **v3.2.2** | 2025-12-14 | 🔒 **Security Hardening** (SSRF protection, input validation, session expiration) |
 | **v3.2.1** | 2025-12-14 | 🧠 **Intelligence Hardening** (Fix loops, scoring, RAG verified) |

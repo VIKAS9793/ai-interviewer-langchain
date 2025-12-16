@@ -300,13 +300,15 @@ class InterviewGraph:
         - Critic Agent evaluates: "Relevance: 8/10", "Empathy: 4/10"
         - If score < 7, Main Agent regenerates
         
-        TODO: Implement full Critic Agent in v3.2
+        Note: This is a lightweight sanity check.
+        Deep validation and adversarial critique (Red Team) happens 
+        internal to the TTDQuestionGenerator during the generation phase.
         """
-        logger.info("🔷 [Node] Validating question (Critic Agent)...")
+        logger.info("🔷 [Node] Validating question (Sanity Check)...")
         
         question = state.get("current_question") or ""
         
-        # Basic validation (full Critic Agent in v3.2)
+        # Basic sanity check (Deep research & validation handled by TTD)
         is_valid = True
         issues = []
         
@@ -325,7 +327,7 @@ class InterviewGraph:
         
         if not is_valid:
             logger.warning(f"⚠️ Question validation failed: {issues}")
-            # TODO: Regenerate question in v3.2
+            # TTD generation typically prevents this, but this is a final safety net
         
         return {
             "phase": "question_validated"

@@ -404,7 +404,7 @@ class KnowledgeGrounding:
         # In RAG, we don't just keyword match. 
         # We assume if semantic search found it, it's relevant context.
         # Ideally, we pass this to an LLM to verify "Does Answer agree with Fact?"
-        # For this MVP, we just return the Retrieves Facts as valid context.
+        # For this implementation, we just return the Retrieves Facts as valid context.
         
         for key, definition in relevant_concepts.items():
             correct_points.append({

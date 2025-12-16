@@ -80,7 +80,7 @@ class KnowledgeStore:
                 )
             self.collection.add(
                 documents=texts,
-                metadatas=chroma_metadatas,
+                metadatas=cast(Any, chroma_metadatas),
                 ids=ids
             )
             logger.info(f"✅ Added {len(texts)} documents to KnowledgeStore")

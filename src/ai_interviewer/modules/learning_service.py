@@ -297,7 +297,8 @@ class ReasoningBank:
         """
         Retrieve top-k relevant memories for current interview context.
         
-        Uses keyword matching for simplicity; can be enhanced with embeddings.
+        Uses keyword matching for fast retrieval; distinct from the 
+        SemanticDeduplicator (embeddings) used for question uniqueness.
         
         Args:
             context: Current interview context/question

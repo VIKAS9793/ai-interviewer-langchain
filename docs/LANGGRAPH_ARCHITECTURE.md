@@ -43,7 +43,8 @@ stateDiagram-v2
 | `extract_context` | Parse resume/JD | `target_role`, `phase` |
 | `generate_greeting` | Personalized intro | `greeting`, `question_number` |
 | `generate_question` | LLM question gen | `current_question`, `question_number` |
-| `validate_question` | Fairness check | `current_question` |
+| `generate_question` | LLM question gen (TTD) | `current_question`, `question_number` |
+| `validate_question` | Final sanity check | `current_question` |
 | `await_answer` | Interrupt point | `current_answer` |
 | `evaluate` | Prometheus scoring | `qa_pairs`, `performance_history` |
 | `decide` | Continue/Complete | `is_complete` |

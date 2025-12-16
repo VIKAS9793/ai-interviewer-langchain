@@ -126,6 +126,7 @@ class AnswerProcessResponse(TypedDict, total=False):
     evaluation: Optional[EvaluationResult]
     feedback: Optional[str]
     reasoning: Optional[Dict[str, Any]]
+    final_report: Optional[str]
     summary: Optional[Dict[str, Any]]
     message: Optional[str]
     error_code: Optional[str]

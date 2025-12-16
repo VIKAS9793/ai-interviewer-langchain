@@ -18,7 +18,7 @@ References:
 """
 
 import logging
-from typing import List, Optional
+from typing import List, Optional, Union, Tuple, Literal, overload
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -69,12 +69,28 @@ class SemanticDeduplicator:
                 logger.error(f"Failed to load embedding model: {e}")
                 cls._model = None
     
+    @overload
     def is_duplicate(
         self, 
         new_question: str, 
-        previous_questions: List[str],
+        previous_questions: List[str], 
+        return_score: Literal[False] = False
+    ) -> bool: ...
+
+    @overload
+    def is_duplicate(
+        self, 
+        new_question: str, 
+        previous_questions: List[str], 
+        return_score: Literal[True]
+    ) -> Tuple[bool, float]: ...
+
+    def is_duplicate(
+        self, 
+        new_question: str, 
+        previous_questions: List[str], 
         return_score: bool = False
-    ) -> bool:
+    ) -> Union[bool, Tuple[bool, float]]:
         """
         Check if new_question is semantically similar to any previous question.
         
@@ -101,12 +117,16 @@ class SemanticDeduplicator:
         new_question: str, 
         previous_questions: List[str],
         return_score: bool
-    ) -> bool:
+    ) -> Union[bool, Tuple[bool, float]]:
         """Embedding-based semantic similarity check."""
+        model = self._model
+        if model is None:
+            return self._check_with_fallback(new_question, previous_questions, return_score)
+
         try:
             # Encode all questions
-            new_embedding = self._model.encode(new_question, convert_to_numpy=True)
-            prev_embeddings = self._model.encode(previous_questions, convert_to_numpy=True)
+            new_embedding = model.encode(new_question, convert_to_numpy=True)
+            prev_embeddings = model.encode(previous_questions, convert_to_numpy=True)
             
             # Calculate cosine similarities
             max_similarity = 0.0
@@ -133,7 +153,7 @@ class SemanticDeduplicator:
         new_question: str, 
         previous_questions: List[str],
         return_score: bool
-    ) -> bool:
+    ) -> Union[bool, Tuple[bool, float]]:
         """
         Fallback: Basic string matching when embeddings unavailable.
         Uses normalized Levenshtein-like comparison.
@@ -173,6 +193,26 @@ class SemanticDeduplicator:
         if norm_a == 0 or norm_b == 0:
             return 0.0
         return float(dot_product / (norm_a * norm_b))
+    
+    def compute_text_similarity(self, text1: str, text2: str) -> float:
+        """
+        Compute semantic similarity between two texts using the loaded model.
+        Returns 0.0 to 1.0.
+        """
+        if not EMBEDDINGS_AVAILABLE or self._model is None:
+            # Fallback to Jaccard similarity
+            s1 = set(text1.lower().split())
+            s2 = set(text2.lower().split())
+            if not s1 or not s2: return 0.0
+            return len(s1 & s2) / len(s1 | s2)
+            
+        try:
+            emb1 = self._model.encode(text1, convert_to_numpy=True)
+            emb2 = self._model.encode(text2, convert_to_numpy=True)
+            return self._cosine_similarity(emb1, emb2)
+        except Exception as e:
+            logger.error(f"Similarity computation failed: {e}")
+            return 0.0
 
 
 # Singleton instance for easy access

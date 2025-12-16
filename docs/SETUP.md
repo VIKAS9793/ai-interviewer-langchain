@@ -1,7 +1,7 @@
 # 🛠️ Setup & Installation Guide
 
 > **Last Updated:** 2025-12-14
-> **Version:** 3.2.1 (Hybrid LLM + Pydantic Structured Output)
+> **Version:** 3.3.0 (Semantic Intelligence + TTD)
 
 ## 📋 Prerequisites
 
@@ -50,7 +50,7 @@ Access at: `http://localhost:7860`
 ```bash
 git clone https://github.com/VIKAS9793/ai-interviewer-langchain.git
 cd ai-interviewer-langchain
-# Main branch contains the stable v3.0 release
+# Main branch contains the stable v3.3 release
 ```
 
 ### 2. Set Up Virtual Environment

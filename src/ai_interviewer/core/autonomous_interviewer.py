@@ -20,6 +20,7 @@ from enum import Enum
 
 from ..utils.config import Config
 from .session_manager import SessionManager, InterviewSession, InterviewPhase, CandidateState
+from ..modules.semantic_dedup import get_deduplicator
 
 import os
 from langchain_huggingface import HuggingFaceEndpoint  # pyright: ignore[reportMissingImports]
@@ -54,10 +55,11 @@ class SemanticRelevanceChecker:
         self.cache_misses = 0
 
     def compute_similarity(self, question: str, answer: str) -> float:
-        # Placeholder for brevity - assuming logic is same as before
-        # To save tokens, I will implement a simplified version for this reconstruction
-        # Real implementation would be fuller
-        return 0.8 
+        try:
+            return get_deduplicator().compute_text_similarity(question, answer)
+        except Exception as e:
+            logger.warning(f"Similarity check failed: {e}")
+            return 0.5 
 
 # Global instance for reuse
 _semantic_checker = None
@@ -79,7 +81,7 @@ class AutonomousInterviewer:
             model_name = Config.DEFAULT_MODEL
         self.model_name = model_name
         self.reasoning_engine = AutonomousReasoningEngine(model_name)
-        # REFACTOR: Using SessionManager service
+        # SessionManager service
         self.session_manager = SessionManager()
         self._llm: Optional[Any] = None
         
@@ -434,7 +436,7 @@ Be constructive and specific.
         
         # QUALITY FIX: Retry loop to enforce fairness (prevents duplicate questions)
         max_retries = 3
-        final_question_text = None
+        final_question_text = ""
         
         for attempt in range(max_retries):
             try:

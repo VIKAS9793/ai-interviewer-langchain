@@ -39,12 +39,11 @@ def create_interface(app: InterviewApp) -> gr.Blocks:
                     """
                     ## 🔴 SYSTEM OFFLINE
                     
-                    **Access Suspended Until Further Notice**
+                    **System Offline for Upgrade (v3.3.0)**
                     
-                    We have disabled the application to perform deep engineering maintenance.
-                    The system is currently producing repetitive questions, which is unacceptable.
+                    We are deploying the new Time-Travel Diffusion (TTD) engine and Global Rate Limiting.
                     
-                    Access will resume only after the root cause is identified and fixed permanently.
+                    Access will resume shortly after final verification.
                     """,
                     elem_classes=["maintenance-banner"]
                 )

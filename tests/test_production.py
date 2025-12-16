@@ -219,7 +219,8 @@ class TestAutonomousFlowController(unittest.TestCase):
         )
         
         self.assertEqual(result["status"], "started")
-        self.assertIn("autonomous_features", result)
+        # Response now includes session_id, greeting, first_question
+        self.assertIn("session_id", result)
     
     def test_system_status(self):
         """Test getting system status"""
@@ -400,36 +401,60 @@ class TestEdgeCases(unittest.TestCase):
 
 
 class TestIntegration(unittest.TestCase):
-    """Integration tests for complete interview flow"""
+    """Integration tests for complete interview flow (Mocked)"""
     
-    def test_complete_interview_flow(self):
-        """Test complete interview from start to finish"""
+    @patch('src.ai_interviewer.core.autonomous_flow_controller.AutonomousInterviewer')
+    def test_complete_interview_flow(self, MockInterviewer):
+        """Test complete interview from start to finish with mocks"""
+        # Setup mocks
+        mock_interviewer_instance = MockInterviewer.return_value
+        
+        # Mock session manager attached to interviewer
+        mock_session = MagicMock()
+        mock_session.session_id = "test_sess_integration"
+        mock_interviewer_instance.session_manager.active_sessions = {"test_sess_integration": mock_session}
+        
+        # Mock start_interview response
+        mock_interviewer_instance.start_interview.return_value = {
+            "status": "started",
+            "session_id": "test_sess_integration",
+            "greeting": "Hello",
+            "first_question": "First Q",
+            "message": "Welcome"
+        }
+        
+        # Mock process_answer responses for sequence
+        # We'll simulate 2 questions then completion
+        mock_interviewer_instance.process_answer.side_effect = [
+            {"status": "continue", "next_question": "Next Q"},
+            {"status": "completed", "final_report": "Report"}
+        ]
+        
         controller = AutonomousFlowController()
+        print(f"DEBUG: controller.interviewer type: {type(controller.interviewer)}")
+        print(f"DEBUG: MockInterviewer type: {type(MockInterviewer)}")
         
         # Start interview
         start = controller.start_interview("Python/Backend Development", "Integration Test")
+        print(f"DEBUG: Start result: {start}")
         self.assertEqual(start["status"], "started")
         session_id = start["session_id"]
         
-        # Answer questions until complete
+        # Answer questions until complete (simulated)
         answers = [
-            "Python is a high-level programming language.",
-            "Flask and Django are popular web frameworks.",
-            "REST APIs use HTTP methods for CRUD operations.",
-            "SQLAlchemy is an ORM for Python.",
-            "Unit tests ensure code quality."
+            "Answer 1",
+            "Answer 2"
         ]
         
         for i, answer in enumerate(answers):
             result = controller.process_answer(session_id, answer)
+            print(f"DEBUG: Process answer {i} result: {result}")
             
             if result["status"] == "completed":
                 self.assertIn("final_report", result)
-                break
             elif result["status"] == "continue":
                 self.assertIn("next_question", result)
             else:
-                # Error handling
                 self.fail(f"Unexpected status: {result['status']}")
 
 

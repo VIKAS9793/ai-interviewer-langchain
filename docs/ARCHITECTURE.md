@@ -32,7 +32,7 @@ flowchart TD
     
     subgraph "Cognitive Services (Modules)"
         RAG[RAG Service]
-        Critic[Critic Service]
+        RTTD[Red Team / TTD]
         Learn[Learning Service]
         
         RAG <--> VDB[(Vector Store)]
@@ -42,7 +42,7 @@ flowchart TD
     AutoInt --> SM
     
     AutoInt -- "Context" --> RAG
-    AutoInt -- "Draft" --> Critic
+    AutoInt -- "Refine" --> RTTD
     AutoInt -- "Trajectory" --> Learn
 ```
 
@@ -76,9 +76,10 @@ The intelligence is composed of three specialized services:
     *   **Context Engineering:** Builds the exact prompt context for the LLM.
     *   **Knowledge Grounding:** Retrieves relevant technical documentation (Vector Store) to verify answers and prevent hallucinations.
 
-*   **Critic Service (`critic_service.py`):**
-    *   **Reflexion Loop:** "Thinks before speaking". Critiques generated questions for bias, clarity, and difficulty.
-    *   **Quality Control:** If a question is poor, it rejects it and forces a regeneration.
+*   **Red Team / TTD Service (`modules/ttd_generator.py`):**
+    *   **Time Test Diffusion:** Iterative denoising loop for high-quality question generation.
+    *   **Red Team Agent:** Adversarially attacks questions (bias, repetition, ambiguity) before user sees them.
+    *   **Semantic Deduplication:** Ensures zero duplicate questions using embedding vectors.
 
 *   **Learning Service (`learning_service.py`):**
     *   **Intrinsic Memory:** Stores "Winning Strategies" in the `ReasoningBank`.
@@ -107,7 +108,7 @@ graph LR
 
 *   **State Schema:** `InterviewState` TypedDict with session, context, and performance tracking.
 *   **Unified Flow:** Both Interview Tab and Practice Tab use the same graph.
-*   **Critic Agent:** Question validation node (placeholder for v3.2 full implementation).
+*   **Red Team Node:** Full adversarial validation and iterative refinement (v3.3).
 
 ## ⚡ Performance
 

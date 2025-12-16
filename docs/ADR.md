@@ -1,6 +1,6 @@
 # 📋 Architecture Decision Records (ADR)
 
-> **Last Updated:** 2025-12-14
+> **Last Updated:** 2025-12-16
 
 ## 1. Cloud-First Deployment
 
@@ -22,7 +22,7 @@
 ## 2. Single-Model Evaluation Strategy (Architecture Simplified)
 **Status:** Accepted (Replaces Dual-Model)
 **Context:** Multi-model inference (Mistral/Qwen) on Free Tier caused 500 errors ("Task not supported").
-**Decision:** Standardize on **Meta-LLaMA-3 (8B)** for BOTH generation and evaluation.
+**Decision:** Standardize on **Meta-LLaMA-3** (or equivalent 8B model) for BOTH generation and evaluation.
 **Consequences:**
 - ✅ 100% API Stability (No "Task not supported" errors)
 - ✅ Simplified Architecture (DRY)
@@ -105,3 +105,36 @@
 *   ✅ **Adaptive:** System gets smarter over time.
 *   ✅ **Data-Driven:** Rubrics evolve based on real candidate data.
 
+---
+
+## 8. Time Test Diffusion (TTD) & Red Team (v3.3)
+
+**Status:** Accepted
+
+**Context:** Users reported repetitive questions. Simple substring matching was insufficient, and un-critiqued questions lacked depth.
+
+**Decision:** Implement **TTD Algorithm** (Iterative Denoising) with an adversarial **Red Team Agent**.
+*   **Red Team:** Attacks questions for repetition, bias, and ambiguity.
+*   **Generate:** Parallel candidate generation + refinement loop.
+
+**Consequences:**
+*   ✅ **Quality:** Questions are deeper and more robust.
+*   ✅ **Uniqueness:** Semantic deduplication ensures zero repeats.
+*   ⚠️ **Latency:** Slight increase in generation time (2-3s).
+
+---
+
+## 9. Global Interview Quota (v3.3)
+
+**Status:** Accepted
+
+**Context:** Free Tier API usage needs strict control to prevent rate limits and abuse.
+
+**Decision:** Implement **GlobalInterviewQuota** singleton.
+*   **Limit:** 1 interview per day (UTC reset).
+*   **Scope:** Application-wide (in-memory for MVP, extendable to Redis).
+
+**Consequences:**
+*   ✅ **Cost Control:** Predictable API usage.
+*   ✅ **Stability:** Prevents "HuggingFace Quota Exceeded" errors.
+*   ⚠️ **UX:** Friction for power users testing the system.

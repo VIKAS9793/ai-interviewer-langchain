@@ -6,20 +6,21 @@ import io
 # Optional imports with graceful fallback
 try:
     from pypdf import PdfReader  # pyright: ignore[reportMissingImports]
+    PDF_AVAILABLE = True
 except ImportError:
-    PdfReader = None
+    PDF_AVAILABLE = False
 
 try:
     from docx import Document  # pyright: ignore[reportMissingImports]
     DOCX_AVAILABLE = True
 except ImportError:
     DOCX_AVAILABLE = False
-    # Don't assign None to Document - use DOCX_AVAILABLE flag instead
 
 try:
     import bleach  # type: ignore[import-untyped]
+    BLEACH_AVAILABLE = True
 except ImportError:
-    bleach = None
+    BLEACH_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -39,9 +40,10 @@ class ResumeParser:
             text = ""
             
             if filename.endswith('.pdf'):
-                if not PdfReader:
+                if not PDF_AVAILABLE:
                     logger.error("pypdf not installed")
                     return None
+                from pypdf import PdfReader
                 reader = PdfReader(file_obj)
                 for page in reader.pages:
                     text += page.extract_text() + "\n"
@@ -75,7 +77,7 @@ class ResumeParser:
             return ""
             
         # 1. HTML Sanitization (if bleach is available)
-        if bleach:
+        if BLEACH_AVAILABLE:
             text = bleach.clean(text, tags=[], attributes={}, strip=True)
             
         # 2. Normalize Whitespace

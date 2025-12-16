@@ -57,7 +57,7 @@ class StaticCodeAnalyzer:
         if language.lower() == "python":
             return StaticCodeAnalyzer._analyze_python(code)
         
-        # MVP: Basic check for other languages
+        # Basic check for non-Python languages (length check only)
         if len(code) > 10000:
              return {"valid": False, "error": "Code too long (>10k chars)"}
              

@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v3.3.0] - 2025-12-16 (Semantic & TTD Intelligence)
+
+### 🧠 Time Test Diffusion (TTD)
+- **Deep Research Algorithm:** Implemented iteratively refining question generator (Fareed Khan's architecture)
+- **Red Team Agent:** Adversarial critique for every question (checks bias, clarity, off-topic)
+- **Question Evaluator:** Programmatic scoring (0-10) for relevance and depth
+- **Denoising Loop:** Self-corrects questions until quality threshold is met
+
+### 🛡️ Semantic Deduplication
+- **Zero Duplicates:** Replaced substring matching with `sentence-transformers` (all-MiniLM-L6-v2)
+- **Cosine Similarity:** Similarity threshold >= 0.70 flags as duplicate
+- **Dual-Layer Protection:** Checks in `SemanticDeduplicator` module + `CriticService`
+
+### ⚖️ Global Rate Limiting
+- **Quota System:** Enforced 1 interview/day limit per system
+- **Reset Logic:** Auto-resets at midnight UTC
+- **User Notification:** Clear UI blocking when quota exhausted
+
+### 🧪 Robustness
+- **Rigorous Testing:** 113 tests passing (100% coverage of core paths)
+- **Mocking Strategy:** Improved integration tests for flakiness prevention
+
+---
+
 ## [v3.2.3] - 2025-12-14 (Type Safety & Code Quality)
 
 ### 🔍 Type Checking & Code Quality

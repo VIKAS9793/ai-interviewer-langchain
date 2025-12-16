@@ -2,7 +2,7 @@
 Autonomous Flow Controller
 Integrates the Autonomous Interviewer with the application
 
-This replaces the enhanced flow controller with autonomous capabilities.
+This provides the main entry point for the autonomous interview system.
 """
 
 import logging
@@ -136,6 +136,7 @@ class AutonomousFlowController:
                 "evaluation": result.get("evaluation"),
                 "feedback": result.get("feedback"),
                 "reasoning": result.get("reasoning"),
+                "final_report": result.get("final_report"),
                 "summary": result.get("summary"),
                 "message": result.get("message")
             }
