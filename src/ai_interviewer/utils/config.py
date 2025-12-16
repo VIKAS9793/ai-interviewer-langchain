@@ -108,7 +108,9 @@ class Config:
     # Emergency Maintenance Mode
     # Set to true to block all interviews and display maintenance banner
     # UPDATED: Dec 16 - Disabled after rate limiter fix deployed
-    MAINTENANCE_MODE = os.getenv("MAINTENANCE_MODE", "false").lower() == "true"  # Emergency: System under maintenance
+    # EMERGENCY Dec 16 18:37: Questions STILL repeating - root cause investigation needed
+    # We are blocking access until this pragmatically fixed - no surface fixes.
+    MAINTENANCE_MODE = os.getenv("MAINTENANCE_MODE", "true").lower() == "true"  # CRITICAL: System offline
     
     # Rate Limiting (Enterprise-grade API cost control)
     # Gemini 2.5 Flash-Lite Free Tier: 10 RPM, 20 RPD (Dec 2025)
