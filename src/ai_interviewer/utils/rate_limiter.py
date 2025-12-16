@@ -198,6 +198,12 @@ class DailyQuotaTracker:
                 "usage_pct": round((self._count / self.daily_limit) * 100, 1),
                 "reset_date": self._reset_date
             }
+    
+    def reset(self):
+        """Reset the quota counter (for testing purposes)."""
+        with self._lock:
+            self._count = 0
+            self._reset_date = datetime.now().date()
 
 
 class GlobalInterviewQuota:
