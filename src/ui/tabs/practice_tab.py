@@ -5,6 +5,7 @@ from src.ui.components.inputs import (
     create_file_upload, 
     create_primary_button
 )
+from src.ai_interviewer.utils.config import Config  # For MAINTENANCE_MODE check
 
 @dataclass
 class PracticeTabComponents:
@@ -59,7 +60,10 @@ def create_practice_tab() -> PracticeTabComponents:
                     lines=4
                 )
         
-        start_btn = create_primary_button("Analyze & Start Practice")
+        start_btn = create_primary_button(
+            "Analyze & Start Practice",
+            interactive=not Config.MAINTENANCE_MODE  # Disable during maintenance
+        )
         
         return PracticeTabComponents(
             practice_name=practice_name,
