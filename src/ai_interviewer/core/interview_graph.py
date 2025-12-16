@@ -393,6 +393,12 @@ class InterviewGraph:
         """Conditional edge function."""
         if state.get("is_complete", False):
             logger.info("🔷 Interview complete, generating report...")
+            # Record interview completion for daily quota tracking
+            try:
+                from src.ai_interviewer.utils.rate_limiter import get_global_interview_quota
+                get_global_interview_quota().record_interview_completion()
+            except Exception as e:
+                logger.warning(f"Failed to record interview completion: {e}")
             return "complete"
         logger.info(f"🔷 Continuing to question {state['question_number'] + 1}")
         return "continue"

@@ -197,8 +197,26 @@ def create_interface(app: InterviewApp) -> gr.Blocks:
             outputs=[transcription_output]
         )
         
-        # Start Topic Interview Adapter
+        # Start Topic Interview Adapter  
         def on_start_interview(topic, name):
+            # Check global interview quota (1 interview/day limit)
+            from src.ai_interviewer.utils.rate_limiter import get_global_interview_quota
+            quota = get_global_interview_quota()
+            
+            if quota.is_quota_exhausted:
+                # Return error message if daily quota exhausted
+                return (
+                    "⚠️ **Daily Interview Quota Exhausted**\n\n"
+                    "The system allows **1 interview per day** to stay within API limits.\n\n"
+                    "Please try again tomorrow. The quota resets at midnight UTC.\n\n"
+                    f"Current status: {quota.stats['interviews_completed']}/1 interviews completed today.",
+                    "",  # progress
+                    gr.update(visible=False),  # answer input
+                    gr.update(selected=0),  # tab
+                    gr.update(interactive=True),  # interview btn
+                    gr.update(interactive=True),  # practice btn
+                )
+            
             response = app.start_topic_interview(topic, name)
             return InterviewHandlers.handle_start_interview(response)
         
