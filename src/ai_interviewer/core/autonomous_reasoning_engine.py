@@ -990,10 +990,14 @@ Return ONLY the question text, nothing else.
             if llm:
                 response_obj = llm.invoke(prompt)
                 response = (response_obj.content if hasattr(response_obj, 'content') else str(response_obj)).strip().replace('"', '')
-                # Validate response isn't a repeat
-                if response and not any(prev.lower() in response.lower() for prev in previous_questions[:3]):
+                
+                # CRITICAL FIX: Use semantic deduplication instead of substring matching
+                # The old code only checked substrings which missed semantic duplicates
+                from src.ai_interviewer.modules.semantic_dedup import is_semantic_duplicate
+                if response and not is_semantic_duplicate(response, previous_questions):
                     return cast(str, response)
-                logger.warning("LLM returned similar question, using fallback")
+                else:
+                    logger.warning("⚠️ LLM returned semantically similar question, regenerating...")
         except Exception as e:
             logger.warning(f"LLM question generation failed: {e}")
              
