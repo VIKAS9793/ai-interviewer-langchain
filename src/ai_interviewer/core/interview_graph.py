@@ -103,6 +103,24 @@ class InterviewGraph:
         # Allows specifying a path like "/data/interview_state.sqlite" via env var
         db_path = os.getenv("INTERVIEW_DB_PATH", "interview_state.sqlite")
         db_dir = os.path.dirname(db_path)
+
+
+def _sanitize_for_ui(text: str) -> str:
+    """
+    Sanitize text for Gradio markdown rendering.
+    
+    Escapes square brackets to prevent them from being interpreted as HTML tags.
+    Example: "[column_name]" -> "\\[column_name\\]"
+    
+    Args:
+        text: Raw text from LLM
+        
+    Returns:
+        Sanitized text safe for Gradio markdown
+    """
+    if not text:
+        return text
+    return text.replace('[', '\\[').replace(']', '\\]')
         
         # If a directory is specified (not current dir), ensure it exists
         if db_dir:
@@ -306,7 +324,7 @@ class InterviewGraph:
             question = f"Can you describe your experience with {topic}?"
         
         return {
-            "current_question": question,
+            "current_question": _sanitize_for_ui(question),
             "question_number": state["question_number"] + 1,
             "phase": "questioning"
         }

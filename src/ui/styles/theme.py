@@ -63,7 +63,6 @@ MINIMAL_CSS = """
     line-height: 1.6 !important;
 }
 
-/* High Contrast Text - Force visibility on ALL elements */
 .gradio-container, 
 .gradio-container *,
 .gr-prose, .gr-prose *,
@@ -83,6 +82,19 @@ input, textarea,
 .secondary-wrap, .secondary-wrap *,
 .prose, .prose * {
     color: #f1f5f9 !important;
+}
+
+/* Ensure code blocks and inline code are visible */
+code, pre, code *, pre * {
+    background-color: #1e293b !important;
+    color: #f1f5f9 !important;
+    padding: 2px 4px !important;
+    border-radius: 4px !important;
+}
+
+/* Prevent any pseudo-elements from creating invisible overlays */
+* ::before, * ::after {
+    background: transparent !important;
 }
 
 /* Ensure input text is visible */
