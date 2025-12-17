@@ -1,3 +1,28 @@
+# 💾 AI Interviewer v3.3.1: Persistence & Cost Control
+
+**Release Date:** December 17, 2025  
+**Tag:** `v3.3.1`  
+**Focus:** Durable State Persistence, LLM Cost Optimization, Smart Fallback.
+
+---
+
+## 🌟 Major Highlights
+
+### 1. SQLite Persistence (True Memory)
+- Replaced ephemeral `MemorySaver` with `SqliteSaver` for session state
+- Sessions survive container restarts on HuggingFace Spaces
+- Path configurable via `INTERVIEW_DB_PATH` env var (auto-creates directories)
+
+### 2. Cost Control (75% Reduction)
+- Reduced TTD loop from 3 iterations to 1 (`MAX_ITERATIONS=1`)
+- Prevents token exhaustion on free-tier LLM APIs (Gemini Flash-Lite)
+
+### 3. Smart Rotating Fallback
+- 5 distinct fallback questions replace static template
+- Fallback index rotates based on question number (no repetition)
+
+---
+
 # 🔒 AI Interviewer v3.2.2: Security Hardening
 
 **Release Date:** December 14, 2025  

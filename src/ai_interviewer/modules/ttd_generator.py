@@ -54,8 +54,8 @@ class TTDQuestionGenerator:
     how diffusion models denoise images.
     """
     
-    # Configuration
-    MAX_ITERATIONS = 3
+    # Configuration (Optimized for Cost - Dec 17)
+    MAX_ITERATIONS = 1  # Was 3. Reduced to prevent 10x call explosion.
     MIN_QUALITY_SCORE = 7.0
     CANDIDATES_COUNT = 3
     

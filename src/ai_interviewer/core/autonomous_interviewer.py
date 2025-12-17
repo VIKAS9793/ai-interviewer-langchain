@@ -480,9 +480,19 @@ Be constructive and specific.
                 if attempt < max_retries - 1:
                     continue
                 else:
-                    final_question_text = f"Could you tell me more about your approach to {session.topic}?"
+                    # Smart Fallback (Dec 17 Fix: Prevent Repetition)
+                    fallback_templates = [
+                        f"Could you tell me more about your approach to {session.topic}?",
+                        f"What are the key challenges you've faced with {session.topic}?",
+                        f"How do you stay updated with {session.topic} best practices?",
+                        f"Describe a real-world project where you used {session.topic}.",
+                        f"What would you say is your strongest skill within {session.topic}?"
+                    ]
+                    # Rotate based on question number to ensure variety
+                    idx = (session.question_number + attempt) % len(fallback_templates)
+                    final_question_text = fallback_templates[idx]
         
-        # Fallback of last resort
+        # Fallback of last resort (if loop exited without setting text)
         if not final_question_text:
             final_question_text = f"What aspects of {session.topic} are you most familiar with?"
             

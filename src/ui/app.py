@@ -39,7 +39,7 @@ def create_interface(app: InterviewApp) -> gr.Blocks:
                     """
                     ## 🔴 SYSTEM OFFLINE
                     
-                    **System Offline for Upgrade (v3.3.0)**
+                    **System Offline for Upgrade (v3.3.1)**
                     
                     We are deploying the new Time-Travel Diffusion (TTD) engine and Global Rate Limiting.
                     

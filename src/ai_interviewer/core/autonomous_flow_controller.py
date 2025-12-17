@@ -28,6 +28,7 @@ from ..exceptions import (
 )
 from ..utils.error_handler import ErrorHandler
 from .autonomous_interviewer import AutonomousInterviewer, InterviewSession
+from .interview_graph import get_interview_graph  # P1: Graph Architecture
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +47,11 @@ class AutonomousFlowController:
     def __init__(self, max_concurrent_sessions: int = 20, model_name: Optional[str] = None, **kwargs):
         if model_name is None:
             model_name = Config.DEFAULT_MODEL
-        self.interviewer = AutonomousInterviewer(model_name)
+        
+        # P1: Switch to Graph Engine (Stateful Persistence)
+        self.graph_engine = get_interview_graph()
+        self.interviewer = self.graph_engine.interviewer  # Keep reference for legacy metrics
+        
         self.max_concurrent_sessions = max_concurrent_sessions
         self.session_lock = threading.Lock()
         self.executor = ThreadPoolExecutor(max_workers=max_concurrent_sessions)
@@ -60,7 +65,7 @@ class AutonomousFlowController:
             "self_recoveries": 0
         }
         
-        logger.info(f"🤖 Autonomous Flow Controller initialized (max sessions: {max_concurrent_sessions})")
+        logger.info(f"🤖 Autonomous Flow Controller initialized (Graph-Backed, max sessions: {max_concurrent_sessions})")
     
     def start_interview(self, topic: str, candidate_name: str, custom_context: Optional[Dict[str, Any]] = None) -> InterviewStartResponse:
         """Start interview with autonomous AI interviewer"""
@@ -75,12 +80,12 @@ class AutonomousFlowController:
                 }
             
             # Start autonomous interview with optional custom context
-            result = self.interviewer.start_interview(topic, candidate_name, custom_context=custom_context)
+            result = self.graph_engine.start_interview(topic, candidate_name, custom_context=custom_context)
             
             if result["status"] == "started":
                 with self.session_lock:
                     self.metrics["total_sessions"] += 1
-                    self.metrics["active_sessions"] = len(self.interviewer.session_manager.active_sessions)
+                    self.metrics["active_sessions"] = len(self.graph_engine.session_manager.active_sessions)
                 
                 logger.info(f"🎤 Autonomous interview started: {result['session_id']}")
             
@@ -118,7 +123,7 @@ class AutonomousFlowController:
         try:
             start_time = time.time()
             
-            result = self.interviewer.process_answer(session_id, answer)
+            result = self.graph_engine.process_answer(session_id, answer)
             
             processing_time = time.time() - start_time
             self._update_metrics(processing_time)
@@ -126,7 +131,7 @@ class AutonomousFlowController:
             if result["status"] in ["continue", "completed"]:
                 with self.session_lock:
                     self.metrics["autonomous_decisions"] += 1
-                    self.metrics["active_sessions"] = len(self.interviewer.session_manager.active_sessions)
+                    self.metrics["active_sessions"] = len(self.graph_engine.session_manager.active_sessions)
             
             # Convert to AnswerProcessResponse format
             response: AnswerProcessResponse = {
@@ -167,7 +172,7 @@ class AutonomousFlowController:
 
     def analyze_resume(self, resume_text: str) -> ResumeAnalysisResponse:
         """Delegate resume analysis to interviewer"""
-        result = self.interviewer.analyze_resume(resume_text)
+        result = self.graph_engine.analyze_resume(resume_text)
         # Convert to ResumeAnalysisResponse format
         response: ResumeAnalysisResponse = {
             "skills": result.get("skills", []),

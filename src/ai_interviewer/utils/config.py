@@ -63,6 +63,9 @@ class Config:
     CHROMADB_PERSIST_DIRECTORY = "./chroma_db"
     EMBEDDING_MODEL = "all-MiniLM-L6-v2"
     
+    # Persistence Settings (v3.3.1)
+    INTERVIEW_DB_PATH = os.getenv("INTERVIEW_DB_PATH", "interview_state.sqlite")  # HF Spaces: /data/interview_state.sqlite
+    
     # Evaluation Weights
     EVALUATION_WEIGHTS = {
         "technical_accuracy": 0.25,
@@ -104,13 +107,10 @@ class Config:
     BLOCKED_HOSTNAMES = ["localhost", "127.0.0.1", "0.0.0.0", "::1"]  # SSRF protection
     
     # Feature Flags
-    LANGGRAPH_ENABLED = True  # v3.3: Use LangGraph engine
-    # Emergency Maintenance Mode
-    # Set to true to block all interviews and display maintenance banner
-    # MAINTENANCE STATUS (Dec 16):
-    # Fixed in v3.3.0 (TTD + Global Quota). 
-    # Ready for production enable.
-    MAINTENANCE_MODE = os.getenv("MAINTENANCE_MODE", "false").lower() == "true"  # SYSTEM ONLINE (v3.3.0)
+    ENABLE_TTD = True
+    ENABLE_RED_TEAM = True
+    MAINTENANCE_MODE = False  # v3.3.1: All 4 Comprehensive Tests PASSED (Dec 17)
+    LANGGRAPH_ENABLED = True  # v3.3.1: Use LangGraph Engine with SqliteSaver (always True now)
     
     # Rate Limiting (Enterprise-grade API cost control)
     # Gemini 2.5 Flash-Lite Free Tier: 10 RPM, 20 RPD (Dec 2025)

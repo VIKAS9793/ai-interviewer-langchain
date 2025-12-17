@@ -21,7 +21,7 @@ license: mit
 [![CI/CD](https://github.com/VIKAS9793/ai-interviewer-langchain/actions/workflows/sync_to_hub.yml/badge.svg)](https://github.com/VIKAS9793/ai-interviewer-langchain/actions)
 [![License](https://img.shields.io/badge/License-MIT-22C55E?style=for-the-badge)](LICENSE)
 
-![Version](https://img.shields.io/badge/Release-v3.3.0-blue?style=flat-square&logo=git)
+![Version](https://img.shields.io/badge/Release-v3.3.1-blue?style=flat-square&logo=git)
 ![Python](https://img.shields.io/badge/Python-3.9-3776AB?style=flat-square&logo=python&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?style=flat-square&logo=docker&logoColor=white)
 ![Gradio](https://img.shields.io/badge/Gradio-4.44.0-FF7C00?style=flat-square)
@@ -157,14 +157,15 @@ flowchart TD
     View <--> Handler[InterviewHandlers]
     Handler <--> Ctrl["Controller (Logic)"]
     
-    subgraph "Core Engine (Orchestrator)"
-        Ctrl --> AutoInt[AutonomousInterviewer]
+    subgraph "Core Engine (LangGraph v3.3.1)"
+        Ctrl --> Graph[InterviewGraph]
+        Graph --> AutoInt[AutonomousInterviewer]
     end
     
-    subgraph "State Layer"
+    subgraph "State Layer (Persistent)"
         SM[SessionManager]
-        DB[(Session DB)]
-        SM <--> DB
+        SQLite[(SqliteSaver<br/>interview_state.sqlite)]
+        SM <--> SQLite
     end
     
     subgraph "Cognitive Services (Modules)"
@@ -176,7 +177,7 @@ flowchart TD
         Learn <--> RB[(Reasoning Bank)]
     end
     
-    AutoInt --> SM
+    Graph --> SM
     
     AutoInt -- "Context" --> RAG
     AutoInt -- "Refine" --> RTTD
@@ -259,6 +260,7 @@ python main.py
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| **v3.3.1** | 2025-12-17 | 🔒 **Persistence & Cost Control** (SqliteSaver, MAX_ITERATIONS=1, Smart Fallback) |
 | **v3.3.0** | 2025-12-16 | 🧠 **TTD & Semantic Intelligence** (Time Test Diffusion, Red Team Agent, Zero Duplicates) |
 | **v3.2.3** | 2025-12-14 | 🔍 **Type Safety & Code Quality** (Mypy integration, comprehensive type annotations) |
 | **v3.2.2** | 2025-12-14 | 🔒 **Security Hardening** (SSRF protection, input validation, session expiration) |

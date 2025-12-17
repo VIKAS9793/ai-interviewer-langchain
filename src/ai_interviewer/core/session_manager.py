@@ -171,8 +171,8 @@ class SessionManager:
 
     def save_session(self, session: InterviewSession):
         """
-        Persist session state.
-        Currently in-memory, but abstraction helps future DB integration.
+        Persist session state to in-memory cache.
+        Note: Durable persistence is handled by LangGraph SqliteSaver in interview_graph.py.
         Updates activity timestamp.
         """
         with self._lock:

@@ -19,7 +19,7 @@ from datetime import datetime
 
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
-from langgraph.checkpoint.memory import MemorySaver  # P2: Session persistence
+from langgraph.checkpoint.sqlite import SqliteSaver  # P1: Strict "True Memory" Persistence
 
 from .autonomous_interviewer import AutonomousInterviewer
 from .session_manager import SessionManager
@@ -95,9 +95,28 @@ class InterviewGraph:
         self._compiled_graph = None
         self._active_states: Dict[str, InterviewState] = {}  # Persistence for wiring
         
-        # P2: Checkpointing for session persistence
-        self.memory = MemorySaver()
-        logger.info("🔷 LangGraph Interview Engine initialized with checkpointing")
+        # P1: Checkpointing for session persistence (AGENTS.md Requirement)
+        import sqlite3
+        import os
+        
+        # Robust DB Path Logic (HF Spaces / Persistent Storage support)
+        # Allows specifying a path like "/data/interview_state.sqlite" via env var
+        db_path = os.getenv("INTERVIEW_DB_PATH", "interview_state.sqlite")
+        db_dir = os.path.dirname(db_path)
+        
+        # If a directory is specified (not current dir), ensure it exists
+        if db_dir:
+            try:
+                os.makedirs(db_dir, exist_ok=True)
+                logger.info(f"📁 Verified persistence directory: {db_dir}")
+            except Exception as e:
+                logger.warning(f"Failed to create DB directory {db_dir}: {e}. Falling back to CWD.")
+                db_path = "interview_state.sqlite"
+
+        logger.info(f"💾 Persistence File: {db_path}")
+        conn = sqlite3.connect(db_path, check_same_thread=False)
+        self.checkpointer = SqliteSaver(conn)
+        logger.info("🔷 LangGraph Interview Engine initialized with SQLite Persistence")
     
     @property
     def graph(self):
@@ -189,7 +208,7 @@ class InterviewGraph:
         
         logger.info("🔷 Interview graph built (Stateful Loop)")
         # P2: Compile with checkpointer for session persistence
-        return graph.compile(checkpointer=self.memory, interrupt_before=["await_answer"])
+        return graph.compile(checkpointer=self.checkpointer, interrupt_before=["await_answer"])
     
     # ==================== GRAPH NODES ====================
     

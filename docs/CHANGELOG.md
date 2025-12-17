@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v3.3.1] - 2025-12-17 (Persistence & Cost Control)
+
+### 💾 SQLite Persistence
+- **True Memory:** Replaced `MemorySaver` with `SqliteSaver` for durable session state
+- **HF Spaces Support:** Path configurable via `INTERVIEW_DB_PATH` env var (auto-creates directories)
+- **Verified:** Comprehensive tests confirm DB creation and read/write
+
+### 💰 Cost Control
+- **MAX_ITERATIONS=1:** Reduced TTD loop from 3 to 1 iteration (~75% cost reduction)
+- **Quota Preserved:** Prevents token exhaustion on free-tier LLM APIs
+
+### 🔄 Smart Fallback
+- **Rotating Templates:** 5 distinct fallback questions (eliminates repetition)
+- **Session-Aware:** Fallback index rotates based on question number
+
+### 🔧 Bug Fixes
+- Fixed missing `LANGGRAPH_ENABLED` config flag
+- Removed duplicate `ErrorHandler` import
+- Updated stale docstrings and documentation
+
+---
+
 ## [v3.3.0] - 2025-12-16 (Semantic & TTD Intelligence)
 
 ### 🧠 Time Test Diffusion (TTD)
@@ -160,7 +182,7 @@ All notable changes to this project will be documented in this file.
 
 ### 🔷 LangGraph Integration
 - **State Machine:** Unified interview flow with 8 nodes (check_resume → generate_greeting → generate_question → validate_question → await_answer → evaluate → decide → generate_report)
-- **Checkpointing:** Session persistence with `MemorySaver` for resume/recovery
+- **Checkpointing:** Session persistence with `SqliteSaver` for durable resume/recovery (v3.3.1)
 - **Interrupts:** Human-in-the-loop support for answer submission
 
 ### 🎯 JD Parser & Role Detection

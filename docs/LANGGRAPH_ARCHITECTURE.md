@@ -98,3 +98,5 @@ class InterviewState(TypedDict):
 ---
 
 *This diagram reflects the actual implementation in `src/ai_interviewer/core/interview_graph.py`.*
+
+**Persistence:** State is checkpointed via `SqliteSaver` to `interview_state.sqlite` (configurable via `INTERVIEW_DB_PATH` env var).

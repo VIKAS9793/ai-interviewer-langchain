@@ -20,14 +20,15 @@ flowchart TD
     View <--> Handler[InterviewHandlers]
     Handler <--> Ctrl["Controller (Logic)"]
     
-    subgraph "Core Engine (Orchestrator)"
-        Ctrl --> AutoInt[AutonomousInterviewer]
+    subgraph "Core Engine (LangGraph v3.3.1)"
+        Ctrl --> Graph[InterviewGraph]
+        Graph --> AutoInt[AutonomousInterviewer]
     end
     
-    subgraph "State Layer"
+    subgraph "State Layer (Persistent)"
         SM[SessionManager]
-        DB[(Session DB)]
-        SM <--> DB
+        SQLite[(SqliteSaver<br/>interview_state.sqlite)]
+        SM <--> SQLite
     end
     
     subgraph "Cognitive Services (Modules)"
@@ -39,7 +40,7 @@ flowchart TD
         Learn <--> RB[(Reasoning Bank)]
     end
     
-    AutoInt --> SM
+    Graph --> SM
     
     AutoInt -- "Context" --> RAG
     AutoInt -- "Refine" --> RTTD

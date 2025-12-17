@@ -10,7 +10,8 @@ langchain-community==0.3.5
 langchain-huggingface==0.1.2
 langchain-openai==0.2.14  # OpenAI integration for structured output
 langchain-google-genai>=2.0.0  # Google Gemini integration (free tier)
-langgraph==0.2.53 # Added for Phase 4 Agents
+langgraph==0.2.53  # Phase 4 Graph Agents + Persistence
+langgraph-checkpoint-sqlite==2.0.11  # P1: Sqlite Persistence (Verified Compat)
 
 # Structured Output (Hybrid A+B)
 openai>=1.0.0  # OpenAI API for native structured output
