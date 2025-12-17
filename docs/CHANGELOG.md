@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v3.3.2] - 2025-12-17 (UI Rendering Fix)
+
+### 🎨 UI Fixes
+- **Bracket Escaping:** Added `_sanitize_for_ui()` to escape `[` and `]` in questions/greetings
+- **CSS Code Blocks:** Fixed code block rendering with proper background colors
+- **CSS Overlays:** Removed pseudo-element backgrounds that could create white boxes
+
+### 🐛 Bug Fixes
+- Fixed Gradio markdown rendering treating `[text]` as HTML tags
+- Prevents SQL placeholder syntax from appearing as white boxes in the UI
+
+---
+
 ## [v3.3.1] - 2025-12-17 (Persistence & Cost Control)
 
 ### 💾 SQLite Persistence
