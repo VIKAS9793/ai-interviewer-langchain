@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://google.github.io/adk-docs/assets/ADK-512-color.svg" alt="Google ADK Logo" width="120"/>
+  <img src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg" alt="Gemini Logo" width="80"/>
 </p>
 
 <h1 align="center">🎯 AI Technical Interviewer</h1>
@@ -15,11 +15,11 @@
 </p>
 
 <p align="center">
-  <a href="#-features">Features</a> •
-  <a href="#-quick-start">Quick Start</a> •
-  <a href="#-architecture">Architecture</a> •
-  <a href="#-deployment">Deploy</a> •
-  <a href="#-contributing">Contributing</a>
+  <a href="#✨-features">Features</a> •
+  <a href="#🚀-quick-start">Quick Start</a> •
+  <a href="#🏗️-architecture">Architecture</a> •
+  <a href="#☁️-deployment">Deploy</a> •
+  <a href="#🤝-contributing">Contributing</a>
 </p>
 
 ---
@@ -201,5 +201,5 @@ This project is licensed under the **Apache License 2.0** - see [LICENSE](LICENS
 
 <p align="center">
   Made with ❤️ using Google ADK<br/>
-  <sub>© 2025 AI Interviewer Project</sub>
+  <sub>© 2025 AI Interviewer Project • Created by <a href="https://github.com/VIKAS9793">Vikas</a></sub>
 </p>
