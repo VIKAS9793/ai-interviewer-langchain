@@ -1,11 +1,4 @@
-"""ADK Agents Module - Core interviewer agents."""
-from .interviewer_agent import create_interviewer_agent, root_agent
-from .critic_agent import create_critic_agent
-from .safety_agent import create_safety_agent
+"""ADK Agents Module - Standalone exports."""
 
-__all__ = [
-    "create_interviewer_agent",
-    "root_agent",
-    "create_critic_agent",
-    "create_safety_agent"
-]
+# Note: When loaded by ADK directly, relative imports won't work
+# This module is for internal use only

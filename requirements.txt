@@ -1,50 +1,11 @@
-# Core Dependencies - Pinned for Stability
-gradio==4.44.0  # Downgrade from 5.9.1 to avoid schema parsing bug
-huggingface-hub==0.25.2
-torch==2.3.1
-transformers==4.46.3
+# AI Interviewer - Google ADK Version
+# Minimal dependencies for pure Google-native stack
 
-# LangChain Stack
-langchain==0.3.7
-langchain-community==0.3.5
-langchain-huggingface==0.1.2
-langchain-openai==0.2.14  # OpenAI integration for structured output
-langchain-google-genai>=2.0.0  # Google Gemini integration (free tier)
-langgraph==0.2.53  # Phase 4 Graph Agents + Persistence
-langgraph-checkpoint-sqlite==2.0.11  # P1: Sqlite Persistence (Verified Compat)
+# Core - Google ADK
+google-adk>=1.0.0
 
-# Structured Output (Hybrid A+B)
-openai>=1.0.0  # OpenAI API for native structured output
-instructor>=1.0.0  # Pydantic-based structured output for any LLM
+# Environment management
+python-dotenv>=1.0.0
 
-# Vector Store & Embeddings
-chromadb==0.5.20
-sentence-transformers==3.3.1
-
-# Document Processing
-PyPDF2==3.0.1
-python-docx==1.1.2
-pdfplumber==0.11.4
-python-magic==0.4.27
-
-# Web & API
-requests==2.32.3
-beautifulsoup4==4.12.3
-aiohttp==3.11.7
-
-# Utilities
-python-dotenv==1.0.1
-pydantic==2.10.3
-pyyaml==6.0.2
-
-# Audio (Optional - for voice mode)
-openai-whisper==20231117
-soundfile==0.12.1
-
-# Security
-cryptography==44.0.0
-
-# Development & Code Quality
-mypy>=1.8.0  # Type checking
-types-requests>=2.32.0  # Type stubs for requests
-types-beautifulsoup4>=4.12.0  # Type stubs for beautifulsoup4
+# Typing support
+typing-extensions>=4.0.0

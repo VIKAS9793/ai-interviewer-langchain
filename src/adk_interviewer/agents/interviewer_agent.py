@@ -6,7 +6,7 @@ Uses Gemini 2.5 Flash-Lite for cost-effective, fast responses.
 """
 
 from google.adk.agents import Agent
-from ..config import config
+import os
 from ..tools import (
     generate_question,
     evaluate_answer,

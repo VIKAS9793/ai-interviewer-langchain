@@ -1,40 +1,109 @@
-# Contributing to AI Interviewer
+# Contributing to AI Technical Interviewer
 
-We love your input! We want to make contributing to this project as easy and transparent as possible, whether it's:
+Thank you for your interest in contributing! 🎉
 
-*   Reporting a bug
-*   Discussing the current state of the code
-*   Submitting a fix
-*   Proposing new features
+---
 
-## Our Development Process
+## Getting Started
 
-1.  **Fork the repo** and create your branch from `main`.
-2.  **Install dependencies** using `pip install -r requirements.txt`.
-3.  **Run tests** to ensure the legacy code is not broken:
-    ```bash
-    pytest tests/
-    ```
-4.  **Type checking** (recommended before submitting PR):
-    ```bash
-    pip install mypy
-    mypy src/ --config-file mypy.ini
-    ```
-    The project uses `mypy` for static type checking. All code should pass type checks or include appropriate `# type: ignore` comments for optional dependencies.
-    
-    **⚠️ Important:** If CI fails but local passes, see the [Type Checking Guide](docs/TYPE_CHECKING_GUIDE.md) for troubleshooting.
-5.  If you've added code that should be tested, add tests.
-6.  **Shadow Mode:** If adding experimental agent features, please implement them in "Shadow Mode" (non-blocking try/except blocks) first.
-7.  **License:** Ensure your code is compatible with the MIT License.
+1. **Fork** the repository
+2. **Clone** your fork locally
+3. **Create** a feature branch: `git checkout -b feature/my-feature`
+4. **Make** your changes
+5. **Test** your changes: `adk web src`
+6. **Commit** with clear messages
+7. **Push** to your fork
+8. **Open** a Pull Request
 
-## Pull Requests
+---
 
-We use GitHub Pull Requests to manage changes.
-1. Fill in the required template
-2. Do not include issue numbers in the PR title
-3. Include screenshots and animated GIFs in your pull request whenever possible.
+## Development Setup
 
-## License
+```bash
+# Clone your fork
+git clone https://github.com/YOUR_USERNAME/ai-interviewer-langchain.git
+cd ai-interviewer-langchain
+git checkout google-adk
 
-By contributing, you agree that your contributions will be licensed under its MIT License.
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate  # or .venv\Scripts\activate on Windows
 
+# Install dependencies
+pip install -r requirements.txt
+
+# Set up environment
+cp .env.example .env
+# Add your GOOGLE_API_KEY to .env
+
+# Run locally
+adk web src
+```
+
+---
+
+## Code Style
+
+- **Python 3.11+** required
+- Follow **PEP 8** style guidelines
+- Use **type hints** where possible
+- Write **docstrings** for functions
+- Keep functions **small and focused**
+
+---
+
+## Commit Messages
+
+Use clear, descriptive commit messages:
+
+```
+feat: Add new question generation tool
+fix: Resolve session timeout issue
+docs: Update deployment instructions
+refactor: Simplify agent configuration
+```
+
+Prefixes:
+- `feat:` New feature
+- `fix:` Bug fix
+- `docs:` Documentation
+- `refactor:` Code refactoring
+- `test:` Adding tests
+- `chore:` Maintenance
+
+---
+
+## Pull Request Process
+
+1. Ensure your code works locally
+2. Update documentation if needed
+3. Add tests for new functionality
+4. Keep PRs focused and small
+5. Describe your changes clearly
+
+---
+
+## Areas for Contribution
+
+- 🐛 Bug fixes
+- 📚 Documentation improvements
+- 🧪 Test coverage
+- 🎨 UI/UX enhancements
+- 🔧 New tools for the agent
+- 🌐 Internationalization
+
+---
+
+## Questions?
+
+Open an issue or start a discussion. We're happy to help!
+
+---
+
+## Code of Conduct
+
+Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
+
+---
+
+Thank you for helping improve AI Technical Interviewer! 🙏

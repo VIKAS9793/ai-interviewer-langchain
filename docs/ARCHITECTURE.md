@@ -1,120 +1,111 @@
-# 🤖 Autonomous AI Interviewer System
+# Architecture
+
+> System design and components of the AI Technical Interviewer
+
+---
 
 ## Overview
 
-An **Autonomous AI Technical Interviewer** with human-like capabilities, deployed on HuggingFace Spaces.
-
-| Feature | Description |
-|---------|-------------|
-| **Self-Thinking** | Chain-of-Thought reasoning before every action |
-| **Autonomous Evaluation** | Single-Model (LLaMA 3) with Prometheus-style rubrics |
-| **Semantic Relevance** | Embedding-based answer relevance checking |
-| **Knowledge Grounding** | Answer verification against authoritative sources |
-| **AI Guardrails** | Fair, unbiased, explainable decisions |
-
-## System Architecture
-
 ```mermaid
-flowchart TD
-    User([User]) <--> View["Gradio UI (src/ui)"]
-    View <--> Handler[InterviewHandlers]
-    Handler <--> Ctrl["Controller (Logic)"]
-    
-    subgraph "Core Engine (LangGraph v3.3.1)"
-        Ctrl --> Graph[InterviewGraph]
-        Graph --> AutoInt[AutonomousInterviewer]
+flowchart TB
+    subgraph "User Interface"
+        A[ADK Web UI<br/>Port 8000]
     end
     
-    subgraph "State Layer (Persistent)"
-        SM[SessionManager]
-        SQLite[(SqliteSaver<br/>interview_state.sqlite)]
-        SM <--> SQLite
+    subgraph "ADK Runtime"
+        B[Session Service]
+        C[Agent Runner]
     end
     
-    subgraph "Cognitive Services (Modules)"
-        RAG[RAG Service]
-        RTTD[Red Team / TTD]
-        Learn[Learning Service]
-        
-        RAG <--> VDB[(Vector Store)]
-        Learn <--> RB[(Reasoning Bank)]
+    subgraph "Agent Layer"
+        D[AI Interviewer Agent]
     end
     
-    Graph --> SM
+    subgraph "Google APIs"
+        E[Gemini 2.5 Flash-Lite]
+    end
     
-    AutoInt -- "Context" --> RAG
-    AutoInt -- "Refine" --> RTTD
-    AutoInt -- "Trajectory" --> Learn
+    A --> B --> C --> D --> E
+    E --> D --> C --> B --> A
 ```
 
-## Quick Start
-**Live Demo:** https://huggingface.co/spaces/Vikas9793/ai-interviewer
+---
 
-## Models Used
+## Components
 
-| Purpose | Model | Provider |
-|---------|-------|----------|
-| Questions | Meta-Llama-3-8B-Instruct | HuggingFace |
-| Evaluation| Meta-Llama-3-8B-Instruct | HuggingFace |
-| Embeddings | all-MiniLM-L6-v2 | Sentence Transformers |
+### 1. ADK Web Server
+- Built-in web interface from Google ADK
+- Session management and state persistence
+- Real-time streaming responses
 
-## 📦 System Components (v3.0 Micro-Services)
+### 2. Interviewer Agent
+- Main LLM-powered agent
+- Generates adaptive questions
+- Evaluates answers with CoT reasoning
+- Provides constructive feedback
 
-### 1. Orchestration Layer (`AutonomousInterviewer`)
-*   **Role:** The Central Executive / "Brain".
-*   **Responsibility:** Coordinates the interview lifecycle but delegates all "thinking" and "remembering" to specialized modules.
-*   **Key Behavior:** Stateless. It pulls state from `SessionManager` and pushes tasks to `CognitiveModules`.
+### 3. Gemini Integration
+- Native API calls (no wrapper)
+- Model: `gemini-2.5-flash-lite`
+- Streaming responses enabled
 
-### 2. State Layer (`SessionManager`)
-*   **Role:** Single Source of Truth.
-*   **Responsibility:** Manages `InterviewSession` data, including history, scores, and candidate profile.
-*   **Concurrency:** Handles locking to prevent race conditions during async state updates.
+---
 
-### 3. Cognitive Services (`src/ai_interviewer/modules`)
-The intelligence is composed of three specialized services:
-
-*   **RAG Service (`rag_service.py`):**
-    *   **Context Engineering:** Builds the exact prompt context for the LLM.
-    *   **Knowledge Grounding:** Retrieves relevant technical documentation (Vector Store) to verify answers and prevent hallucinations.
-
-*   **Red Team / TTD Service (`modules/ttd_generator.py`):**
-    *   **Time Test Diffusion:** Iterative denoising loop for high-quality question generation.
-    *   **Red Team Agent:** Adversarially attacks questions (bias, repetition, ambiguity) before user sees them.
-    *   **Semantic Deduplication:** Ensures zero duplicate questions using embedding vectors.
-
-*   **Learning Service (`learning_service.py`):**
-    *   **Intrinsic Memory:** Stores "Winning Strategies" in the `ReasoningBank`.
-    *   **Skill Graph:** Updates the system's understanding of what constitutes a "Good Interview" based on past successful sessions.
-
-*   **JD Parser (`jd_parser.py`):** *(New in v3.1)*
-    *   **URL Parsing:** Extracts role, company from Google Careers, LinkedIn, Lever, Greenhouse URLs.
-    *   **Smart Role Parsing:** Separates "Product Manager YouTube Channel" into core role + area context.
-    *   **Interview Context:** Returns topic for questions, role for greeting, area for context.
-
-### 4. LangGraph Interview Flow *(New in v3.1)*
+## Data Flow
 
 ```mermaid
-graph LR
-    START --> extract_context
-    extract_context --> greeting
-    greeting --> generate_question
-    generate_question --> validate_question
-    validate_question --> await_answer
-    await_answer --> evaluate
-    evaluate --> decide
-    decide -->|continue| generate_question
-    decide -->|complete| report
-    report --> END
+sequenceDiagram
+    participant U as User
+    participant W as ADK Web
+    participant A as Agent
+    participant G as Gemini API
+    
+    U->>W: Send message
+    W->>A: Forward to agent
+    A->>G: LLM request
+    G-->>A: Stream response
+    A-->>W: Process & format
+    W-->>U: Display response
 ```
 
-*   **State Schema:** `InterviewState` TypedDict with session, context, and performance tracking.
-*   **Unified Flow:** Both Interview Tab and Practice Tab use the same graph.
-*   **Red Team Node:** Full adversarial validation and iterative refinement (v3.3).
+---
 
-## ⚡ Performance
+## Directory Structure
 
-| Metric | Value |
-|--------|-------|
-| **Response Time** | 3-6 seconds (includes CoT & RAG) |
-| **Accuracy** | >90% (with Critic validation) |
-| **Context Window** | Dynamic (Managed by ContextEngineer) |
+```
+src/
+└── adk_interviewer/
+    ├── agent.py          # Main agent definition
+    ├── __init__.py       # Package init
+    ├── config/           # Configuration
+    ├── tools/            # Optional tools
+    ├── agents/           # Sub-agents (future)
+    ├── workflows/        # Multi-agent flows
+    └── utils/            # Helpers
+```
+
+---
+
+## Key Design Decisions
+
+1. **Single Agent:** Simple, focused interviewer agent
+2. **No Custom UI:** Leverage ADK's built-in web interface
+3. **Stateless Tools:** Functions, not classes
+4. **Native Gemini:** Direct API calls for performance
+
+---
+
+## Security
+
+- API keys in environment variables
+- Google's native content filtering
+- No PII storage in sessions
+- HTTPS in production (Cloud Run)
+
+---
+
+## See Also
+
+- [Setup Guide](SETUP.md)
+- [Deployment Guide](DEPLOYMENT.md)
+- [ADR-001: Migration to ADK](ADR/001-migration-to-google-adk.md)

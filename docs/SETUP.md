@@ -1,128 +1,102 @@
-# 🛠️ Setup & Installation Guide
+# Setup Guide
 
-> **Last Updated:** 2025-12-14
-> **Version:** 3.3.0 (Semantic Intelligence + TTD)
-
-## 📋 Prerequisites
-
-1. **Python 3.11+**: [Download Here](https://www.python.org/downloads/)
-2. **HuggingFace Account**: [Sign Up Here](https://huggingface.co/join)
-3. **OpenAI API Key** (Optional, for best experience): [Get Here](https://platform.openai.com/api-keys)
-4. **Docker** (Optional, recommended for production)
-
-> [!NOTE]
-> This application supports **hybrid LLM mode**: OpenAI (paid, best quality) or HuggingFace (free, good quality). Works with either or both.
+> Complete setup instructions for the AI Technical Interviewer
 
 ---
 
-## ☁️ Option 1: HuggingFace Spaces (Recommended)
+## Prerequisites
 
-The easiest way to use the AI Interviewer:
-
-1. Visit: **https://huggingface.co/spaces/Vikas9793/ai-interviewer**
-2. Enter your name and select a topic.
-3. Start your interview!
-
----
-
-## 🐳 Option 2: Docker (Production-Ready)
-
-This ensures you run the exact environment deployed to the cloud.
-
-```bash
-# Build the container
-docker build -t ai-interviewer .
-
-# Run the container (Exposes port 7860)
-docker run -p 7860:7860 \
-  -e HF_TOKEN="your_huggingface_token" \
-  -e OPENAI_API_KEY="your_openai_key" \
-  ai-interviewer
-```
-
-Access at: `http://localhost:7860`
+| Requirement | Version | Notes |
+|-------------|---------|-------|
+| Python | 3.11+ | Required |
+| Google API Key | - | [Get free key](https://aistudio.google.com/app/apikey) |
+| Git | 2.0+ | For cloning |
 
 ---
 
-## 💻 Option 3: Local Dev Environment
+## Local Setup
 
-### 1. Clone the Repository
+### 1. Clone Repository
+
 ```bash
 git clone https://github.com/VIKAS9793/ai-interviewer-langchain.git
 cd ai-interviewer-langchain
-# Main branch contains the stable v3.3 release
+git checkout google-adk
 ```
 
-### 2. Set Up Virtual Environment
+### 2. Create Virtual Environment
 
 **Windows:**
 ```powershell
-python -m venv venv
-.\venv\Scripts\activate
+python -m venv .venv
+.venv\Scripts\activate
 ```
 
-**macOS / Linux:**
+**macOS/Linux:**
 ```bash
-python3 -m venv venv
-source venv/bin/activate
+python -m venv .venv
+source .venv/bin/activate
 ```
 
 ### 3. Install Dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Configure API Tokens
+### 4. Configure API Key
+
 ```bash
-# Required: HuggingFace Token (free)
-# Windows (PowerShell)
-$env:HF_TOKEN = "your_huggingface_token"
+# Copy template
+cp .env.example .env
 
-# macOS / Linux
-export HF_TOKEN="your_huggingface_token"
-
-# Optional: OpenAI API Key (for best experience)
-$env:OPENAI_API_KEY = "sk-your-openai-key"  # Windows
-export OPENAI_API_KEY="sk-your-openai-key"  # macOS/Linux
+# Edit .env file
+# Add: GOOGLE_API_KEY=your_key_here
 ```
 
-### 5. Run the Application
+### 5. Run Application
+
 ```bash
-python main.py
+adk web src
 ```
 
-The web interface launches at: `http://localhost:7860`
+Open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser.
 
 ---
 
-## ⚠️ Common Issues
+## Using the Interviewer
 
-| Issue | Solution |
-|-------|----------|
-| **Model loading slow** | First request may take 30-60s for model warmup |
-| **401 Unauthorized** | Check `HF_TOKEN` is set correctly |
-| **403 Forbidden** | Ensure your HF Token has `write` permissions (if pushing) or `read` (if using inference) |
-| **Port 7860 in use** | App auto-finds next available port |
+1. **Select Agent:** Choose `adk_interviewer` from dropdown
+2. **Start Chat:** Type your message to begin
+3. **Interview:** Answer questions, get real-time feedback
+4. **Review:** See your scores and improvement areas
 
 ---
 
-## 🧪 Verification
+## Troubleshooting
 
-Test your installation:
-```bash
-pytest tests/ -v
+### API Key Not Found
 ```
-
-## 🔍 Type Checking (Development)
-
-The project uses `mypy` for static type checking to ensure code quality and type safety:
-
-```bash
-# Install mypy
-pip install mypy
-
-# Run type checking
-mypy src/ --config-file mypy.ini
+GOOGLE_API_KEY environment variable is required
 ```
+**Solution:** Ensure `.env` file has your key and is UTF-8 encoded.
 
-Type checking is automatically run in CI/CD. All code should pass type checks or include appropriate `# type: ignore` comments for optional dependencies (e.g., `gradio`, `whisper`, `langchain_openai`).
+### Module Import Error
+```
+attempted relative import beyond top-level package
+```
+**Solution:** Run `adk web src` (not `adk web src/adk_interviewer`).
+
+### Port Already in Use
+```
+Address already in use
+```
+**Solution:** Use a different port: `adk web src --port 8001`
+
+---
+
+## Next Steps
+
+- [Architecture Guide](ARCHITECTURE.md)
+- [Deployment Guide](DEPLOYMENT.md)
+- [Contributing](../CONTRIBUTING.md)

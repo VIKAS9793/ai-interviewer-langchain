@@ -9,8 +9,14 @@ import os
 import logging
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Load environment variables (with encoding error handling)
+try:
+    load_dotenv(encoding='utf-8')
+except Exception:
+    try:
+        load_dotenv(encoding='utf-16')
+    except Exception:
+        pass  # Will fall back to system environment variables
 
 # Configure logging
 logging.basicConfig(

@@ -1,48 +1,31 @@
-# Multi-stage build for efficiently caching dependencies
-FROM python:3.9-slim
+# Dockerfile for ADK Interviewer - GCP Cloud Run
+# Optimized for free tier (minimal resources)
+
+FROM python:3.11-slim
 
 # Set working directory
 WORKDIR /app
 
-# Create a non-root user for security (and Hugging Face Spaces compliance)
-RUN useradd -m -u 1000 user
-
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    gcc \
-    libmagic1 \
-    python3-dev \
+    --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first to leverage Docker cache
+# Copy requirements first for caching
 COPY requirements.txt .
 
 # Install Python dependencies
-# --no-cache-dir reduces image size
-# --user installs to /home/user/.local
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY . .
+COPY src/adk_interviewer /app/adk_interviewer
 
-# Set permissions for data directory
-RUN mkdir -p data/memory data/vectors && chown -R user:user /app
-
-# Switch to non-root user
-USER user
-
-# Add local bin to PATH
-ENV PATH=/home/user/.local/bin:$PATH
-
-# Expose Gradio port
-EXPOSE 7860
-
-# Environment variables
+# Set environment variables
 ENV PYTHONUNBUFFERED=1
-ENV GRADIO_SERVER_NAME="0.0.0.0"
-ENV GRADIO_SERVER_PORT=7860
-ENV ANONYMIZED_TELEMETRY=False
+ENV PORT=8080
 
-# Command to run the application
-CMD ["python", "main.py"]
+# Expose port
+EXPOSE 8080
+
+# Run with ADK web server
+CMD ["adk", "web", "--port", "8080", "--host", "0.0.0.0", "adk_interviewer"]

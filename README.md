@@ -1,292 +1,205 @@
----
-title: AI Technical Interviewer
-emoji: 🤖
-colorFrom: indigo
-colorTo: purple
-sdk: docker
-app_port: 7860
-app_file: main.py
-pinned: false
-license: mit
----
+<p align="center">
+  <img src="https://google.github.io/adk-docs/assets/ADK-512-color.svg" alt="Google ADK Logo" width="120"/>
+</p>
 
-<div align="center">
+<h1 align="center">🎯 AI Technical Interviewer</h1>
 
-# 🤖 Autonomous AI Technical Interviewer
+<p align="center">
+  <strong>Powered by Google Agent Development Kit (ADK) & Gemini</strong>
+</p>
 
-### *Your AI-Powered Interview Coach with Human-Like Intelligence*
+<p align="center">
+  <a href="https://google.github.io/adk-docs/"><img src="https://img.shields.io/badge/Built%20with-Google%20ADK-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Google ADK"/></a>
+  <a href="https://ai.google.dev/"><img src="https://img.shields.io/badge/Powered%20by-Gemini-8E75B2?style=for-the-badge&logo=google&logoColor=white" alt="Gemini"/></a>
+  <a href="https://cloud.google.com/run"><img src="https://img.shields.io/badge/Deploy%20on-Cloud%20Run-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white" alt="Cloud Run"/></a>
+</p>
 
-[![Live Demo](https://img.shields.io/badge/🚀_Try_Live_Demo-HuggingFace_Spaces-FF6B6B?style=for-the-badge)](https://huggingface.co/spaces/Vikas9793/ai-interviewer)
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/VIKAS9793/ai-interviewer-langchain)
-[![CI/CD](https://github.com/VIKAS9793/ai-interviewer-langchain/actions/workflows/sync_to_hub.yml/badge.svg)](https://github.com/VIKAS9793/ai-interviewer-langchain/actions)
-[![License](https://img.shields.io/badge/License-MIT-22C55E?style=for-the-badge)](LICENSE)
-
-![Version](https://img.shields.io/badge/Release-v3.3.1-blue?style=flat-square&logo=git)
-![Python](https://img.shields.io/badge/Python-3.9-3776AB?style=flat-square&logo=python&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?style=flat-square&logo=docker&logoColor=white)
-![Gradio](https://img.shields.io/badge/Gradio-4.44.0-FF7C00?style=flat-square)
-![LangChain](https://img.shields.io/badge/LangChain-Framework-1C3C3C?style=flat-square)
-![LangGraph](https://img.shields.io/badge/LangGraph-Powered-blue?style=flat-square)
-![HuggingFace](https://img.shields.io/badge/🤗_HuggingFace-API-FFD21E?style=flat-square)
-![LLaMA](https://img.shields.io/badge/LLaMA_3-8B-0467DF?style=flat-square)
-
-**Self-Thinking AI** • **Chain-of-Thought** • **Autonomous Reasoning** • **Responsible AI**
-
-</div>
+<p align="center">
+  <a href="#-features">Features</a> •
+  <a href="#-quick-start">Quick Start</a> •
+  <a href="#-architecture">Architecture</a> •
+  <a href="#-deployment">Deploy</a> •
+  <a href="#-contributing">Contributing</a>
+</p>
 
 ---
 
-## ✨ Features at a Glance
-
-<table>
-<tr>
-<td width="50%">
-
-### 🧠 Intelligent Reasoning
-- Chain-of-Thought before every action
-- Self-reflection and improvement
-- Adaptive difficulty adjustment
-
-</td>
-<td width="50%">
-
-### 📊 Autonomous Evaluation
-- Single-Model Architecture (LLaMA 3)
-- Prometheus-style 1-5 rubric
-- Semantic relevance checking
-
-</td>
-</tr>
-</tr>
-<tr>
-<td width="50%">
-
-### 🛡️ Responsible AI
-- Bias detection & mitigation
-- Fairness validation
-- Transparent decision-making
-
-</td>
-<td width="50%">
-
-### 🎤 Voice Mode (v2.4)
-- Browser-native Speech-to-Text
-- AI response read aloud
-- Zero external API calls
-
-</td>
-</tr>
-<tr>
-<td width="50%">
-
-### 📄 Practice Mode (v2.5)
-- Resume upload (PDF/DOCX)
-- JD URL scraping
-- Role & experience detection
-
-</td>
-<tr>
-<td width="50%">
-
-### 🏢 Company Intelligence (v3.2)
-- Strategy Injection (Amazon/Google/Meta)
-- JD Parsing & Context Extraction
-- Adaptive questioning based on company culture
-
-</td>
-<td width="50%">
-
-### 🔒 Security
-- File magic byte validation
-- Macro/script detection
-- XSS prevention
-- SSRF protection (URL validation)
-- Comprehensive input validation
-- Session expiration & cleanup
-- Error message sanitization
-
-</td>
-</table>
-<div align="center">
-
-### 🛡️ Semantic & Time Test Diffusion (v3.3)
-- **Time Test Diffusion (TTD):** Iterative denoising for high-quality question generation
-- **Semantic Deduplication:** Embedding-based similarity check (0.70 threshold)
-- **Red Team Agent:** Adversarial critique for every question
-- **Global Rate Limiting:** 1 interview/day quota per system
-
-</div>
+> **An AI-powered technical interview assistant that conducts adaptive, fair, and insightful mock interviews.** Using Google's Agent Development Kit and Gemini AI, it generates contextual questions, evaluates responses in real-time, and provides actionable feedback to help candidates improve their skills.
 
 ---
 
-## ⚠️ Current Limitations (Please Read)
+## ✨ Features
 
-> **This is an AI practice tool, not a replacement for real interviews.**
-
-| What Works Well | What May Vary |
-|-----------------|---------------|
-| ✅ Detects common skills (Python, React, AWS, etc.) | ⚠️ May miss niche or proprietary technologies |
-| ✅ Generates adaptive questions | ✅ **Zero Duplicates** (Semantic Deduplication) |
-| ✅ Provides score-based feedback | ⚠️ Feedback is AI-generated, not human-reviewed |
-| ✅ Works with most resumes (PDF/DOCX) | ⚠️ Complex resume layouts may not parse correctly |
-
-**Best Experience:** For personalized feedback, set `OPENAI_API_KEY` in your environment. Without it, the system uses free models with keyword-based skill detection.
-
----
-
-## 📚 Supported Interview Topics
-
-| Domain | Focus Areas |
-|--------|-------------|
-| **Python/Backend** | FastAPI/Flask, Asyncio, ORM, Django, REST APIs |
-| **JavaScript/Frontend** | React, Vue, Modern JS (ES6+), DOM, Web Performance |
-| **System Design & Architecture** | Scalability, Microservices, Load Balancing, Caching |
-| **Data Structures & Algorithms** | Trees, Graphs, DP, Sorting, Complexity Analysis |
-| **Machine Learning/AI** | Transformers, Deep Learning, NLP, RAG Pipelines |
-| **Cloud & DevOps** | AWS/GCP/Azure, Docker/K8s, CI/CD, Terraform |
-| **Database & SQL** | SQL, NoSQL, Indexing, Query Optimization |
-| **API Design & REST** | RESTful Design, GraphQL, Authentication, Rate Limiting |
-
----
-
-## 🏗️ System Architecture
-
-```mermaid
-flowchart TD
-    User([User]) <--> View["Gradio UI (src/ui)"]
-    View <--> Handler[InterviewHandlers]
-    Handler <--> Ctrl["Controller (Logic)"]
-    
-    subgraph "Core Engine (LangGraph v3.3.1)"
-        Ctrl --> Graph[InterviewGraph]
-        Graph --> AutoInt[AutonomousInterviewer]
-    end
-    
-    subgraph "State Layer (Persistent)"
-        SM[SessionManager]
-        SQLite[(SqliteSaver<br/>interview_state.sqlite)]
-        SM <--> SQLite
-    end
-    
-    subgraph "Cognitive Services (Modules)"
-        RAG[RAG Service]
-        RTTD[Red Team / TTD]
-        Learn[Learning Service]
-        
-        RAG <--> VDB[(Vector Store)]
-        Learn <--> RB[(Reasoning Bank)]
-    end
-    
-    Graph --> SM
-    
-    AutoInt -- "Context" --> RAG
-    AutoInt -- "Refine" --> RTTD
-    AutoInt -- "Trajectory" --> Learn
-```
-
-> 📖 **Deep Dive:** See [LangGraph Architecture](docs/LANGGRAPH_ARCHITECTURE.md) for the internal state machine diagram.
-
----
-
-## 📊 Evaluation System
-
-```mermaid
-pie title Scoring Distribution
-    "LLM Score (LLaMA 3)" : 60
-    "Heuristic Score" : 40
-```
-
-| Score | Level | Criteria |
-|:-----:|:------|:---------|
-| ⭐⭐⭐⭐⭐ | **Exceptional** | Comprehensive, accurate, well-structured with examples |
-| ⭐⭐⭐⭐ | **Good** | Covers main concepts correctly |
-| ⭐⭐⭐ | **Adequate** | Addresses question but lacks depth |
-| ⭐⭐ | **Limited** | Partially relevant, gaps/errors |
-| ⭐ | **Poor** | Off-topic or incorrect |
+| Feature | Description |
+|---------|-------------|
+| 🧠 **Adaptive Interviews** | Questions adjust difficulty based on your responses |
+| 💬 **Natural Conversation** | Powered by Gemini 2.5 Flash for human-like dialogue |
+| 📊 **Real-time Evaluation** | Instant feedback with Chain-of-Thought reasoning |
+| 🛡️ **Built-in Safety** | Google's native content filtering & guardrails |
+| 🌐 **Web Interface** | Beautiful ADK Web UI out of the box |
+| ☁️ **Cloud Ready** | One-click deploy to GCP Cloud Run (Free Tier) |
 
 ---
 
 ## 🚀 Quick Start
 
-### ☁️ Live Demo (Recommended)
+### Prerequisites
+- Python 3.11+
+- [Google AI Studio API Key](https://aistudio.google.com/app/apikey) (Free)
 
-<div align="center">
+### Installation
 
-[![Try Now](https://img.shields.io/badge/🌐_Try_Now-huggingface.co/spaces/Vikas9793/ai--interviewer-FF6B6B?style=for-the-badge)](https://huggingface.co/spaces/Vikas9793/ai-interviewer)
-
-</div>
-
-### 💻 Local Installation
 ```bash
-# Clone & Setup
+# Clone the repository
 git clone https://github.com/VIKAS9793/ai-interviewer-langchain.git
 cd ai-interviewer-langchain
+git checkout google-adk
+
+# Create virtual environment
+python -m venv .venv
+.venv\Scripts\activate  # Windows
+# source .venv/bin/activate  # macOS/Linux
+
+# Install dependencies
 pip install -r requirements.txt
 
-# Configure & Run
-export HF_TOKEN="your_token"
-python main.py
+# Set your API key
+cp .env.example .env
+# Edit .env and add your GOOGLE_API_KEY
 ```
+
+### Run Locally
+
+```bash
+adk web src
+```
+
+Open [http://127.0.0.1:8000](http://127.0.0.1:8000) and start interviewing!
 
 ---
 
-## 📖 Documentation
+## 🏗️ Architecture
+
+```mermaid
+flowchart LR
+    subgraph "Client"
+        A[👤 Candidate]
+    end
+    
+    subgraph "ADK Web Server"
+        B[ADK Web UI]
+        C[Session Service]
+    end
+    
+    subgraph "Agent Layer"
+        D[🤖 Interviewer Agent]
+        E[Gemini 2.5 Flash-Lite]
+    end
+    
+    A --> B --> C --> D --> E
+    E --> D --> C --> B --> A
+```
+
+### Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| **Framework** | [Google Agent Development Kit (ADK)](https://google.github.io/adk-docs/) |
+| **LLM** | [Gemini 2.5 Flash-Lite](https://ai.google.dev/) |
+| **Web UI** | ADK Web (`adk web`) |
+| **Deployment** | Google Cloud Run |
+| **State** | ADK SessionService |
+
+---
+
+## ☁️ Deployment
+
+### Google Cloud Run (Free Tier)
+
+```bash
+# Authenticate with GCP
+gcloud auth login
+
+# Deploy
+gcloud run deploy ai-interviewer \
+  --source . \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --set-secrets "GOOGLE_API_KEY=google-api-key:latest"
+```
+
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed instructions.
+
+---
+
+## 📚 Documentation
 
 | Document | Description |
 |----------|-------------|
-| 📋 [Setup Guide](docs/SETUP.md) | Installation & configuration |
-| 🏗️ [Architecture](docs/ARCHITECTURE.md) | System design & diagrams |
-| 📝 [ADR](docs/ADR.md) | Architectural decisions |
-| 🗺️ [Roadmap](docs/ROADMAP.md) | Future plans |
-| 🔧 [Troubleshooting](docs/TROUBLESHOOTING.md) | Common issues |
-| 🔍 [Type Checking Guide](docs/TYPE_CHECKING_GUIDE.md) | Mypy troubleshooting & best practices |
-| 🔒 [Security Audit](docs/AUDIT_REPORT.md) | Security audit findings |
-| 🛡️ [Security Implementation](docs/SECURITY_IMPLEMENTATION.md) | Security fixes & hardening |
-| 📜 [Changelog](docs/CHANGELOG.md) | Version history |
-| 📝 [Release Notes](docs/RELEASE_NOTES.md) | Detailed release information |
-| 🤝 [Contributing](docs/CONTRIBUTING.md) | Contribution guide |
+| [📋 SETUP.md](docs/SETUP.md) | Detailed setup instructions |
+| [🏗️ ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design & components |
+| [☁️ DEPLOYMENT.md](docs/DEPLOYMENT.md) | Cloud Run deployment guide |
+| [🔄 ADR-001](docs/ADR/001-migration-to-google-adk.md) | Why we chose Google ADK |
 
 ---
 
-## 🆘 Support & Feedback
+## 🤝 Contributing
 
-*   🐛 **Found a bug?** [Open a Bug Report](https://github.com/VIKAS9793/ai-interviewer-langchain/issues/new?template=bug_report.md)
-*   💡 **Have an idea?** [Request a Feature](https://github.com/VIKAS9793/ai-interviewer-langchain/issues/new?template=feature_request.md)
-*   💬 **Questions?** [Join the Discussion](https://github.com/VIKAS9793/ai-interviewer-langchain/discussions)
+We welcome contributions! Please see [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines.
 
----
-
-## 📈 Version History
-
-| Version | Date | Highlights |
-|---------|------|------------|
-| **v3.3.1** | 2025-12-17 | 🔒 **Persistence & Cost Control** (SqliteSaver, MAX_ITERATIONS=1, Smart Fallback) |
-| **v3.3.0** | 2025-12-16 | 🧠 **TTD & Semantic Intelligence** (Time Test Diffusion, Red Team Agent, Zero Duplicates) |
-| **v3.2.3** | 2025-12-14 | 🔍 **Type Safety & Code Quality** (Mypy integration, comprehensive type annotations) |
-| **v3.2.2** | 2025-12-14 | 🔒 **Security Hardening** (SSRF protection, input validation, session expiration) |
-| **v3.2.1** | 2025-12-14 | 🧠 **Intelligence Hardening** (Fix loops, scoring, RAG verified) |
-| **v3.2.0** | 2025-12-14 | 🏢 **Company Intelligence** (Strategy Injection) & 🏗️ **UI Modularization** (Clean Arch) |
-| **v3.1.0** | 2025-12-12 | 🔷 LangGraph + JD Parser, Smart Role Parsing, Context-Aware Greetings |
-| **v3.0.1** | 2025-12-12 | 🔥 Hotfix: Fixed scoring, question counter, feedback, topics |
-| **v3.0.0** | 2025-12-12 | [**The Cognitive Upgrade**](docs/RELEASE_NOTES.md): Reasoning, RAG, Reflexion, Micro-Services |
-| **v2.6.0** | 2025-12-12 | 🎨 UI Overhaul (Dark Mode, Pill Buttons, High Contrast) |
-| **v2.5.1** | 2025-12-11 | Hotfix: Gradio 4.44 downgrade, Torch/Triton conflict |
-| **v2.5.0** | 2025-12-11 | Practice Mode (Resume + JD), 11 bug fixes |
-| **v2.4.0** | 2025-12-10 | Voice Mode (browser-native STT/TTS) |
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ---
 
-<div align="center">
+## 📜 License
 
-### ⭐ Star this repo if you find it useful!
-
-[![GitHub stars](https://img.shields.io/github/stars/VIKAS9793/ai-interviewer-langchain?style=social)](https://github.com/VIKAS9793/ai-interviewer-langchain)
-[![GitHub forks](https://img.shields.io/github/forks/VIKAS9793/ai-interviewer-langchain?style=social)](https://github.com/VIKAS9793/ai-interviewer-langchain/fork)
+This project is licensed under the **Apache License 2.0** - see [LICENSE](LICENSE) for details.
 
 ---
 
-**Built with ❤️ using LangChain, HuggingFace, and Gradio**
+## 🙏 Credits & Acknowledgments
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-22C55E?style=flat-square)](LICENSE)
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://google.github.io/adk-docs/">
+        <img src="https://google.github.io/adk-docs/assets/ADK-512-color.svg" width="60"/><br/>
+        <strong>Google ADK</strong>
+      </a><br/>
+      Agent Development Kit
+    </td>
+    <td align="center">
+      <a href="https://ai.google.dev/">
+        <img src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg" width="60"/><br/>
+        <strong>Gemini</strong>
+      </a><br/>
+      Large Language Model
+    </td>
+    <td align="center">
+      <a href="https://cloud.google.com/">
+        <img src="https://www.vectorlogo.zone/logos/google_cloud/google_cloud-icon.svg" width="60"/><br/>
+        <strong>Google Cloud</strong>
+      </a><br/>
+      Cloud Infrastructure
+    </td>
+  </tr>
+</table>
 
-</div>
+---
+
+## ⚠️ Migration Notice
+
+> **This is the new Google ADK version.** The previous HuggingFace/LangGraph version has been deprecated.
+> 
+> See [docs/ADR/001-migration-to-google-adk.md](docs/ADR/001-migration-to-google-adk.md) for migration details.
+
+---
+
+<p align="center">
+  Made with ❤️ using Google ADK<br/>
+  <sub>© 2025 AI Interviewer Project</sub>
+</p>
