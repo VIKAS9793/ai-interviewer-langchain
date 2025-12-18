@@ -1,0 +1,11 @@
+# ADK Interviewer - Minimal Dependencies
+# Pure Google-Native Stack
+
+# Core - Google ADK
+google-adk>=0.3.0
+
+# Environment management
+python-dotenv>=1.0.0
+
+# Typing support
+typing-extensions>=4.0.0
