@@ -17,8 +17,8 @@
 <p align="center">
   <a href="#-features">Features</a> •
   <a href="#-quick-start">Quick Start</a> •
-  <a href="#-architecture">Architecture</a> •
-  <a href="#-deployment">Deploy</a> •
+  <a href="#️-architecture">Architecture</a> •
+  <a href="#️-deployment">Deploy</a> •
   <a href="#-contributing">Contributing</a>
 </p>
 
@@ -167,7 +167,7 @@ This project is licensed under the **Apache License 2.0** - see [LICENSE](LICENS
   <tr>
     <td align="center">
       <a href="https://google.github.io/adk-docs/">
-        <img src="https://google.github.io/adk-docs/assets/ADK-512-color.svg" width="60"/><br/>
+        <img src="https://www.vectorlogo.zone/logos/google/google-icon.svg" width="60"/><br/>
         <strong>Google ADK</strong>
       </a><br/>
       Agent Development Kit
