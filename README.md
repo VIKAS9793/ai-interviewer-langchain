@@ -15,11 +15,11 @@
 </p>
 
 <p align="center">
-  <a href="#✨-features">Features</a> •
-  <a href="#🚀-quick-start">Quick Start</a> •
-  <a href="#🏗️-architecture">Architecture</a> •
-  <a href="#☁️-deployment">Deploy</a> •
-  <a href="#🤝-contributing">Contributing</a>
+  <a href="#-features">Features</a> •
+  <a href="#-quick-start">Quick Start</a> •
+  <a href="#-architecture">Architecture</a> •
+  <a href="#-deployment">Deploy</a> •
+  <a href="#-contributing">Contributing</a>
 </p>
 
 ---
@@ -199,7 +199,19 @@ This project is licensed under the **Apache License 2.0** - see [LICENSE](LICENS
 
 ---
 
+## 👤 Author & Maintainer
+
+**Vikas Sahani**
+
+- **GitHub:** [VIKAS9793](https://github.com/VIKAS9793)
+- **LinkedIn:** [Vikas Sahani](https://www.linkedin.com/in/vikas-sahani-727420358)
+- **Email:** vikassahani17@gmail.com
+- **Kaggle:** [vikassahani9793](https://www.kaggle.com/vikassahani9793)
+- **Developer Profile:** [g.dev/vikas9793](https://g.dev/vikas9793)
+
+---
+
 <p align="center">
   Made with ❤️ using Google ADK<br/>
-  <sub>© 2025 AI Interviewer Project • Created by <a href="https://github.com/VIKAS9793">Vikas</a></sub>
+  <sub>© 2025 AI Interviewer Project</sub>
 </p>
