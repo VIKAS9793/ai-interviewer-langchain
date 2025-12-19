@@ -6,20 +6,24 @@ using Chain-of-Thought reasoning and Time-Travel Diffusion (TTD).
 """
 
 from typing import Optional
+from google.adk.tools import ToolContext
 from ..config import config
 
 
 def generate_question(
     topic: str,
-    difficulty: str = "medium",
+    difficulty: str,
+    tool_context: ToolContext,
     previous_questions: Optional[list[str]] = None,
-    candidate_context: Optional[dict] = None
+    candidate_context: Optional[dict[str, str]] = None
 ) -> dict:
     """
     Generate a technical interview question.
     
     This tool uses Chain-of-Thought reasoning to create contextually
     appropriate questions that adapt to the candidate's skill level.
+    
+    Uses ToolContext to maintain interview state across questions.
     
     Args:
         topic: The technical topic (e.g., "Python", "System Design")
@@ -45,17 +49,13 @@ def generate_question(
         >>> print(result["question"])
         "How would you implement a custom iterator in Python?"
     """
+    # Retrieve state from context (interview history)
+    asked_questions = tool_context.state.get("asked_questions", [])
+    interview_topic = tool_context.state.get("interview_topic", topic)
+    
     # Validate difficulty
     if difficulty not in config.DIFFICULTY_LEVELS:
         difficulty = "medium"
-    
-    # Build context for question generation
-    context = {
-        "topic": topic,
-        "difficulty": difficulty,
-        "avoid": previous_questions or [],
-        "candidate": candidate_context or {}
-    }
     
     # Question templates by topic (TTD will refine these)
     question_banks = {
@@ -137,12 +137,19 @@ def generate_question(
         if q not in (previous_questions or [])
     ]
     
+    
     # Select question (TTD would refine this with LLM)
     if available_questions:
         selected_question = available_questions[0]
     else:
         # Fallback if all questions used
         selected_question = f"Tell me about your experience with {topic}."
+    
+    # Update state with new question
+    asked_questions.append(selected_question)
+    tool_context.state["asked_questions"] = asked_questions
+    tool_context.state["interview_topic"] = topic
+    tool_context.state["current_difficulty"] = difficulty
     
     return {
         "question": selected_question,

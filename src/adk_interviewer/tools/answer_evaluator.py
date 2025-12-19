@@ -6,14 +6,16 @@ and provides structured feedback with scores.
 """
 
 from typing import Optional
+from google.adk.tools import ToolContext
 
 
 def evaluate_answer(
     question: str,
     answer: str,
-    expected_answer: Optional[str] = None,
-    topic: str = "",
-    difficulty: str = "medium"
+    topic: str,
+    difficulty: str,
+    tool_context: ToolContext,
+    expected_answer: Optional[str] = None
 ) -> dict:
     """
     Evaluate a candidate's answer to an interview question.
@@ -24,12 +26,14 @@ def evaluate_answer(
     - Communication clarity
     - Problem-solving approach
     
+    Uses ToolContext to track scoring history across interview.
+    
     Args:
         question: The interview question that was asked
         answer: The candidate's response
-        expected_answer: Key points expected in the answer
         topic: The technical topic being assessed
-        difficulty: The question difficulty level
+        difficulty: The question difficulty level ("easy", "medium", "hard", "expert")
+        expected_answer: Optional key points expected in the answer
         
     Returns:
         dict: {
@@ -44,7 +48,9 @@ def evaluate_answer(
     Example:
         >>> result = evaluate_answer(
         ...     question="Explain decorators in Python",
-        ...     answer="Decorators are functions that wrap other functions..."
+        ...     answer="Decorators are functions that wrap other functions...",
+        ...     topic="Python",
+        ...     difficulty="medium"
         ... )
         >>> print(result["score"])  # 7.5
         >>> print(result["feedback"])  # "Good explanation, consider mentioning..."
@@ -118,6 +124,12 @@ def evaluate_answer(
         follow_up = "How would you implement this in code?"
     else:
         follow_up = f"What are some common pitfalls or edge cases to consider with {topic}?"
+    
+    # Persist score to state
+    scores = tool_context.state.get("scores", [])
+    scores.append(round(score, 1))
+    tool_context.state["scores"] = scores
+    tool_context.state["average_score"] = sum(scores) / len(scores)
     
     return {
         "score": round(score, 1),
