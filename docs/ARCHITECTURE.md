@@ -1,32 +1,41 @@
 # Architecture
 
-> System design and components of the AI Technical Interviewer
+> System design and components of the AI Technical Interviewer (v4.1)
 
 ---
 
-## Overview
+## Overview - Multi-Agent Architecture
 
 ```mermaid
 flowchart TB
-    subgraph "User Interface"
+    subgraph UI["User Interface"]
         A[ADK Web UI<br/>Port 8000]
     end
     
-    subgraph "ADK Runtime"
+    subgraph Runtime["ADK Runtime"]
         B[Session Service]
         C[Agent Runner]
     end
     
-    subgraph "Agent Layer"
-        D[AI Interviewer Agent]
+    subgraph Root["Root Orchestrator"]
+        D[ai_technical_interviewer]
     end
     
-    subgraph "Google APIs"
-        E[Gemini 2.5 Flash-Lite]
+    subgraph Specialists["Sub-Agents"]
+        E1[interviewer_agent<br/>Q&A Specialist]
+        E2[resume_agent<br/>Resume Analyst]
+        E3[coding_agent<br/>Code Executor]
     end
     
-    A --> B --> C --> D --> E
-    E --> D --> C --> B --> A
+    subgraph API["Google APIs"]
+        F[Gemini 2.5 Flash-Lite]
+    end
+    
+    A --> B
+    B --> C
+    C --> D
+    D --> E1 & E2 & E3
+    E1 & E2 & E3 --> F
 ```
 
 ---
@@ -38,16 +47,37 @@ flowchart TB
 - Session management and state persistence
 - Real-time streaming responses
 
-### 2. Interviewer Agent
-- Main LLM-powered agent
-- Generates adaptive questions
-- Evaluates answers with CoT reasoning
-- Provides constructive feedback
+### 2. Root Agent (Orchestrator)
+- **Entry Point:** `src/adk_interviewer/agent.py`
+- Coordinates all specialist sub-agents
+- Routes messages to appropriate specialists
+- Synthesizes responses into coherent conversation
 
-### 3. Gemini Integration
-- Native API calls (no wrapper)
+### 3. Sub-Agents
+
+#### Interviewer Agent
+- **Location:** `src/adk_interviewer/agents/interviewer_agent.py`
+- **Tools:** `generate_question`, `evaluate_answer`
+- **Purpose:** Generates adaptive questions and evaluates answers
+- **Model:** Gemini 2.5 Flash-Lite
+
+#### Resume Agent
+- **Location:** `src/adk_interviewer/agents/resume_agent.py`
+- **Tools:** `parse_resume`, `analyze_job_description`
+- **Purpose:** Analyzes resumes and job requirements
+- **Model:** Gemini 2.5 Flash-Lite
+
+#### Coding Agent
+- **Location:** `src/adk_interviewer/agents/coding_agent.py`
+- **Executor:** `BuiltInCodeExecutor` (sandboxed Python)
+- **Purpose:** Executes and verifies code solutions
+- **Model:** Gemini 2.5 Flash-Lite
+
+### 4. Gemini Integration
+- Native API calls via Google AI Studio
 - Model: `gemini-2.5-flash-lite`
 - Streaming responses enabled
+
 
 ---
 
@@ -75,9 +105,20 @@ sequenceDiagram
 ```
 src/
 └── adk_interviewer/
-    ├── agent.py          # Canonical root_agent entry point
+    ├── agent.py          # Root orchestrator (canonical entry point)
     ├── main.py           # CLI/import validation
+    ├── agents/           # Sub-agent factory functions
+    │   ├── interviewer_agent.py  # Q&A specialist
+    │   ├── resume_agent.py       # Resume/JD analyst
+    │   ├── coding_agent.py       # Code executor
+    │   ├── safety_agent.py       # Safety monitor (optional)
+    │   └── critic_agent.py       # Answer critic (optional)
     ├── config/           # Configuration (ADKConfig)
+    ├── tools/            # Custom ADK tools
+    │   ├── question_generator.py
+    │   ├── answer_evaluator.py
+    │   ├── resume_parser.py
+    │   └── jd_analyzer.py
     ├── tools/            # ADK-compliant tools (with ToolContext)
     ├── agents/           # Agent factories (critic, safety)
     ├── workflows/        # Multi-agent flows (SequentialAgent)

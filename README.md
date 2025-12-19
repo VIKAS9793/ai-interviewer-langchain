@@ -80,24 +80,51 @@ Open [http://127.0.0.1:8000](http://127.0.0.1:8000) and start interviewing!
 
 ## 🏗️ Architecture
 
+### v4.1 Multi-Agent Architecture
+
 ```mermaid
-flowchart LR
-    subgraph "Client"
+flowchart TB
+    subgraph Client
         A[👤 Candidate]
     end
     
-    subgraph "ADK Web Server"
+    subgraph ADK["ADK Web Server"]
         B[ADK Web UI]
         C[Session Service]
     end
     
-    subgraph "Agent Layer"
-        D[🤖 Interviewer Agent]
-        T[🔧 Tools<br/>generate_question<br/>evaluate_answer<br/>parse_resume<br/>analyze_jd]
-        E[Gemini 2.5 Flash-Lite]
+    subgraph Root["🎯 Root Agent (Orchestrator)"]
+        D[ai_technical_interviewer]
     end
     
-    A --> B --> C --> D --> T --> E
+    subgraph Specialists["Specialist Sub-Agents"]
+        E1[💬 Interviewer Agent<br/>generate_question<br/>evaluate_answer]
+        E2[📄 Resume Agent<br/>parse_resume<br/>analyze_job_description]
+        E3[💻 Coding Agent<br/>BuiltInCodeExecutor]
+    end
+    
+    subgraph AI["Gemini API"]
+        G[Gemini 2.5 Flash-Lite]
+    end
+    
+    A --> B
+    B --> C
+    C --> D
+    D --> E1
+    D --> E2
+    D --> E3
+    E1 --> G
+    E2 --> G
+    E3 --> G
+```
+
+**How It Works:**
+1. **Root Agent** receives user messages and routes to specialists
+2. **Interviewer Agent** handles Q&A with 2 custom tools
+3. **Resume Agent** parses resumes and job descriptions
+4. **Coding Agent** executes Python code in sandbox (resolves ADK limitation)
+5. All agents use **Gemini 2.5 Flash-Lite** for intelligence
+
     E --> T --> D --> C --> B --> A
 ```
 
