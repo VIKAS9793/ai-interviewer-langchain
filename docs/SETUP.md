@@ -19,8 +19,8 @@
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/VIKAS9793/ai-interviewer-langchain.git
-cd ai-interviewer-langchain
+git clone https://github.com/VIKAS9793/ai-interviewer-google-adk.git
+cd ai-interviewer-google-adk
 git checkout google-adk
 ```
 

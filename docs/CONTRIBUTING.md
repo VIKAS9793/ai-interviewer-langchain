@@ -21,8 +21,8 @@ Thank you for your interest in contributing! 🎉
 
 ```bash
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/ai-interviewer-langchain.git
-cd ai-interviewer-langchain
+git clone https://github.com/YOUR_USERNAME/ai-interviewer-google-adk.git
+cd ai-interviewer-google-adk
 git checkout google-adk
 
 # Create virtual environment
