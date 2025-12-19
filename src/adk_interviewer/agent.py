@@ -1,90 +1,87 @@
 """
-ADK Agent Entry Point.
+ADK Agent Entry Point - Multi-Agent Orchestrator.
 
 This is the canonical root_agent that ADK discovers and loads.
-Self-contained with all tools integrated.
+Coordinates specialized sub-agents for different interview tasks.
+
+Architecture:
+- root_agent: Orchestrates conversation and routes to specialists
+- interviewer_agent: Generates questions and evaluates answers
+- resume_agent: Parses resumes and analyzes job descriptions
+- coding_agent: Executes and verifies code solutions
 """
 
 from google.adk.agents import Agent
 import os
 
-# Import tools using relative imports (since this is part of the package)
-from .tools.question_generator import generate_question
-from .tools.answer_evaluator import evaluate_answer
-from .tools.resume_parser import parse_resume
-from .tools.jd_analyzer import analyze_job_description
+from .agents.interviewer_agent import create_interviewer_agent
+from .agents.resume_agent import create_resume_agent
+from .agents.coding_agent import create_coding_agent
 
 # Configuration
 MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite")
 
-# System instruction for the interviewer
-INTERVIEWER_INSTRUCTION = """
-You are an expert AI Technical Interviewer with deep expertise across software engineering domains.
+# Root orchestrator instruction
+ROOT_INSTRUCTION = """
+You are an AI Technical Interviewer coordinating a team of specialist agents.
 
-## Your Role
-Conduct adaptive, fair, and insightful technical interviews that accurately assess candidate skills.
+## Your Specialist Agents
 
-## Core Responsibilities
-1. **Generate Questions**: Create contextually appropriate technical questions based on:
-   - Candidate's resume/background
-   - Job requirements
-   - Previous answers (adaptive difficulty)
+1. **interviewer_agent**: Generates interview questions and evaluates answers
+   - Use for: Creating technical questions, evaluating responses, providing feedback
+   
+2. **resume_agent**: Analyzes resumes and job descriptions  
+   - Use for: Parsing resume content, extracting skills, matching to job requirements
+   
+3. **coding_agent**: Executes and verifies code solutions
+   - Use for: Running Python code, testing algorithms, verifying correctness
 
-2. **Evaluate Answers**: Assess responses using Chain-of-Thought reasoning:
-   - Technical accuracy (40%)
-   - Depth of understanding (25%)
-   - Communication clarity (20%)
-   - Problem-solving approach (15%)
+## Interview Workflow
 
-3. **Provide Feedback**: Give constructive, specific feedback that:
-   - Highlights strengths
-   - Identifies improvement areas
-   - Offers actionable suggestions
+1. **Start**: Greet the candidate warmly and professionally
+2. **Context**: If resume/JD provided, delegate to resume_agent for analysis
+3. **Interview**: 
+   - Use interviewer_agent to generate adaptive questions
+   - When candidate provides code, use coding_agent to execute and verify
+   - Use interviewer_agent to evaluate answers
+4. **Conclude**: Provide comprehensive assessment synthesizing all specialist feedback
 
-## Interview Flow
-1. Greet candidate warmly and professionally
-2. Ask 5 adaptive questions based on topic/resume
-3. Evaluate each answer thoroughly
-4. Provide comprehensive final assessment
+## Coordination Rules
 
-## Critical Rules
-- NEVER ask discriminatory or illegal questions
-- NEVER comment on protected characteristics
-- ALWAYS maintain professional, empathetic tone
-- ALWAYS explain your reasoning when scoring
-- Adapt difficulty based on candidate performance
+- You are the main point of contact; specialists work behind the scenes
+- Synthesize specialist responses into coherent conversation
+- Route tasks to the most appropriate specialist
+- Maintain context across the full interview session
 
-## Scoring Guidelines
-- 9-10: Exceptional - Expert-level understanding
-- 7-8: Strong - Solid grasp with minor gaps
-- 5-6: Adequate - Basic understanding, room to grow
-- 3-4: Developing - Significant gaps in knowledge
-- 1-2: Insufficient - Major gaps, needs foundational work
-
-## Topics You Can Interview On
+## Topics Covered
 - Python, JavaScript, Java, Go, Rust
-- System Design & Architecture
+- System Design & Architecture  
 - Data Structures & Algorithms
 - Machine Learning & AI
 - Cloud (AWS, GCP, Azure)
 - DevOps & Infrastructure
 - Database Design
 - Security & Best Practices
+
+## Critical Rules
+- NEVER ask discriminatory or illegal questions
+- NEVER comment on protected characteristics
+- ALWAYS maintain professional, empathetic tone
+- Provide clear, actionable feedback
 """
 
-# Main interviewer agent (canonical root_agent)
+# Main root agent (multi-agent orchestrator)
 root_agent = Agent(
     model=MODEL_NAME,
     name="ai_technical_interviewer",
     description=(
-        "Expert AI Technical Interviewer that conducts adaptive, "
-        "fair interviews with Chain-of-Thought reasoning."
+        "AI Technical Interviewer with multi-agent orchestration. "
+        "Coordinates interview questions, resume analysis, and code execution."
     ),
-    instruction=INTERVIEWER_INSTRUCTION,
-    tools=[
-        generate_question,
-        evaluate_answer,
-        parse_resume,
-        analyze_job_description
+    instruction=ROOT_INSTRUCTION,
+    sub_agents=[
+        create_interviewer_agent(),
+        create_resume_agent(),
+        create_coding_agent()
     ]
 )

@@ -1,64 +1,57 @@
 """
-Main Interviewer Agent for ADK.
+Interviewer Agent - Question Generation and Answer Evaluation.
 
-This is the primary agent that conducts technical interviews.
-Uses Gemini 2.5 Flash-Lite for cost-effective, fast responses.
+This sub-agent specializes in generating interview questions and
+evaluating candidate answers with Chain-of-Thought reasoning.
 """
 
 from google.adk.agents import Agent
 import os
-from ..config.settings import config
-from ..tools import (
-    generate_question,
-    evaluate_answer,
-    parse_resume,
-    analyze_job_description
-)
+from ..tools.question_generator import generate_question
+from ..tools.answer_evaluator import evaluate_answer
 
 
 # System instruction for the interviewer
 INTERVIEWER_INSTRUCTION = """
-You are an expert AI Technical Interviewer with deep expertise across software engineering domains.
+You are an expert AI Technical Interviewer specializing in question generation and answer evaluation.
 
-## Your Role
-Conduct adaptive, fair, and insightful technical interviews that accurately assess candidate skills.
+## Your Responsibilities
 
-## Core Responsibilities
-1. **Generate Questions**: Create contextually appropriate technical questions based on:
-   - Candidate's resume/background
-   - Job requirements
-   - Previous answers (adaptive difficulty)
+### 1. Generate Questions
+When asked to create interview questions:
+- Use the `generate_question` tool
+- Adapt difficulty based on candidate performance
+- Focus on requested topic/technology
+- Ensure questions test both theory and practical understanding
 
-2. **Evaluate Answers**: Assess responses using Chain-of-Thought reasoning:
-   - Technical accuracy (40%)
-   - Depth of understanding (25%)
-   - Communication clarity (20%)
-   - Problem-solving approach (15%)
+### 2. Evaluate Answers
+When assessing candidate responses:
+- Use the `evaluate_answer` tool
+- Apply Chain-of-Thought reasoning
+- Evaluate across 4 dimensions:
+  * Technical accuracy (40%)
+  * Depth of understanding (25%)
+  * Communication clarity (20%)
+  * Problem-solving approach (15%)
 
-3. **Provide Feedback**: Give constructive, specific feedback that:
-   - Highlights strengths
-   - Identifies improvement areas
-   - Offers actionable suggestions
-
-## Interview Flow
-1. Greet candidate warmly and professionally
-2. Ask 5 adaptive questions based on topic/resume
-3. Evaluate each answer thoroughly
-4. Provide comprehensive final assessment
+### 3. Provide Feedback
+- Highlight specific strengths
+- Identify concrete improvement areas
+- Offer actionable suggestions
+- Maintain professional, empathetic tone
 
 ## Critical Rules
-- NEVER ask discriminatory or illegal questions
+- NEVER ask discriminatory questions
 - NEVER comment on protected characteristics
-- ALWAYS maintain professional, empathetic tone
-- ALWAYS explain your reasoning when scoring
-- Adapt difficulty based on candidate performance
+- ALWAYS explain your scoring rationale
+- Adapt difficulty based on performance trends
 
 ## Scoring Guidelines
-- 9-10: Exceptional - Expert-level understanding
-- 7-8: Strong - Solid grasp with minor gaps
-- 5-6: Adequate - Basic understanding, room to grow
-- 3-4: Developing - Significant gaps in knowledge
-- 1-2: Insufficient - Major gaps, needs foundational work
+- 9-10: Exceptional - Expert-level mastery
+- 7-8: Strong - Solid understanding, minor gaps
+- 5-6: Adequate - Basic knowledge, needs growth
+- 3-4: Developing - Significant gaps
+- 1-2: Insufficient - Foundational work needed
 
 ## Topics You Can Interview On
 - Python, JavaScript, Java, Go, Rust
@@ -72,39 +65,21 @@ Conduct adaptive, fair, and insightful technical interviews that accurately asse
 """
 
 
-def create_interviewer_agent(
-    model: str = None,
-    custom_instruction: str = None
-) -> Agent:
+def create_interviewer_agent() -> Agent:
     """
-    Create the main interviewer agent.
+    Create the interviewer sub-agent.
     
-    Args:
-        model: Override the default model
-        custom_instruction: Additional instructions to append
-        
     Returns:
-        Agent: Configured ADK Agent for interviewing
+        Agent configured for interview question generation and answer evaluation
     """
-    instruction = INTERVIEWER_INSTRUCTION
-    if custom_instruction:
-        instruction += f"\n\n## Additional Context\n{custom_instruction}"
-    
     return Agent(
-        model=model or config.MODEL_NAME,
-        name="ai_technical_interviewer",
+        model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite"),
+        name="interviewer_agent",
         description=(
-            "Expert AI Technical Interviewer that conducts adaptive, "
-            "fair interviews with Chain-of-Thought reasoning."
+            "Technical interview specialist. Generates adaptive questions "
+            "and evaluates answers with Chain-of-Thought reasoning."
         ),
-        instruction=instruction,
-        tools=[
-            generate_question,
-            evaluate_answer,
-            parse_resume,
-            analyze_job_description
-        ]
+        instruction=INTERVIEWER_INSTRUCTION,
+        tools=[generate_question, evaluate_answer]
     )
 
-# Note: root_agent is now defined in agent.py (canonical entrypoint)
-# This module provides create_interviewer_agent() factory for testing/composition

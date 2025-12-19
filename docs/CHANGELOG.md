@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.1.0] - 2025-12-19 (IN PROGRESS)
+
+### Added
+- **Code Execution (Phase 1)**: Integrated ADK's `BuiltInCodeExecutor` for sandboxed Python code execution
+  - Agent can now generate and run candidate code solutions
+  - Verify algorithmic correctness through actual execution
+  - Test edge cases and performance in real-time
+  - Safe sandbox environment prevents harmful code execution
+
+### Technical
+- Verified `Agent` and `LlmAgent` are aliases (same class)
+- Zero architectural changes - fully backward compatible
+- Maintains all v4.0.0 audit compliance (A1, T1-T3, D1)
+
+---
+
 ## [4.0.0] - 2025-12-19
 
 ### 🚀 Major Release: Google ADK Migration
