@@ -12,7 +12,7 @@
 If you discover a security vulnerability, please:
 
 1. **Do NOT** open a public issue
-2. Email the maintainers directly
+2. Email: **vikassahani17@gmail.com**
 3. Include detailed description and steps to reproduce
 4. Allow time for us to investigate and patch
 

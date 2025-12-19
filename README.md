@@ -93,11 +93,12 @@ flowchart LR
     
     subgraph "Agent Layer"
         D[🤖 Interviewer Agent]
+        T[🔧 Tools<br/>generate_question<br/>evaluate_answer<br/>parse_resume<br/>analyze_jd]
         E[Gemini 2.5 Flash-Lite]
     end
     
-    A --> B --> C --> D --> E
-    E --> D --> C --> B --> A
+    A --> B --> C --> D --> T --> E
+    E --> T --> D --> C --> B --> A
 ```
 
 ### Tech Stack

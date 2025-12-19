@@ -99,4 +99,4 @@ Address already in use
 
 - [Architecture Guide](ARCHITECTURE.md)
 - [Deployment Guide](DEPLOYMENT.md)
-- [Contributing](../CONTRIBUTING.md)
+- [Contributing](CONTRIBUTING.md)

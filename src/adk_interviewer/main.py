@@ -26,7 +26,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Import the root agent (required by ADK)
-from .agents.interviewer_agent import root_agent
+from .agent import root_agent
 from .config import validate_config
 
 # Validate configuration on import

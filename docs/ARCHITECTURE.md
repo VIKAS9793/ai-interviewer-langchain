@@ -75,23 +75,24 @@ sequenceDiagram
 ```
 src/
 └── adk_interviewer/
-    ├── agent.py          # Main agent definition
-    ├── __init__.py       # Package init
-    ├── config/           # Configuration
-    ├── tools/            # Optional tools
-    ├── agents/           # Sub-agents (future)
-    ├── workflows/        # Multi-agent flows
-    └── utils/            # Helpers
+    ├── agent.py          # Canonical root_agent entry point
+    ├── main.py           # CLI/import validation
+    ├── config/           # Configuration (ADKConfig)
+    ├── tools/            # ADK-compliant tools (with ToolContext)
+    ├── agents/           # Agent factories (critic, safety)
+    ├── workflows/        # Multi-agent flows (SequentialAgent)
+    └── utils/            # Reserved for future helpers
 ```
 
 ---
 
 ## Key Design Decisions
 
-1. **Single Agent:** Simple, focused interviewer agent
-2. **No Custom UI:** Leverage ADK's built-in web interface
-3. **Stateless Tools:** Functions, not classes
-4. **Native Gemini:** Direct API calls for performance
+1. **Single Canonical Entry** - `agent.py` is the only `root_agent` definition
+2. **ADK Best Practices** - Tools use `ToolContext` for state management
+3. ** Built-in UI** - Leverage ADK's web interface (no custom UI)
+4. **Stateful Tools** - Session state tracks questions, scores across turns
+5. **Native Gemini** - Direct API calls for performance
 
 ---
 

@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [4.0.0] - 2025-12-18
+## [4.0.0] - 2025-12-19
 
 ### 🚀 Major Release: Google ADK Migration
 
@@ -15,27 +15,40 @@ Complete rewrite using Google Agent Development Kit (ADK) for a 100% Google-nati
 
 ### Added
 - **Google ADK Integration** - Native agent framework
-- **ADK Web UI** - Built-in web interface
+- **ADK Web UI** - Built-in web interface (port 8000)
 - **Gemini 2.5 Flash-Lite** - Direct API integration
 - **Cloud Run Support** - One-click GCP deployment
-- **Session Management** - ADK SessionService
-- **Safety Guardrails** - Google's native filtering
+- **Session Management** - ADK SessionService with state persistence
+- **Safety Guardrails** - Google's native content filtering
+- **ToolContext State** - Tools track interview progress across turns
+- **Comprehensive Documentation** - Full audit and setup guides
 
 ### Changed
 - Migrated from LangChain/LangGraph to Google ADK
 - Replaced Gradio UI with ADK Web
 - Moved from HuggingFace Spaces to Cloud Run
-- Simplified codebase (50% reduction)
+- Simplified codebase (95% reduction - 20,862 deletions)
+- Tools now stateful with `ToolContext` integration
 
 ### Removed
 - LangChain/LangGraph dependencies
 - Gradio UI components
 - HuggingFace Spaces configuration
-- SqliteSaver persistence
+- SqliteSaver persistence (replaced by ADK SessionService)
+- All stale/unused code (prompts.py, duplicate agents)
+
+###  Fixed
+- Canonical `root_agent` entry point (agent.py)
+- ADK best practice compliance (no tool defaults)
+- All documentation links and paths
+- Deploy script Dockerfile reference
 
 ### Deprecated
 - HuggingFace Spaces deployment (archived)
 - Previous v3.x releases
+
+**Audit Status:** ✅ All findings remediated (Phase 0 + Phase 1)  
+**Testing:** 7/7 automated tests pass, end-to-end validated
 
 ---
 
