@@ -19,7 +19,7 @@ echo ""
 
 # Step 1: Build container
 echo "📦 Building container..."
-docker build -f Dockerfile.adk -t ${IMAGE_NAME}:latest .
+docker build -f Dockerfile -t ${IMAGE_NAME}:latest .
 
 # Step 2: Push to GCR
 echo "⬆️  Pushing to Container Registry..."

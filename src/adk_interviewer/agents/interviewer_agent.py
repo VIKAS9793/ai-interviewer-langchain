@@ -7,6 +7,7 @@ Uses Gemini 2.5 Flash-Lite for cost-effective, fast responses.
 
 from google.adk.agents import Agent
 import os
+from ..config.settings import config
 from ..tools import (
     generate_question,
     evaluate_answer,
@@ -105,6 +106,5 @@ def create_interviewer_agent(
         ]
     )
 
-
-# Default agent instance (required by ADK as root_agent)
-root_agent = create_interviewer_agent()
+# Note: root_agent is now defined in agent.py (canonical entrypoint)
+# This module provides create_interviewer_agent() factory for testing/composition
