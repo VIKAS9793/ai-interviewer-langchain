@@ -7,19 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [4.1.0] - 2025-12-19 (IN PROGRESS)
+## [4.1.0] - 2025-12-19
 
 ### Added
-- **Code Execution (Phase 1)**: Integrated ADK's `BuiltInCodeExecutor` for sandboxed Python code execution
-  - Agent can now generate and run candidate code solutions
-  - Verify algorithmic correctness through actual execution
-  - Test edge cases and performance in real-time
-  - Safe sandbox environment prevents harmful code execution
+- **Multi-Agent Architecture**: Refactored to ADK sub_agents pattern for code execution compatibility
+  - `interviewer_agent`: Question generation and answer evaluation (2 tools)
+  - `resume_agent`: Resume parsing and job description analysis (2 tools)
+  - `coding_agent`: Python code execution with `BuiltInCodeExecutor` (sandboxed)
+  - `root_agent`: Orchestrator coordinating all specialists
+- **Code Execution**: Verified working - agent can generate and execute Python code safely
+- **Smart Routing**: Automatically routes tasks to appropriate specialist sub-agent
+
+### Changed
+- Root agent refactored from tool-based to orchestrator pattern
+- Interviewer agent now focused solely on Q&A (resume tools moved to resume_agent)
 
 ### Technical
-- Verified `Agent` and `LlmAgent` are aliases (same class)
-- Zero architectural changes - fully backward compatible
-- Maintains all v4.0.0 audit compliance (A1, T1-T3, D1)
+- Resolves ADK limitation: built-in tools cannot coexist with custom tools in same agent
+- Uses official ADK sub_agents pattern per documentation
+- Maintains single `root_agent` entry point (ADK discovery unchanged)
+- Zero breaking changes - external interface identical
+
+### Audit Impact
+- ✅ **A1** (Single root_agent): Maintained - orchestrator pattern
+- ✅ **A3** (Workflow dead code): **RESOLVED** - Multi-agent IS the workflow
+- ✅ **G1** (Safety agents): Prepared for integration
+- ✅ **T1-T3**: Maintained - tools now in sub-agents
 
 ---
 
