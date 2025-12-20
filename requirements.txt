@@ -3,10 +3,10 @@
 
 # Core - Google ADK
 google-adk>=1.0.0
-google-generativeai
+google-generativeai>=0.8.0
 
 # Environment management
-python-dotenv
+python-dotenv>=1.0.0
 
 # File parsing for uploaded resumes
 PyPDF2>=3.0.0

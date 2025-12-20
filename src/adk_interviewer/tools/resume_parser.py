@@ -7,6 +7,10 @@ Supports PDF, DOCX, and plain text formats via ADK artifacts.
 
 from typing import Optional, Any
 import re
+import logging
+
+# Configure module logger
+logger = logging.getLogger(__name__)
 
 
 def parse_resume(resume_text: str, tool_context: Any) -> dict:
@@ -64,7 +68,7 @@ def parse_resume(resume_text: str, tool_context: Any) -> dict:
                         
             except Exception as e:
                 # Fallback to provided text if artifact parsing fails
-                print(f"Artifact parsing failed: {e}, using provided text")
+                logger.warning(f"Artifact parsing failed: {e}, using provided text")
                 pass
     
     if not final_text or len(final_text.strip()) < 10:
@@ -222,13 +226,13 @@ def _extract_text_from_pdf_artifact(artifact) -> str:
         
     except ImportError:
         # PyPDF2 not installed - fallback to raw text
-        print("PyPDF2 not installed, using raw text extraction")
+        logger.warning("PyPDF2 not installed, using raw text extraction")
         data = artifact.data if hasattr(artifact, 'data') else b''
         if isinstance(data, bytes):
             return data.decode('utf-8', errors='ignore')
         return str(data)
     except Exception as e:
-        print(f"PDF extraction failed: {e}")
+        logger.error(f"PDF extraction failed: {e}")
         return ""
 
 
@@ -259,11 +263,11 @@ def _extract_text_from_docx_artifact(artifact) -> str:
         
     except ImportError:
         # python-docx not installed - fallback to raw text
-        print("python-docx not installed, using raw text extraction")
+        logger.warning("python-docx not installed, using raw text extraction")
         data = artifact.data if hasattr(artifact, 'data') else b''
         if isinstance(data, bytes):
             return data.decode('utf-8', errors='ignore')
         return str(data)
     except Exception as e:
-        print(f"DOCX extraction failed: {e}")
+        logger.error(f"DOCX extraction failed: {e}")
         return ""
