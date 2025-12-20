@@ -7,6 +7,84 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.5.0] - 2025-12-20
+
+### Added - Critic Agent Integration 💬
+
+- **critic_agent**: Integrated into root orchestrator
+  - Validates question quality and fairness
+  - Provides answer critique and improvement suggestions
+  - Supports study mode for educational feedback
+
+### Architecture
+- Sub-agents: 5 → 6 (added critic_agent)
+
+### Testing
+- ✅ Import tests passed
+- ⏸️ Browser testing pending quota reset
+- 🔒 Local commit (e9038d3)
+
+---
+
+## [4.4.0] - 2025-12-20
+
+### Added - Interview Difficulty Modes 🎚️
+
+**Three interview tracks following NotebookLM Fast/Deep Research pattern**
+
+- **Quick Screen** (15 min)
+  - 3-5 easy/medium questions
+  - Surface-level evaluation
+  - Binary pass/fail
+  
+- **Standard Interview** (45 min)
+  - 8-12 balanced questions
+  - Comprehensive assessment
+  - Multi-agent scoring
+  
+- **Deep Technical** (90 min)
+  - 15-20 hard/expert questions
+  - In-depth evaluation
+  - Full multi-dimensional analysis
+
+### Implementation
+- `difficulty_modes.py`: Mode configuration with question distribution
+- Enhanced interviewer_agent instruction for mode awareness
+- Automatic difficulty progression
+
+### Testing
+- ✅ Configuration tests passed
+- ⏸️ Browser testing pending quota reset
+- 🔒 Local commit (18fc742)
+
+---
+
+## [4.3.0] - 2025-12-20
+
+### Added - Multi-Agent Scoring System 🎯
+
+**Parallel evaluation across multiple dimensions**
+
+- **scoring_coordinator**: Orchestrates specialist scorers
+  - Delegates to 3 independent evaluators
+  - Weighted aggregation (40% technical, 30% communication, 30% problem-solving)
+  - JSON-structured comprehensive assessment
+  
+- **technical_scorer**: Code correctness, quality, efficiency, best practices
+- **communication_scorer**: Clarity, structure, completeness, professionalism  
+- **problem_solving_scorer**: Approach, analytical thinking, creativity, methodology
+
+### Architecture
+- Nested multi-agent pattern (coordinator + 3 sub-scorers)
+- Follows Google AI multi-perspective evaluation pattern
+
+### Testing
+- ✅ Import tests passed (3 scorers under coordinator)
+- ⏸️ Browser testing pending quota reset
+- 🔒 Local commit (529301c)
+
+---
+
 ## [4.2.0] - 2025-12-20
 
 ### Added - Guided Learning Mode 🎓
@@ -36,7 +114,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Testing
 - ✅ Local import tests passed
 - ⏸️ Browser testing pending quota reset
-- 🔒 Local commit only
+- 🔒 Local commit (c9d1095)
 
 ---
 
@@ -62,88 +140,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Zero breaking changes - external interface identical
 
 ### Audit Impact
-- ✅ **A1** (Single root_agent): Maintained - orchestrator pattern
-- ✅ **A3** (Workflow dead code): **RESOLVED** - Multi-agent IS the workflow
-- ✅ **G1** (Safety agents): Prepared for integration
-- ✅ **T1-T3**: Maintained - tools now in sub-agents
+- **A1 (Single root_agent)**: ✅ Maintained
+- **A3 (Workflow dead code)**: ✅ Resolved
+- **T1-T3 (Tools)**: ✅ Maintained
 
 ---
 
-## [4.0.0] - 2025-12-19
+## [4.0.0] - 2025-12-18
 
-### 🚀 Major Release: Google ADK Migration
-
-Complete rewrite using Google Agent Development Kit (ADK) for a 100% Google-native experience.
-
-### Added
-- **Google ADK Integration** - Native agent framework
-- **ADK Web UI** - Built-in web interface (port 8000)
-- **Gemini 2.5 Flash-Lite** - Direct API integration
-- **Cloud Run Support** - One-click GCP deployment
-- **Session Management** - ADK SessionService with state persistence
-- **Safety Guardrails** - Google's native content filtering
-- **ToolContext State** - Tools track interview progress across turns
-- **Comprehensive Documentation** - Full audit and setup guides
-
-### Changed
-- Migrated from LangChain/LangGraph to Google ADK
-- Replaced Gradio UI with ADK Web
-- Moved from HuggingFace Spaces to Cloud Run
-- Simplified codebase (95% reduction - 20,862 deletions)
-- Tools now stateful with `ToolContext` integration
-
-### Removed
-- LangChain/LangGraph dependencies
-- Gradio UI components
-- HuggingFace Spaces configuration
-- SqliteSaver persistence (replaced by ADK SessionService)
-- All stale/unused code (prompts.py, duplicate agents)
-
-###  Fixed
-- Canonical `root_agent` entry point (agent.py)
-- ADK best practice compliance (no tool defaults)
-- All documentation links and paths
-- Deploy script Dockerfile reference
-
-### Deprecated
-- HuggingFace Spaces deployment (archived)
-- Previous v3.x releases
-
-**Audit Status:** ✅ All findings remediated (Phase 0 + Phase 1)  
-**Testing:** 7/7 automated tests pass, end-to-end validated
-
----
-
-## [3.3.2] - 2025-12-18 (HuggingFace - Deprecated)
-
-### Fixed
-- UI text redaction (white boxes) in Gradio
-- Bracket escaping for markdown rendering
-
----
-
-## [3.3.1] - 2025-12-17 (HuggingFace - Deprecated)
-
-### Fixed
-- Session persistence issues
-- Token exhaustion handling
-- Fallback question repetition
-
----
-
-## [3.3.0] - 2025-12-16 (HuggingFace - Deprecated)
-
-### Added
-- LangGraph state machine architecture
-- SqliteSaver for persistence
-- Semantic deduplication
-- TTD (Time-Travel Diffusion) generator
-
----
-
-## Migration Guide
-
-See [ADR-001: Migration to Google ADK](docs/ADR/001-migration-to-google-adk.md) for details on:
-- Why we migrated
-- What changed
-- How to update your setup
+Initial Google ADK migration from LangChain.
