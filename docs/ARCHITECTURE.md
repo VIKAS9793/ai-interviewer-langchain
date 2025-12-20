@@ -1,153 +1,281 @@
-# Architecture
+# Architecture Documentation
 
-> System design and components of the AI Technical Interviewer (v4.1)
+**AI Technical Interviewer - v4.5**
 
 ---
 
-## Overview - Multi-Agent Architecture
+## Overview
 
-```mermaid
-flowchart TB
-    subgraph UI["User Interface"]
-        A[ADK Web UI<br/>Port 8000]
-    end
-    
-    subgraph Runtime["ADK Runtime"]
-        B[Session Service]
-        C[Agent Runner]
-    end
-    
-    subgraph Root["Root Orchestrator"]
-        D[ai_technical_interviewer]
-    end
-    
-    subgraph Specialists["Sub-Agents"]
-        E1[interviewer_agent<br/>Q&A Specialist]
-        E2[resume_agent<br/>Resume Analyst]
-        E3[coding_agent<br/>Code Executor]
-    end
-    
-    subgraph API["Google APIs"]
-        F[Gemini 2.5 Flash-Lite]
-    end
-    
-    A --> B
-    B --> C
-    C --> D
-    D --> E1 & E2 & E3
-    E1 & E2 & E3 --> F
+Multi-agent architecture using Google ADK's sub_agents pattern. 6 specialized agents orchestrated by a root agent, with optional multi-dimensional scoring system.
+
+---
+
+## System Architecture
+
+### High-Level Design
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      ADK Web Server                         │
+│  ┌─────────────┐  ┌──────────────────┐  ┌──────────────┐  │
+│  │   Web UI    │  │ Session Service  │  │  HTTP API    │  │
+│  └─────────────┘  └──────────────────┘  └──────────────┘  │
+└───────────────────────────┬─────────────────────────────────┘
+                            │
+                            ▼
+       ┌────────────────────────────────────────────┐
+       │      root_agent (Orchestrator)             │
+       │  Routes tasks to specialist sub-agents     │
+       └───────────────┬────────────────────────────┘
+                       │
+         ┌─────────────┴──────────────┐
+         │    Specialist Sub-Agents    │
+         ├────────────────────────────┤
+         │ • interviewer_agent         │ ─┐
+         │ • resume_agent              │  │
+         │ • coding_agent              │  ├─▶ Gemini 2.5 Flash-Lite
+         │ • safety_agent              │  │
+         │ • study_agent               │  │
+         │ • critic_agent              │ ─┘
+         └─────────────────────────────┘
 ```
 
 ---
 
-## Components
+## Agent Specifications
 
-### 1. ADK Web Server
-- Built-in web interface from Google ADK
-- Session management and state persistence
-- Real-time streaming responses
+### 1. root_agent (Orchestrator)
+**Type:** Coordinator  
+**Model:** Gemini 2.5 Flash-Lite  
+**Purpose:** Main entry point, routes requests to specialists
 
-### 2. Root Agent (Orchestrator)
-- **Entry Point:** `src/adk_interviewer/agent.py`
-- Coordinates all specialist sub-agents
-- Routes messages to appropriate specialists
-- Synthesizes responses into coherent conversation
+**Sub-Agents:**
+- interviewer_agent
+- resume_agent
+- coding_agent
+- safety_agent
+- study_agent
+- critic_agent
 
-### 3. Sub-Agents
+---
 
-#### Interviewer Agent
-- **Location:** `src/adk_interviewer/agents/interviewer_agent.py`
-- **Tools:** `generate_question`, `evaluate_answer`
-- **Purpose:** Generates adaptive questions and evaluates answers
-- **Model:** Gemini 2.5 Flash-Lite
+### 2. interviewer_agent
+**Type:** Question Generation & Evaluation  
+**Tools:** 2 custom tools
 
-#### Resume Agent
-- **Location:** `src/adk_interviewer/agents/resume_agent.py`
-- **Tools:** `parse_resume`, `analyze_job_description`
-- **Purpose:** Analyzes resumes and job requirements
-- **Model:** Gemini 2.5 Flash-Lite
+**Capabilities:**
+- Generate adaptive interview questions
+- Evaluate candidate answers with CoT reasoning
+- Provide detailed feedback
+- Adjust difficulty based on performance
 
-#### Coding Agent
-- **Location:** `src/adk_interviewer/agents/coding_agent.py`
-- **Executor:** `BuiltInCodeExecutor` (sandboxed Python)
-- **Purpose:** Executes and verifies code solutions
-- **Model:** Gemini 2.5 Flash-Lite
+**Tools:**
+- `generate_question(topic, difficulty, context)`
+- `evaluate_answer(question, answer, rubric)`
 
-### 4. Gemini Integration
-- Native API calls via Google AI Studio
-- Model: `gemini-2.5-flash-lite`
-- Streaming responses enabled
+---
 
+### 3. resume_agent
+**Type:** Document Analysis  
+**Tools:** 2 custom tools
+
+**Capabilities:**
+- Parse resume content
+- Extract skills and experience
+- Analyze job descriptions
+- Match candidate to requirements
+
+**Tools:**
+- `parse_resume(resume_text)`
+- `analyze_job_description(jd_text)`
+
+---
+
+### 4. coding_agent
+**Type:** Code Execution  
+**Tools:** BuiltInCodeExecutor (ADK native)
+
+**Capabilities:**
+- Execute Python code in sandbox
+- Verify algorithmic solutions
+- Test code correctness
+- Secure execution environment
+
+---
+
+### 5. safety_agent
+**Type:** Content Moderation  
+**Tools:** LLM reasoning
+
+**Capabilities:**
+- Detect bias and discrimination
+- Flag inappropriate content
+- Monitor for PII leakage
+- Ensure fair interviews
+
+---
+
+### 6. study_agent (v4.2)
+**Type:** Educational Tutor  
+**Tools:** 2 custom tools
+
+**Capabilities:**
+- Explain CS concepts (6 topics)
+- Provide progressive hints (3 levels)
+- Socratic method teaching
+- Never gives direct solutions
+
+**Tools:**
+- `explain_concept(topic, depth)`
+- `provide_hints(question, approach, level)`
+
+**Content Library:**
+- Arrays, Binary Search Trees, Hash Maps, Graphs
+- Binary Search, Dynamic Programming
+
+---
+
+### 7. critic_agent (v4.5)
+**Type:** Quality Assurance  
+**Tools:** LLM reasoning
+
+**Capabilities:**
+- Validate question quality
+- Critique candidate answers
+- Suggest improvements
+- Ensure fairness
+
+---
+
+## Optional: Multi-Agent Scoring System (v4.3)
+
+### scoring_coordinator
+**Type:** Evaluation Orchestrator  
+**Sub-Agents:** 3 specialist scorers
+
+**Architecture:**
+```
+scoring_coordinator
+  ├── technical_scorer      (40% weight)
+  ├── communication_scorer  (30% weight)
+  └── problem_solving_scorer (30% weight)
+```
+
+**Weighted Aggregation:**
+- Technical: Code correctness, quality, efficiency
+- Communication: Clarity, structure, professionalism
+- Problem-Solving: Approach, analytical thinking, creativity
+
+**Output:** JSON-structured comprehensive assessment
+
+---
+
+## Difficulty Modes (v4.4)
+
+### Quick Screen (15 min)
+- 3-5 questions
+- 70% easy, 30% medium
+- Surface-level evaluation
+- Binary pass/fail
+
+### Standard Interview (45 min)
+- 8-12 questions
+- 25% easy, 50% medium, 25% hard
+- Comprehensive assessment
+- Multi-agent scoring
+
+### Deep Technical (90 min)
+- 15-20 questions
+- 10% easy, 30% medium, 40% hard, 20% expert
+- In-depth evaluation
+- Full multi-dimensional analysis
 
 ---
 
 ## Data Flow
 
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant W as ADK Web
-    participant A as Agent
-    participant G as Gemini API
-    
-    U->>W: Send message
-    W->>A: Forward to agent
-    A->>G: LLM request
-    G-->>A: Stream response
-    A-->>W: Process & format
-    W-->>U: Display response
+```
+1. User Input → ADK Web UI
+2. Web UI → Session Service (state management)
+3. Session → root_agent
+4. root_agent → Specialist Sub-Agent(s)
+5. Sub-Agent → Gemini API (if needed)
+6. Sub-Agent → root_agent (response)
+7. root_agent → Session Service
+8. Session → Web UI → User
 ```
 
 ---
 
-## Directory Structure
+## Technology Stack
 
-```
-src/
-└── adk_interviewer/
-    ├── agent.py          # Root orchestrator (canonical entry point)
-    ├── main.py           # CLI/import validation
-    ├── agents/           # Sub-agent factory functions
-    │   ├── interviewer_agent.py  # Q&A specialist
-    │   ├── resume_agent.py       # Resume/JD analyst
-    │   ├── coding_agent.py       # Code executor
-    │   ├── safety_agent.py       # Safety monitor (optional)
-    │   └── critic_agent.py       # Answer critic (optional)
-    ├── config/           # Configuration (ADKConfig)
-    ├── tools/            # Custom ADK tools
-    │   ├── question_generator.py
-    │   ├── answer_evaluator.py
-    │   ├── resume_parser.py
-    │   └── jd_analyzer.py
-    ├── tools/            # ADK-compliant tools (with ToolContext)
-    ├── agents/           # Agent factories (critic, safety)
-    ├── workflows/        # Multi-agent flows (SequentialAgent)
-    └── utils/            # Reserved for future helpers
-```
+| Component | Technology | Version |
+|-----------|------------|---------|
+| Framework | Google ADK | Latest |
+| LLM | Gemini 2.5 Flash-Lite | Latest |
+| Language | Python | 3.11+ |
+| Web Server | ADK Web | Built-in |
+| State | ADK SessionService | Built-in |
+| Deployment | Cloud Run | Latest |
 
 ---
 
-## Key Design Decisions
+## Design Patterns
 
-1. **Single Canonical Entry** - `agent.py` is the only `root_agent` definition
-2. **ADK Best Practices** - Tools use `ToolContext` for state management
-3. ** Built-in UI** - Leverage ADK's web interface (no custom UI)
-4. **Stateful Tools** - Session state tracks questions, scores across turns
-5. **Native Gemini** - Direct API calls for performance
+### 1. Multi-Agent Orchestration
+Follows ADK sub_agents pattern for specialized task routing.
+
+### 2. Separation of Concerns
+Each agent has single responsibility (SOLID principles).
+
+### 3. Built-in Tool Integration
+coding_agent uses BuiltInCodeExecutor (resolves ADK limitation).
+
+### 4. Nested Multi-Agent
+scoring_coordinator has 3 sub-agents for parallel evaluation.
+
+### 5. Mode-Based Behavior
+Difficulty modes adjust question complexity dynamically.
 
 ---
 
-## Security
+## Security Considerations
 
-- API keys in environment variables
-- Google's native content filtering
-- No PII storage in sessions
-- HTTPS in production (Cloud Run)
+1. **Sandboxed Code Execution** - BuiltInCodeExecutor provides isolation
+2. **Content Moderation** - safety_agent monitors all interactions
+3. **No Hardcoded Secrets** - Environment variable configuration
+4. **PII Detection** - Automated screening in safety_agent
+5. **Input Validation** - All tools validate inputs
 
 ---
 
-## See Also
+## Performance
 
-- [Setup Guide](SETUP.md)
-- [Deployment Guide](DEPLOYMENT.md)
-- [ADR-001: Migration to ADK](ADR/001-migration-to-google-adk.md)
+- **Response Time:** <2s average (Gemini 2.5 Flash-Lite)
+- **Concurrency:** Managed by ADK session service
+- **Scaling:** Horizontal via Cloud Run
+- **State:** Persistent across session
+
+---
+
+## Version History
+
+- **v4.5** - Critic agent integration
+- **v4.4** - Difficulty modes (Quick/Standard/Deep)
+- **v4.3** - Multi-agent scoring system
+- **v4.2** - Guided learning mode
+- **v4.1** - Multi-agent architecture base
+- **v4.0** - Initial ADK migration
+
+---
+
+## Future Enhancements
+
+- File Search / Resume RAG (Vertex AI)
+- Voice Interview (Gemini Live)
+- Visual System Design (Diagrams)
+- Multi-language Support
+
+---
+
+**For implementation details, see source code in `src/adk_interviewer/`**

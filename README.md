@@ -24,20 +24,30 @@
 
 ---
 
-> **An AI-powered technical interview assistant that conducts adaptive, fair, and insightful mock interviews.** Using Google's Agent Development Kit and Gemini AI, it generates contextual questions, evaluates responses in real-time, and provides actionable feedback to help candidates improve their skills.
+> **v4.5 - Advanced AI interviewer with guided learning, multi-dimensional scoring, and adaptive difficulty modes.** Powered by Google's Agent Development Kit and Gemini 2.5, featuring 6 specialized sub-agents for comprehensive interview preparation.
 
 ---
 
 ## ✨ Features
 
+### Core Capabilities
 | Feature | Description |
 |---------|-------------|
-| 🧠 **Adaptive Interviews** | Questions adjust difficulty based on your responses |
-| 💬 **Natural Conversation** | Powered by Gemini 2.5 Flash for human-like dialogue |
-| 📊 **Real-time Evaluation** | Instant feedback with Chain-of-Thought reasoning |
-| 🛡️ **Built-in Safety** | Google's native content filtering & guardrails |
-| 🌐 **Web Interface** | Beautiful ADK Web UI out of the box |
+| 🎓 **Guided Learning Mode** | Study CS concepts with Socratic method & progressive hints |
+| 🎯 **Multi-Agent Scoring** | Parallel evaluation: technical, communication, problem-solving |
+| 🎚️ **Difficulty Modes** | Quick Screen (15min), Standard (45min), Deep Technical (90min) |
+| 💬 **Answer Critique** | Get improvement suggestions & validation feedback |
+| 🧠 **Adaptive Questions** | Dynamic difficulty based on performance |
+| 💻 **Code Execution** | Run Python code in sandboxed environment |
+| 🛡️ **Safety Screening** | Content moderation & bias detection |
+
+### Technical
+| Feature | Description |
+|---------|-------------|
+| 🌐 **ADK Web UI** | Beautiful interface out of the box |
 | ☁️ **Cloud Ready** | One-click deploy to GCP Cloud Run (Free Tier) |
+| 📊 **Session State** | Persistent interview sessions |
+| 🔄 **Multi-Agent** | 6 specialized sub-agents with orchestration |
 
 ---
 
@@ -50,93 +60,102 @@
 ### Installation
 
 ```bash
-# Clone the repository
+# Clone
 git clone https://github.com/VIKAS9793/ai-interviewer-google-adk.git
 cd ai-interviewer-google-adk
 git checkout google-adk
 
-# Create virtual environment
+# Setup
 python -m venv .venv
-.venv\Scripts\activate  # Windows
-# source .venv/bin/activate  # macOS/Linux
-
-# Install dependencies
+.venv\Scripts\activate  # Windows | source .venv/bin/activate # Linux/Mac
 pip install -r requirements.txt
 
-# Set your API key
+# Configure
 cp .env.example .env
-# Edit .env and add your GOOGLE_API_KEY
-```
+# Add your GOOGLE_API_KEY to .env
 
-### Run Locally
-
-```bash
+# Run
 adk web src
 ```
 
-Open [http://127.0.0.1:8000](http://127.0.0.1:8000) and start interviewing!
+Open [http://127.0.0.1:8000](http://127.0.0.1:8000) 🚀
 
 ---
 
 ## 🏗️ Architecture
 
-### v4.1 Multi-Agent Architecture
+### v4.5 Multi-Agent System (6 Specialists)
 
-```mermaid
-flowchart TB
-    subgraph Client
-        A[👤 Candidate]
-    end
-    
-    subgraph ADK["ADK Web Server"]
-        B[ADK Web UI]
-        C[Session Service]
-    end
-    
-    subgraph Root["🎯 Root Agent (Orchestrator)"]
-        D[ai_technical_interviewer]
-    end
-    
-    subgraph Specialists["Specialist Sub-Agents"]
-        E1[💬 Interviewer Agent<br/>generate_question<br/>evaluate_answer]
-        E2[📄 Resume Agent<br/>parse_resume<br/>analyze_job_description]
-        E3[💻 Coding Agent<br/>BuiltInCodeExecutor]
-    end
-    
-    subgraph AI["Gemini API"]
-        G[Gemini 2.5 Flash-Lite]
-    end
-    
-    A --> B
-    B --> C
-    C --> D
-    D --> E1
-    D --> E2
-    D --> E3
-    E1 --> G
-    E2 --> G
-    E3 --> G
+```
+root_agent (Orchestrator)
+  ├── interviewer_agent     (Questions & Evaluation)
+  ├── resume_agent          (Resume & JD Analysis)
+  ├── coding_agent          (BuiltInCodeExecutor)
+  ├── safety_agent          (Content Moderation)
+  ├── study_agent           (Guided Learning)
+  └── critic_agent          (Answer Critique)
+
+Optional:
+  └── scoring_coordinator   (Multi-dimensional Scoring)
+      ├── technical_scorer
+      ├── communication_scorer
+      └── problem_solving_scorer
 ```
 
 **How It Works:**
-1. **Root Agent** receives user messages and routes to specialists
-2. **Interviewer Agent** handles Q&A with 2 custom tools
-3. **Resume Agent** parses resumes and job descriptions
-4. **Coding Agent** executes Python code in sandbox (resolves ADK limitation)
-5. All agents use **Gemini 2.5 Flash-Lite** for intelligence
+1. **Root Agent** orchestrates 6 specialist sub-agents
+2. **Interviewer** generates adaptive questions & evaluates answers
+3. **Resume** parses resumes and analyzes job descriptions
+4. **Coding** executes Python code in sandboxed environment
+5. **Safety** monitors content for bias and inappropriate content
+6. **Study** provides guided learning with explanations & hints
+7. **Critic** validates questions and critiques answers
+8. **Scoring Coordinator** (optional) provides multi-dimensional assessment
 
-    E --> T --> D --> C --> B --> A
-```
+All powered by **Gemini 2.5 Flash-Lite**.
 
 ### Tech Stack
 
 | Layer | Technology |
 |-------|------------|
-| **Framework** | [Google Agent Development Kit (ADK)](https://google.github.io/adk-docs/) |
+| **Framework** | [Google Agent Development Kit](https://google.github.io/adk-docs/) |
 | **LLM** | [Gemini 2.5 Flash-Lite](https://ai.google.dev/) |
 | **Web UI** | ADK Web (`adk web`) |
 | **Deployment** | Google Cloud Run |
 | **State** | ADK SessionService |
+
+---
+
+## 💡 Usage Examples
+
+### Interview Mode
+```
+👤 "Start a system design interview"
+🤖 Interviews you with adaptive questions
+```
+
+### Study Mode (v4.2)
+```
+👤 "Explain binary search trees"
+🎓 In-depth concept explanation with examples
+
+👤 "Give me a hint for two-sum problem"
+🎓 Level 1: Gentle direction
+🎓 Level 2: Algorithm suggestion  
+🎓 Level 3: Detailed pseudocode
+```
+
+### Difficulty Modes (v4.4)
+```
+👤 "Quick screen for junior developer"
+⚡ 15-min, 3-5 easy/medium questions
+
+👤 "Standard technical interview"
+🎯 45-min, comprehensive assessment
+
+👤 "Deep technical for senior engineer"
+🔬 90-min, expert-level questions
+```
 
 ---
 
@@ -145,101 +164,58 @@ flowchart TB
 ### Google Cloud Run (Free Tier)
 
 ```bash
-# Authenticate with GCP
+# Authenticate
 gcloud auth login
 
-# Deploy
+# Deploy (one command!)
 gcloud run deploy ai-interviewer \
   --source . \
   --region us-central1 \
   --allow-unauthenticated \
-  --set-secrets "GOOGLE_API_KEY=google-api-key:latest"
+  --set-env-vars GOOGLE_API_KEY=your_key_here
 ```
 
-See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed instructions.
+**Free Tier:** 2M requests/month, 360,000 GB-seconds
+
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for details.
 
 ---
 
 ## 📚 Documentation
 
-| Document | Description |
-|----------|-------------|
-| [📋 SETUP.md](docs/SETUP.md) | Detailed setup instructions |
-| [🏗️ ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design & components |
-| [☁️ DEPLOYMENT.md](docs/DEPLOYMENT.md) | Cloud Run deployment guide |
-| [🔄 ADR-001](docs/ADR/001-migration-to-google-adk.md) | Why we chose Google ADK |
+- [Architecture Details](docs/ARCHITECTURE.md)
+- [Setup Guide](docs/SETUP.md)
+- [Deployment](docs/DEPLOYMENT.md)
+- [Contributing](docs/CONTRIBUTING.md)
+- [Changelog](docs/CHANGELOG.md)
+- [Security](docs/SECURITY.md)
 
 ---
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines.
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Contributions welcome! See [CONTRIBUTING.md](docs/CONTRIBUTING.md).
 
 ---
 
-## 📜 License
+## � License
 
-This project is licensed under the **Apache License 2.0** - see [LICENSE](LICENSE) for details.
-
----
-
-## 🙏 Credits & Acknowledgments
-
-<table>
-  <tr>
-    <td align="center">
-      <a href="https://google.github.io/adk-docs/">
-        <img src="https://www.vectorlogo.zone/logos/google/google-icon.svg" width="60"/><br/>
-        <strong>Google ADK</strong>
-      </a><br/>
-      Agent Development Kit
-    </td>
-    <td align="center">
-      <a href="https://ai.google.dev/">
-        <img src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg" width="60"/><br/>
-        <strong>Gemini</strong>
-      </a><br/>
-      Large Language Model
-    </td>
-    <td align="center">
-      <a href="https://cloud.google.com/">
-        <img src="https://www.vectorlogo.zone/logos/google_cloud/google_cloud-icon.svg" width="60"/><br/>
-        <strong>Google Cloud</strong>
-      </a><br/>
-      Cloud Infrastructure
-    </td>
-  </tr>
-</table>
+MIT License - see [LICENSE](LICENSE)
 
 ---
 
-## ⚠️ Migration Notice
+## 🙏 Acknowledgments
 
-> **This is the new Google ADK version.** The previous HuggingFace/LangGraph version has been deprecated.
-> 
-> See [docs/ADR/001-migration-to-google-adk.md](docs/ADR/001-migration-to-google-adk.md) for migration details.
-
----
-
-## 👤 Author & Maintainer
-
-**Vikas Sahani**
-
-- **GitHub:** [VIKAS9793](https://github.com/VIKAS9793)
-- **LinkedIn:** [Vikas Sahani](https://www.linkedin.com/in/vikas-sahani-727420358)
-- **Email:** vikassahani17@gmail.com
-- **Kaggle:** [vikassahani9793](https://www.kaggle.com/vikassahani9793)
-- **Developer Profile:** [g.dev/vikas9793](https://g.dev/vikas9793)
+- Google ADK Team for the amazing framework
+- Gemini AI for powering intelligence
+- Open source community for inspiration
 
 ---
 
 <p align="center">
-  Made with ❤️ using Google ADK<br/>
-  <sub>© 2025 AI Interviewer Project</sub>
+  <strong>Built with ❤️ using Google's Agent Development Kit</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/VIKAS9793/ai-interviewer-google-adk">⭐ Star on GitHub</a>
 </p>
