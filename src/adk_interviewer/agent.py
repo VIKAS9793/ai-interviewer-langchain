@@ -21,6 +21,7 @@ from .agents.resume_agent import create_resume_agent
 from .agents.coding_agent import create_coding_agent
 from .agents.safety_agent import create_safety_agent
 from .agents.study_agent import create_study_agent
+from .agents.critic_agent import create_critic_agent
 
 # Configuration
 MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite")
@@ -45,6 +46,9 @@ You are an AI Technical Interviewer coordinating a team of specialist agents.
 
 5. **study_agent**: Educational tutor for guided learning
    - Use for: Explaining concepts, providing hints, helping candidates LEARN (not test)
+
+6. **critic_agent**: Answer critique and improvement
+   - Use for: Validating questions, critiquing answers, suggesting improvements
 
 ## Interview Workflow
 
@@ -96,6 +100,7 @@ root_agent = Agent(
         create_resume_agent(),
         create_coding_agent(),
         create_safety_agent(),
-        create_study_agent()
+        create_study_agent(),
+        create_critic_agent()
     ]
 )
