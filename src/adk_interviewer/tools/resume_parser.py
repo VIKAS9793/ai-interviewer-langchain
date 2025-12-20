@@ -1,17 +1,17 @@
 """
 Resume Parser Tool for ADK Interviewer.
 
-Extracts relevant information from resume text for
-contextualized interview question generation.
+Extracts relevant information from resume text or uploaded files.
+Supports PDF, DOCX, and plain text formats via ADK artifacts.
 """
 
-from typing import Optional
+from typing import Optional, Any
 import re
 
 
-def parse_resume(resume_text: str) -> dict:
+def parse_resume(resume_text: str, tool_context: Any) -> dict:
     """
-    Parse resume text to extract relevant information.
+    Parse resume text or uploaded file to extract relevant information.
     
     Analyzes the resume to identify:
     - Technical skills
@@ -21,7 +21,8 @@ def parse_resume(resume_text: str) -> dict:
     - Key technologies
     
     Args:
-        resume_text: Plain text content of the resume
+        resume_text: Plain text content of the resume (or empty if using artifact)
+        tool_context: ADK tool execution context for accessing uploaded files
         
     Returns:
         dict: {
@@ -35,10 +36,49 @@ def parse_resume(resume_text: str) -> dict:
         }
         
     Example:
-        >>> result = parse_resume("5 years Python developer...")
+        >>> result = parse_resume("5 years Python developer...", tool_context)
         >>> print(result["skills"])  # ["Python", "Django", ...]
     """
-    text_lower = resume_text.lower()
+    # Try to load from uploaded file artifact first
+    final_text = resume_text
+    
+    if tool_context and hasattr(tool_context, 'artifacts'):
+        artifacts = tool_context.artifacts or []
+        if artifacts:
+            # User uploaded a file - extract text from artifact
+            try:
+                artifact = artifacts[0]  # First uploaded file
+                
+                # Check MIME type to determine parsing strategy
+                mime_type = getattr(artifact, 'mime_type', 'text/plain')
+                
+                if 'pdf' in mime_type.lower():
+                    final_text = _extract_text_from_pdf_artifact(artifact)
+                elif 'word' in mime_type.lower() or 'officedocument' in mime_type.lower():
+                    final_text = _extract_text_from_docx_artifact(artifact)
+                else:
+                    # Plain text or unknown - try as-is
+                    final_text = getattr(artifact, 'data', resume_text)
+                    if isinstance(final_text, bytes):
+                        final_text = final_text.decode('utf-8', errors='ignore')
+                        
+            except Exception as e:
+                # Fallback to provided text if artifact parsing fails
+                print(f"Artifact parsing failed: {e}, using provided text")
+                pass
+    
+    if not final_text or len(final_text.strip()) < 10:
+        return {
+            "skills": [],
+            "experience_years": 0,
+            "education": "Not specified",
+            "technologies": [],
+            "projects": [],
+            "seniority": "Unknown",
+            "summary": "No resume content provided"
+        }
+    
+    text_lower = final_text.lower()
     
     # Skill extraction patterns
     programming_languages = [
@@ -87,7 +127,7 @@ def parse_resume(resume_text: str) -> dict:
     
     # Estimate from dates if not explicit
     if experience_years == 0:
-        year_mentions = re.findall(r'20[0-2]\d', resume_text)
+        year_mentions = re.findall(r'20[0-2]\d', final_text)
         if year_mentions:
             earliest = min(int(y) for y in year_mentions)
             experience_years = max(0, 2025 - earliest)
@@ -153,3 +193,77 @@ def parse_resume(resume_text: str) -> dict:
         "seniority": seniority,
         "summary": summary
     }
+
+
+def _extract_text_from_pdf_artifact(artifact) -> str:
+    """
+    Extract text from PDF artifact.
+    
+    Uses PyPDF2 if available, otherwise returns raw data as text.
+    """
+    try:
+        import PyPDF2
+        import io
+        
+        # Get binary data from artifact
+        pdf_data = artifact.data if hasattr(artifact, 'data') else b''
+        if isinstance(pdf_data, str):
+            pdf_data = pdf_data.encode('utf-8')
+        
+        # Parse PDF
+        pdf_file = io.BytesIO(pdf_data)
+        pdf_reader = PyPDF2.PdfReader(pdf_file)
+        
+        text = ""
+        for page in pdf_reader.pages:
+            text += page.extract_text() + "\n"
+        
+        return text.strip()
+        
+    except ImportError:
+        # PyPDF2 not installed - fallback to raw text
+        print("PyPDF2 not installed, using raw text extraction")
+        data = artifact.data if hasattr(artifact, 'data') else b''
+        if isinstance(data, bytes):
+            return data.decode('utf-8', errors='ignore')
+        return str(data)
+    except Exception as e:
+        print(f"PDF extraction failed: {e}")
+        return ""
+
+
+def _extract_text_from_docx_artifact(artifact) -> str:
+    """
+    Extract text from DOCX artifact.
+    
+    Uses python-docx if available, otherwise returns raw data as text.
+    """
+    try:
+        import docx
+        import io
+        
+        # Get binary data from artifact
+        docx_data = artifact.data if hasattr(artifact, 'data') else b''
+        if isinstance(docx_data, str):
+            docx_data = docx_data.encode('utf-8')
+        
+        # Parse DOCX
+        doc_file = io.BytesIO(docx_data)
+        doc = docx.Document(doc_file)
+        
+        text = ""
+        for paragraph in doc.paragraphs:
+            text += paragraph.text + "\n"
+        
+        return text.strip()
+        
+    except ImportError:
+        # python-docx not installed - fallback to raw text
+        print("python-docx not installed, using raw text extraction")
+        data = artifact.data if hasattr(artifact, 'data') else b''
+        if isinstance(data, bytes):
+            return data.decode('utf-8', errors='ignore')
+        return str(data)
+    except Exception as e:
+        print(f"DOCX extraction failed: {e}")
+        return ""
