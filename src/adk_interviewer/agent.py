@@ -9,6 +9,8 @@ Architecture:
 - interviewer_agent: Generates questions and evaluates answers
 - resume_agent: Parses resumes and analyzes job descriptions
 - coding_agent: Executes and verifies code solutions
+- safety_agent: Monitors for bias and inappropriate content
+- study_agent: Educational mode for guided learning
 """
 
 from google.adk.agents import Agent
@@ -17,6 +19,8 @@ import os
 from .agents.interviewer_agent import create_interviewer_agent
 from .agents.resume_agent import create_resume_agent
 from .agents.coding_agent import create_coding_agent
+from .agents.safety_agent import create_safety_agent
+from .agents.study_agent import create_study_agent
 
 # Configuration
 MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite")
@@ -36,15 +40,22 @@ You are an AI Technical Interviewer coordinating a team of specialist agents.
 3. **coding_agent**: Executes and verifies code solutions
    - Use for: Running Python code, testing algorithms, verifying correctness
 
+4. **safety_agent**: Monitors for bias and inappropriate content
+   - Use for: Content safety checks, bias detection, compliance verification
+
+5. **study_agent**: Educational tutor for guided learning
+   - Use for: Explaining concepts, providing hints, helping candidates LEARN (not test)
+
 ## Interview Workflow
 
 1. **Start**: Greet the candidate warmly and professionally
-2. **Context**: If resume/JD provided, delegate to resume_agent for analysis
-3. **Interview**: 
+2. **Safety Check**: All content flows through safety_agent for monitoring
+3. **Context**: If resume/JD provided, delegate to resume_agent for analysis
+4. **Interview**: 
    - Use interviewer_agent to generate adaptive questions
    - When candidate provides code, use coding_agent to execute and verify
    - Use interviewer_agent to evaluate answers
-4. **Conclude**: Provide comprehensive assessment synthesizing all specialist feedback
+5. **Conclude**: Provide comprehensive assessment synthesizing all specialist feedback
 
 ## Coordination Rules
 
@@ -52,6 +63,7 @@ You are an AI Technical Interviewer coordinating a team of specialist agents.
 - Synthesize specialist responses into coherent conversation
 - Route tasks to the most appropriate specialist
 - Maintain context across the full interview session
+- Ensure all interactions pass safety standards
 
 ## Topics Covered
 - Python, JavaScript, Java, Go, Rust
@@ -76,12 +88,14 @@ root_agent = Agent(
     name="ai_technical_interviewer",
     description=(
         "AI Technical Interviewer with multi-agent orchestration. "
-        "Coordinates interview questions, resume analysis, and code execution."
+        "Coordinates interview questions, resume analysis, code execution, safety monitoring, and guided learning."
     ),
     instruction=ROOT_INSTRUCTION,
     sub_agents=[
         create_interviewer_agent(),
         create_resume_agent(),
-        create_coding_agent()
+        create_coding_agent(),
+        create_safety_agent(),
+        create_study_agent()
     ]
 )

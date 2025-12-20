@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.2.0] - 2025-12-20
+
+### Added - Guided Learning Mode 🎓
+
+**Educational interview preparation following Google AI 2025 patterns**
+
+- **study_agent**: Educational tutor using Socratic method
+  - Helps candidates LEARN through guided discovery
+  - Never gives direct solutions, encourages thinking
+  - Follows Gemini Guided Learning pattern
+
+- **explain_concept tool**: CS concept library with examples
+  - Data Structures: arrays, BST, hash_maps, graphs
+  - Algorithms: binary_search, dynamic_programming  
+  - Time/space complexity, use cases, pitfalls, code examples
+  - 3 depth levels: quick, standard, deep
+
+- **provide_hints tool**: Progressive 3-level hint system
+  - Level 1 (Gentle): Guiding questions, direction
+  - Level 2 (Medium): Algorithm/approach suggestions
+  - Level 3 (Detailed): Pseudocode, no full solution
+
+### Architecture
+- Multi-agent count: 4 → 5 sub-agents
+- Aligned with NotebookLM research modes & Gemini Guided Learning
+
+### Testing
+- ✅ Local import tests passed
+- ⏸️ Browser testing pending quota reset
+- 🔒 Local commit only
+
+---
+
 ## [4.1.0] - 2025-12-19
 
 ### Added
