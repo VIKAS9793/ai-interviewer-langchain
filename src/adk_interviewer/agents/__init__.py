@@ -15,6 +15,10 @@ from .coding_agent import create_coding_agent
 from .safety_agent import create_safety_agent
 from .critic_agent import create_critic_agent
 from .study_agent import create_study_agent
+from .scoring_coordinator import create_scoring_coordinator
+from .technical_scorer import create_technical_scorer
+from .communication_scorer import create_communication_scorer
+from .problem_solving_scorer import create_problem_solving_scorer
 
 __all__ = [
     "create_interviewer_agent",
@@ -23,5 +27,9 @@ __all__ = [
     "create_safety_agent",
     "create_critic_agent",
     "create_study_agent",
+    "create_scoring_coordinator",
+    "create_technical_scorer",
+    "create_communication_scorer",
+    "create_problem_solving_scorer",
 ]
 
