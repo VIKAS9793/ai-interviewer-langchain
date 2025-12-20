@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.5.1] - 2025-12-20
+
+### Added
+- **File upload support** for resume parsing via ADK artifacts
+- PDF text extraction using PyPDF2
+- DOCX text extraction using python-docx
+- Artifact handling in `resume_parser` tool
+- Graceful fallback if file parsing libraries unavailable
+
+### Changed
+- `parse_resume` function now accepts `tool_context` parameter
+- Enhanced error handling for uploaded file processing
+
+### Dependencies
+- Added `PyPDF2>=3.0.0` for PDF parsing
+- Added `python-docx>=1.1.0` for DOCX parsing
+
+### Testing
+- Status: Pending (quota blocked)
+- Integration tests planned for all file formats
+
+---
+
 ## [4.5.0] - 2025-12-20
 
 ### Added - Critic Agent Integration 💬

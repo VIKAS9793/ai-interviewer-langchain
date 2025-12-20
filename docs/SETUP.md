@@ -44,6 +44,10 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+> **Note:** The requirements include dependencies for file upload support (PyPDF2, python-docx).  
+> This enables uploading resumes as PDF or DOCX files via the ADK Web UI.  
+> If you only use plain text, these are optional.
+
 ### 4. Configure API Key
 
 ```bash

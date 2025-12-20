@@ -172,3 +172,41 @@ The AI Technical Interviewer has evolved from a basic 3-agent system to a sophis
 **Last updated:** Dec 20, 2025  
 **Current version:** v4.5.0  
 **Next audit:** Recommend after v5.0 (major features)
+
+---
+
+## Post-v4.5 Updates (Dec 20, 2025)
+
+### File Upload Support
+
+**Commit:** 9136bb5
+
+**Added:**
+- Artifact support in resume_parser tool
+- PDF text extraction (_extract_text_from_pdf_artifact)
+- DOCX text extraction (_extract_text_from_docx_artifact)
+- Dependencies: PyPDF2>=3.0.0, python-docx>=1.1.0
+
+**Implementation:**
+- resume_parser now accepts tool_context parameter
+- Loads uploaded files from tool_context.artifacts
+- Detects MIME type (PDF/DOCX/TXT)
+- Extracts text based on format
+- Graceful fallback if parsing fails
+
+**Testing Status:** Pending quota reset
+
+**Audit Status:**
+- Code review: PASSED 
+- Function signature: VERIFIED 
+- Artifact handling: VERIFIED 
+- Integration testing: PENDING (quota blocked) 
+
+**Confidence:** 85% (based on code inspection)
+
+**Next Steps:**
+- Test PDF upload when quota resets
+- Test DOCX upload
+- Verify artifact.data access
+- Test error handling
+

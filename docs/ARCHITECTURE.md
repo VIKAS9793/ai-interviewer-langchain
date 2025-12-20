@@ -77,17 +77,27 @@ Multi-agent architecture using Google ADK's sub_agents pattern. 6 specialized ag
 
 ### 3. resume_agent
 **Type:** Document Analysis  
-**Tools:** 2 custom tools
+**Tools:** 2 custom tools  
+**File Support:** PDF, DOCX, TXT (via ADK artifacts)
 
 **Capabilities:**
-- Parse resume content
-- Extract skills and experience
-- Analyze job descriptions
-- Match candidate to requirements
+- Parse resume text from pasted content
+- Load uploaded files via ADK artifact system
+- Extract text from PDF files (PyPDF2)
+- Extract text from DOCX files (python-docx)
+- Extract skills, experience, education
+- Generate candidate summary
 
 **Tools:**
-- `parse_resume(resume_text)`
-- `analyze_job_description(jd_text)`
+- `parse_resume(resume_text, tool_context)` - **Supports file upload via artifacts**
+- `analyze_job_description(jd_text, tool_context)`
+
+**File Upload Flow:**
+1. User uploads PDF/DOCX via ADK Web UI
+2. File saved as artifact automatically
+3. Tool accesses `tool_context.artifacts`
+4. Extracts text based on MIME type
+5. Parses structured data
 
 ---
 

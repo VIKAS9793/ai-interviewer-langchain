@@ -40,6 +40,7 @@
 | 🧠 **Adaptive Questions** | Dynamic difficulty based on performance |
 | 💻 **Code Execution** | Run Python code in sandboxed environment |
 | 🛡️ **Safety Screening** | Content moderation & bias detection |
+| 📎 **File Upload** | Upload resumes as PDF, DOCX, or plain text |
 
 ### Technical
 | Feature | Description |
