@@ -5,8 +5,6 @@ Provides structured explanations of CS concepts with examples,
 complexity analysis, and visual representations.
 """
 
-from typing import Literal
-
 
 # Core concept library
 CONCEPTS = {
@@ -238,7 +236,7 @@ def fib_memo(n, memo={}):
 
 def explain_concept(
     topic: str,
-    depth: Literal["quick", "standard", "deep"],
+    depth: str,
     tool_context) -> str:
     """
     Explain a CS concept with examples and complexity analysis.
@@ -254,20 +252,21 @@ def explain_concept(
     # Normalize topic
     topic_key = topic.lower().replace(" ", "_")
     
-    # Search concept library
+    # Search concept library for CS topics
     concept = CONCEPTS.get(topic_key) or ALGORITHMS.get(topic_key)
     
     if not concept:
-        # Concept not found - provide helpful response
-        available = list(CONCEPTS.keys()) + list(ALGORITHMS.keys())
-        return f"""❌ Concept '{topic}' not found in library.
+        # Topic not in library - generate dynamic explanation using LLM
+        # This allows the agent to explain ANY topic (product sense, business, etc.)
+        return f"""DYNAMIC_TOPIC_REQUEST:{topic}|{depth}
 
-📚 Available topics:
-Data Structures: {', '.join(CONCEPTS.keys())}
-Algorithms: {', '.join(ALGORITHMS.keys())}
+Please explain "{topic}" at {depth} depth level:
+- quick: Brief 2-3 sentence overview
+- standard: Detailed explanation with key concepts and examples
+- deep: Comprehensive breakdown with frameworks, examples, and interview context
 
-💡 Try: "Explain binary_search_trees" or "Explain dynamic_programming"
-"""
+Focus on what this topic means in the context of interviews and career preparation.
+Include practical examples and how it's typically assessed in interviews."""
     
     # Build explanation based on depth
     if depth == "quick":

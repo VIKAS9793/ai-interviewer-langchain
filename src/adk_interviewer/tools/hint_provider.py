@@ -5,13 +5,11 @@ Provides progressive hints for problem-solving without giving direct answers.
 Follows Socratic method - guides candidate to solution.
 """
 
-from typing import Literal
-
 
 def provide_hints(
     question: str,
     current_approach: str,
-    hint_level: Literal[1, 2, 3],
+    hint_level: int,
     tool_context) -> str:
     """
     Provide progressive hints for interview questions.

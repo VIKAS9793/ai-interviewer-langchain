@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.5.2] - 2025-12-21
+
+### Fixed
+- **Study Mode Literal Type Error** - Changed `hint_level: Literal[1,2,3]` to `int` and `depth: Literal[...]` to `str` for ADK compatibility
+- **Unused Import** - Removed unused `from typing import Literal` in concept_explainer.py
+
+### Changed
+- **Study Mode Expanded** - Now covers ALL interview topics (PM, Business, Design, etc.), not just CS/algorithms
+- **Dynamic Concept Explanations** - explain_concept tool now uses Gemini's knowledge for non-CS topics
+- **README Updated** - File upload feature clarified due to Gemini API MIME type limitations
+
+### Tested ✅
+- Safety Agent - Correctly declined harmful requests
+- Interview Evaluation - Provided quality feedback
+- Code Understanding - Recognized Dijkstra's algorithm
+- Study Mode Transfer - Works after Literal type fix
+
+### Known Limitations
+- File upload (PDF/DOCX) limited by Gemini API MIME type support
+- Recommend paste-text for resume analysis
+
+---
+
 ## [4.5.1] - 2025-12-20
 
 ### Added
@@ -25,8 +48,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `python-docx>=1.1.0` for DOCX parsing
 
 ### Testing
-- Status: Pending (quota blocked)
-- Integration tests planned for all file formats
+- Status: Partial (quota limited)
+- Core features validated
 
 ---
 

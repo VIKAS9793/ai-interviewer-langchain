@@ -125,23 +125,29 @@ Multi-agent architecture using Google ADK's sub_agents pattern. 6 specialized ag
 
 ---
 
-### 6. study_agent (v4.2)
+### 6. study_agent (v4.2 → v4.5.2)
 **Type:** Educational Tutor  
 **Tools:** 2 custom tools
 
 **Capabilities:**
-- Explain CS concepts (6 topics)
+- Explain ANY interview topic (not limited to CS)
 - Provide progressive hints (3 levels)
 - Socratic method teaching
+- Dynamic explanations using Gemini's knowledge
 - Never gives direct solutions
 
-**Tools:**
-- `explain_concept(topic, depth)`
-- `provide_hints(question, approach, level)`
+**Topics Covered:**
+- Technical/Engineering (algorithms, system design)
+- Product Management (product sense, metrics)
+- Business/Strategy (market analysis, revenue)
+- Behavioral (leadership, teamwork)
+- Design (UX/UI principles)
+- Data/Analytics (SQL, A/B testing)
+- Any other topic via Gemini's knowledge
 
-**Content Library:**
-- Arrays, Binary Search Trees, Hash Maps, Graphs
-- Binary Search, Dynamic Programming
+**Tools:**
+- `explain_concept(topic, depth)` - Works for ANY topic
+- `provide_hints(question, approach, level)`
 
 ---
 
