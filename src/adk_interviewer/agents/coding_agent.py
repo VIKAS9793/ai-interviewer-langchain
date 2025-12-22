@@ -113,13 +113,14 @@ def create_coding_agent() -> Agent:
     Create the coding execution sub-agent with safety checks.
     
     v4.6.0: Added Sequential Safety pattern per Kaggle AI Agent competition.
-            Fixed: BuiltInCodeExecutor now in tools=[] per ADK API docs.
+            Uses code_executor= per official ADK docs.
+            Limitation: BuiltInCodeExecutor must be sole tool (ADK restriction).
     
     Returns:
         Agent configured for safe code execution with BuiltInCodeExecutor
     """
     return Agent(
-        model="gemini-2.5-flash-lite",
+        model="gemini-2.0-flash",  # Code execution requires Gemini 2.0+
         name="coding_agent",
         description=(
             "Code execution specialist with safety checks. Runs and verifies "
@@ -127,5 +128,5 @@ def create_coding_agent() -> Agent:
             "before execution (v4.6.0 Sequential Safety)."
         ),
         instruction=CODING_INSTRUCTION,
-        tools=[BuiltInCodeExecutor()]  # ADK API requires tools=[], not code_executor=
+        code_executor=BuiltInCodeExecutor()  # Correct API per ADK official docs
     )
