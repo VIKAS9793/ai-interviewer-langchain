@@ -1,6 +1,6 @@
 # Architecture Documentation
 
-**AI Technical Interviewer - v4.5**
+**AI Technical Interviewer - v4.6.0**
 
 ---
 
@@ -101,15 +101,22 @@ Multi-agent architecture using Google ADK's sub_agents pattern. 6 specialized ag
 
 ---
 
-### 4. coding_agent
+### 4. coding_agent (v4.6.0)
 **Type:** Code Execution  
-**Tools:** BuiltInCodeExecutor (ADK native)
+**Tools:** BuiltInCodeExecutor + Risk Assessment
 
 **Capabilities:**
 - Execute Python code in sandbox
+- **Risk assessment before execution (v4.6.0)**
+- **Blocks 10 dangerous patterns** (eval, exec, system calls, file ops, network)
 - Verify algorithmic solutions
 - Test code correctness
 - Secure execution environment
+
+**Sequential Safety Pattern:**
+- Detects risky code before execution
+- Logs blocked operations for security audit
+- Provides safe alternatives when code blocked
 
 ---
 

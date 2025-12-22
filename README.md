@@ -24,7 +24,7 @@
 
 ---
 
-> **v4.5 - Advanced AI interviewer with guided learning, multi-dimensional scoring, and adaptive difficulty modes.** Powered by Google's Agent Development Kit and Gemini 2.5, featuring 6 specialized sub-agents for comprehensive interview preparation.
+> **v4.6.0 - Advanced AI interviewer with Sequential Safety, guided learning, and multi-dimensional scoring.** Powered by Google's Agent Development Kit and Gemini, featuring 6 specialized sub-agents with automated risk assessment from Kaggle AI Agent competition patterns.
 
 ---
 
@@ -40,6 +40,7 @@
 | 🧠 **Adaptive Questions** | Dynamic difficulty based on performance |
 | 💻 **Code Execution** | Run Python code in sandboxed environment |
 | 🛡️ **Safety Screening** | Content moderation & bias detection |
+| ⚡ **Sequential Safety** | Automated risk assessment blocks dangerous code (v4.6.0) |
 | 📎 **Resume Support** | Paste resume text for analysis (file upload limited by Gemini) |
 
 ### Technical
@@ -49,6 +50,7 @@
 | ☁️ **Cloud Ready** | One-click deploy to GCP Cloud Run (Free Tier) |
 | 📊 **Session State** | Persistent interview sessions |
 | 🔄 **Multi-Agent** | 6 specialized sub-agents with orchestration |
+| 📋 **Context Files** | Conductor-style config (.adk/) for team alignment (v4.6.0) |
 
 ---
 
