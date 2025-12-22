@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.6.0] - 2025-12-22
+
+### Added - Sequential Safety Pattern 🛡️
+- **Risk Assessment** in `coding_agent` - Blocks dangerous code before execution
+- **10 Risk Patterns** detected: eval, exec, system commands, file operations, network requests
+- **Context Files** - Conductor-style project configuration (`.adk/`)
+  - `product.md` - Interview goals and target roles
+  - `tech_stack.md` - Question topics and tech preferences
+  - `workflow.md` - Evaluation rubrics and feedback standards
+
+### Changed
+- **coding_agent** now includes automatic safety screening
+- Architecture follows Kaggle AI Agent competition winning patterns
+
+### Inspiration
+Based on Kaggle 5-Day AI Agent Intensive (11,000 teams):
+- Sequential Safety (confirmation gates)
+- Context-driven development (Conductor pattern)
+- Quality over prompts (architecture wins)
+
+### Testing
+- Import test: ✅ Passed (6 agents)
+- Risk assessment function: Ready for integration testing
+
+---
+
 ## [4.5.2] - 2025-12-21
 
 ### Fixed
