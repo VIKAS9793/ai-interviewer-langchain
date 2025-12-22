@@ -87,13 +87,13 @@ Open [http://127.0.0.1:8000](http://127.0.0.1:8000) 🚀
 
 ## 🏗️ Architecture
 
-### v4.5 Multi-Agent System (6 Specialists)
+### v4.6.0 Multi-Agent System (6 Specialists)
 
 ```
 root_agent (Orchestrator)
   ├── interviewer_agent     (Questions & Evaluation)
   ├── resume_agent          (Resume & JD Analysis)
-  ├── coding_agent          (BuiltInCodeExecutor)
+  ├── coding_agent          (BuiltInCodeExecutor + Risk Assessment v4.6.0)
   ├── safety_agent          (Content Moderation)
   ├── study_agent           (Guided Learning)
   └── critic_agent          (Answer Critique)

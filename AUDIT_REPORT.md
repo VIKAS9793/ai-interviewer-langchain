@@ -80,7 +80,7 @@
 root_agent (Orchestrator)
   ├── interviewer_agent     ✅ Questions & Evaluation
   ├── resume_agent          ✅ Resume & JD Analysis
-  ├── coding_agent          ✅ BuiltInCodeExecutor
+  ├── coding_agent          ✅ BuiltInCodeExecutor + Risk Assessment (v4.6.0)
   ├── safety_agent          ✅ Content Moderation
   ├── study_agent           ✅ Guided Learning (v4.2)
   └── critic_agent          ✅ Answer Critique (v4.5)
