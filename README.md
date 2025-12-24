@@ -109,8 +109,8 @@ Optional:
 1. **Root Agent** orchestrates 6 specialist sub-agents
 2. **Interviewer** generates adaptive questions & evaluates answers
 3. **Resume** parses resumes and analyzes job descriptions
-4. **Coding** executes Python code in sandboxed environment
-5. **Safety** monitors content for bias and inappropriate content
+4. **Coding** analyzes Python code logic and reviews solutions
+5. **Safety** monitors content, blocks malicious code (v4.6.0)
 6. **Study** provides guided learning with explanations & hints
 7. **Critic** validates questions and critiques answers
 8. **Scoring Coordinator** (optional) provides multi-dimensional assessment
@@ -186,12 +186,20 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for details.
 
 ## 📚 Documentation
 
-- [Architecture Details](docs/ARCHITECTURE.md)
+### Core Docs
+- [Architecture](docs/ARCHITECTURE.md)
 - [Setup Guide](docs/SETUP.md)
 - [Deployment](docs/DEPLOYMENT.md)
-- [Contributing](docs/CONTRIBUTING.md)
 - [Changelog](docs/CHANGELOG.md)
 - [Security](docs/SECURITY.md)
+
+### Research & Planning
+- [A2UI Analysis](docs/research/A2UI_ANALYSIS.md) - Google's agent UI protocol
+- [A2UI Value Impact](docs/research/A2UI_VALUE_IMPACT.md) - ROI assessment
+- [Kaggle Insights](docs/research/KAGGLE_INSIGHTS_V4.6.md) - v4.6.0 inspiration
+
+### Architecture Decisions
+- [ADR-001: Migration to ADK](docs/ADR/001-migration-to-google-adk.md)
 
 ---
 
