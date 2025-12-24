@@ -72,11 +72,22 @@
 
 ---
 
-## Current Architecture (v4.5)
+## Current Architecture (v4.7)
 
 ### Sub-Agents (6 total)
 
 ```
+┌─────────────────────────────────────────────────────────────────────┐
+│                  A2UI Frontend (v4.7 Experimental)                  │
+│  ┌─────────────────┐           ┌────────────────────────────────┐  │
+│  │   Lit Renderer  │──────────▶│  A2A-ADK Bridge (:10002)       │  │
+│  │   :3000         │   A2A     │  FastAPI · JSON-RPC Translator │  │
+│  └─────────────────┘           └────────────────────────────────┘  │
+└────────────────────────────────────────┬────────────────────────────┘
+                                         │
+                                         ▼
+                    ADK Backend (:8000) + Multi-Agent System
+
 root_agent (Orchestrator)
   ├── interviewer_agent     ✅ Questions & Evaluation
   ├── resume_agent          ✅ Resume & JD Analysis
@@ -112,6 +123,18 @@ Optional Scoring System:
 **v4.5 - Critic Integration:**
 - critic_agent for question validation
 - Answer critique and improvement suggestions
+
+**v4.6 - Sequential Safety (Kaggle Pattern):**
+- Risk assessment in coding_agent
+- 10 danger patterns detected (eval, exec, system, etc.)
+- Blocks malicious code before execution
+
+**v4.7 - A2UI Web Interface (Experimental):**
+- A2A-ADK protocol bridge (FastAPI)
+- A2UI Lit renderer frontend
+- Text component rendering working
+- Beautiful gradient UI
+- See [A2UI Integration Journey](docs/A2UI_INTEGRATION_JOURNEY.md)
 
 ---
 

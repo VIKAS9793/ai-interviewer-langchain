@@ -1,43 +1,52 @@
 # Architecture Documentation
 
-**AI Technical Interviewer - v4.6.0**
+**AI Technical Interviewer - v4.7.0**
 
 ---
 
 ## Overview
 
-Multi-agent architecture using Google ADK's sub_agents pattern. 6 specialized agents orchestrated by a root agent, with optional multi-dimensional scoring system.
+Multi-agent architecture using Google ADK's sub_agents pattern. 6 specialized agents orchestrated by a root agent, with optional multi-dimensional scoring system. v4.7 adds experimental A2UI web interface.
 
 ---
 
 ## System Architecture
 
-### High-Level Design
+### High-Level Design (v4.7.0)
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      ADK Web Server                         │
-│  ┌─────────────┐  ┌──────────────────┐  ┌──────────────┐  │
-│  │   Web UI    │  │ Session Service  │  │  HTTP API    │  │
-│  └─────────────┘  └──────────────────┘  └──────────────┘  │
-└───────────────────────────┬─────────────────────────────────┘
-                            │
-                            ▼
-       ┌────────────────────────────────────────────┐
-       │      root_agent (Orchestrator)             │
-       │  Routes tasks to specialist sub-agents     │
-       └───────────────┬────────────────────────────┘
-                       │
-         ┌─────────────┴──────────────┐
-         │    Specialist Sub-Agents    │
-         ├────────────────────────────┤
-         │ • interviewer_agent         │ ─┐
-         │ • resume_agent              │  │
-         │ • coding_agent              │  ├─▶ Gemini 2.5 Flash-Lite
-         │ • safety_agent              │  │
-         │ • study_agent               │  │
-         │ • critic_agent              │ ─┘
-         └─────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                  A2UI Frontend (v4.7 Experimental)                  │
+│  ┌─────────────────┐           ┌────────────────────────────────┐  │
+│  │   Lit Renderer  │──────────▶│  A2A-ADK Bridge (:10002)       │  │
+│  │   :3000         │   A2A     │  FastAPI · JSON-RPC Translator │  │
+│  └─────────────────┘           └────────────────┬───────────────┘  │
+└─────────────────────────────────────────────────┼───────────────────┘
+                                                  │
+                                                  ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                      ADK Web Server (:8000)                         │
+│  ┌─────────────┐  ┌──────────────────┐  ┌─────────────────────┐    │
+│  │   Web UI    │  │ Session Service  │  │  run_sse / HTTP API │    │
+│  └─────────────┘  └──────────────────┘  └──────────┬──────────┘    │
+└────────────────────────────────────────────────────┼────────────────┘
+                                                     │
+                                                     ▼
+                  ┌────────────────────────────────────────────┐
+                  │      root_agent (Orchestrator)             │
+                  │  Routes tasks to specialist sub-agents     │
+                  └───────────────┬────────────────────────────┘
+                                  │
+            ┌─────────────────────┴─────────────────────┐
+            │         6 Specialist Sub-Agents           │
+            ├───────────────────────────────────────────┤
+            │ • interviewer_agent (Questions/Eval)      │
+            │ • resume_agent     (Resume/JD Analysis)   │
+            │ • coding_agent     (Code + Safety v4.6)   │──▶ Gemini 2.5 Flash-Lite
+            │ • safety_agent     (Content Moderation)   │
+            │ • study_agent      (Guided Learning)      │
+            │ • critic_agent     (Answer Critique)      │
+            └───────────────────────────────────────────┘
 ```
 
 ---

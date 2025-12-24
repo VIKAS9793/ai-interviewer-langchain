@@ -88,40 +88,49 @@ Open [http://127.0.0.1:8000](http://127.0.0.1:8000) 🚀
 
 ## 🏗️ Architecture
 
-### v4.6.0 Multi-Agent System (6 Specialists)
+### v4.7.0 System Architecture
 
 ```
-root_agent (Orchestrator)
-  ├── interviewer_agent     (Questions & Evaluation)
-  ├── resume_agent          (Resume & JD Analysis)
-  ├── coding_agent          (Code Analysis + Safety v4.6.0)
-  ├── safety_agent          (Content Moderation)
-  ├── study_agent           (Guided Learning)
-  └── critic_agent          (Answer Critique)
-
-Optional:
-  └── scoring_coordinator   (Multi-dimensional Scoring)
-      ├── technical_scorer
-      ├── communication_scorer
-      └── problem_solving_scorer
+┌─────────────────────────────────────────────────────────────────────┐
+│                    A2UI Frontend (Experimental)                     │
+│  ┌─────────────────┐           ┌────────────────────────────────┐  │
+│  │   Lit Renderer  │──────────▶│  A2A-ADK Bridge (:10002)       │  │
+│  │   :3000         │   A2A     │  FastAPI · JSON-RPC Translator │  │
+│  └─────────────────┘           └────────────────────────────────┘  │
+└──────────────────────────────────────────┬──────────────────────────┘
+                                           │
+                                           ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                      ADK Backend (:8000)                            │
+│  ┌─────────────┐  ┌──────────────────┐  ┌─────────────────────┐    │
+│  │   Web UI    │  │ Session Service  │  │  run_sse Endpoint   │    │
+│  └─────────────┘  └──────────────────┘  └─────────────────────┘    │
+└──────────────────────────────────────────┬──────────────────────────┘
+                                           │
+                                           ▼
+                  ┌────────────────────────────────────────────┐
+                  │      root_agent (Orchestrator)             │
+                  │  Routes tasks to specialist sub-agents     │
+                  └───────────────┬────────────────────────────┘
+                                  │
+            ┌─────────────────────┴─────────────────────┐
+            │           6 Specialist Sub-Agents         │
+            ├───────────────────────────────────────────┤
+            │ • interviewer_agent (Questions/Eval)      │
+            │ • resume_agent     (Resume/JD Analysis)   │
+            │ • coding_agent     (Code + Safety v4.6)   │──▶ Gemini 2.5
+            │ • safety_agent     (Content Moderation)   │
+            │ • study_agent      (Guided Learning)      │
+            │ • critic_agent     (Answer Critique)      │
+            └───────────────────────────────────────────┘
 ```
-
-**How It Works:**
-1. **Root Agent** orchestrates 6 specialist sub-agents
-2. **Interviewer** generates adaptive questions & evaluates answers
-3. **Resume** parses resumes and analyzes job descriptions
-4. **Coding** analyzes Python code logic and reviews solutions
-5. **Safety** monitors content, blocks malicious code (v4.6.0)
-6. **Study** provides guided learning with explanations & hints
-7. **Critic** validates questions and critiques answers
-8. **Scoring Coordinator** (optional) provides multi-dimensional assessment
-
-All powered by **Gemini 2.5 Flash-Lite**.
 
 ### Tech Stack
 
 | Layer | Technology |
 |-------|------------|
+| **Frontend (v4.7)** | [A2UI Lit Renderer](https://github.com/google/A2UI) |
+| **Bridge (v4.7)** | FastAPI + httpx |
 | **Framework** | [Google Agent Development Kit](https://google.github.io/adk-docs/) |
 | **LLM** | [Gemini 2.5 Flash-Lite](https://ai.google.dev/) |
 | **Web UI** | ADK Web (`adk web`) |
