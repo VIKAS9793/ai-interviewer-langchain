@@ -102,19 +102,19 @@ Multi-agent architecture using Google ADK's sub_agents pattern. 6 specialized ag
 ---
 
 ### 4. coding_agent (v4.6.0)
-**Type:** Code Execution  
-**Tools:** BuiltInCodeExecutor + Risk Assessment
+**Type:** Code Analysis  
+**Tools:** Risk Assessment + Safety Validation
 
 **Capabilities:**
-- Execute Python code in sandbox
-- **Risk assessment before execution (v4.6.0)**
+- Analyze Python code logic and trace execution
+- **Risk assessment for dangerous patterns (v4.6.0)**
 - **Blocks 10 dangerous patterns** (eval, exec, system calls, file ops, network)
-- Verify algorithmic solutions
-- Test code correctness
-- Secure execution environment
+- Review algorithmic solutions
+- Identify bugs and issues
+- Suggest improvements
 
 **Sequential Safety Pattern:**
-- Detects risky code before execution
+- Detects risky code patterns
 - Logs blocked operations for security audit
 - Provides safe alternatives when code blocked
 
@@ -251,8 +251,8 @@ Follows ADK sub_agents pattern for specialized task routing.
 ### 2. Separation of Concerns
 Each agent has single responsibility (SOLID principles).
 
-### 3. Built-in Tool Integration
-coding_agent uses BuiltInCodeExecutor (resolves ADK limitation).
+### 3. Safety Integration
+coding_agent works with safety_agent for content moderation.
 
 ### 4. Nested Multi-Agent
 scoring_coordinator has 3 sub-agents for parallel evaluation.
@@ -264,7 +264,7 @@ Difficulty modes adjust question complexity dynamically.
 
 ## Security Considerations
 
-1. **Sandboxed Code Execution** - BuiltInCodeExecutor provides isolation
+1. **Code Safety Checks** - coding_agent + safety_agent detect risky operations
 2. **Content Moderation** - safety_agent monitors all interactions
 3. **No Hardcoded Secrets** - Environment variable configuration
 4. **PII Detection** - Automated screening in safety_agent

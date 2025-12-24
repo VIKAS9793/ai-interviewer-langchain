@@ -38,7 +38,7 @@
 | 🎚️ **Difficulty Modes** | Quick Screen (15min), Standard (45min), Deep Technical (90min) |
 | 💬 **Answer Critique** | Get improvement suggestions & validation feedback |
 | 🧠 **Adaptive Questions** | Dynamic difficulty based on performance |
-| 💻 **Code Execution** | Run Python code in sandboxed environment |
+| 💻 **Code Analysis** | Review and analyze Python code logic |
 | 🛡️ **Safety Screening** | Content moderation & bias detection |
 | ⚡ **Sequential Safety** | Automated risk assessment blocks dangerous code (v4.6.0) |
 | 📎 **Resume Support** | Paste resume text for analysis (file upload limited by Gemini) |
@@ -93,7 +93,7 @@ Open [http://127.0.0.1:8000](http://127.0.0.1:8000) 🚀
 root_agent (Orchestrator)
   ├── interviewer_agent     (Questions & Evaluation)
   ├── resume_agent          (Resume & JD Analysis)
-  ├── coding_agent          (BuiltInCodeExecutor + Risk Assessment v4.6.0)
+  ├── coding_agent          (Code Analysis + Safety v4.6.0)
   ├── safety_agent          (Content Moderation)
   ├── study_agent           (Guided Learning)
   └── critic_agent          (Answer Critique)

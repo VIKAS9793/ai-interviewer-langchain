@@ -1,16 +1,16 @@
 """
-Coding Agent - Code Execution and Verification.
+Coding Agent - Code Analysis and Verification.
 
-This sub-agent specializes in executing and verifying code solutions
-using ADK's BuiltInCodeExecutor for sandboxed Python execution.
+This sub-agent specializes in analyzing and verifying code solutions.
+Provides code review, logic tracing, and technical feedback.
 
 v4.6.0: Added Sequential Safety pattern from Kaggle AI Agent competition.
+        Safety checks handled by safety_agent.
 """
 
 import logging
 import re
 from google.adk.agents import Agent
-from google.adk.code_executors import BuiltInCodeExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -55,19 +55,16 @@ def assess_code_risk(code: str) -> tuple[float, list[str]]:
 
 # Coding agent instruction
 CODING_INSTRUCTION = """
-You are a Code Execution Specialist for technical interviews.
+You are a Code Analysis Specialist for technical interviews.
 
 ## Your Responsibilities
 
-### 1. Execute Code
-When given code to run:
-- Execute the provided Python code
-- Capture and report all output
-- Note any errors or exceptions
-- Track execution time if relevant
-
-IMPORTANT: Code is automatically checked for safety before execution.
-High-risk operations (file writes, system calls, network requests) are blocked.
+### 1. Analyze Code
+When given code to review:
+- Trace through the logic step by step
+- Identify potential issues or bugs
+- Explain what the code does
+- Track complexity and efficiency
 
 ### 2. Verify Solutions
 When asked to verify a solution:
@@ -110,23 +107,25 @@ If code is blocked, explain why and suggest safe alternatives.
 
 def create_coding_agent() -> Agent:
     """
-    Create the coding execution sub-agent with safety checks.
+    Create the coding analysis sub-agent with safety checks.
     
     v4.6.0: Added Sequential Safety pattern per Kaggle AI Agent competition.
-            Uses code_executor= per official ADK docs.
-            Limitation: BuiltInCodeExecutor must be sole tool (ADK restriction).
+    
+    NOTE: Code execution removed due to ADK sub-agent limitation - 
+          "Tool use with function calling is unsupported" when used in sub-agents.
+          Safety checks are handled by safety_agent instead.
+          Risk assessment function (assess_code_risk) available for future use.
     
     Returns:
-        Agent configured for safe code execution with BuiltInCodeExecutor
+        Agent configured for code analysis (execution via LLM reasoning)
     """
     return Agent(
-        model="gemini-2.0-flash-exp",  # Experimental: bypasses quota limits
+        model="gemini-2.5-flash-lite",
         name="coding_agent",
         description=(
-            "Code execution specialist with safety checks. Runs and verifies "
-            "Python code in a sandboxed environment. Blocks risky operations "
-            "before execution (v4.6.0 Sequential Safety)."
+            "Code analysis specialist with safety checks. Reviews and analyzes "
+            "Python code, traces logic, and identifies issues. Safety checks "
+            "handled by safety_agent (v4.6.0 Sequential Safety)."
         ),
-        instruction=CODING_INSTRUCTION,
-        code_executor=BuiltInCodeExecutor()  # Correct API per ADK official docs
+        instruction=CODING_INSTRUCTION
     )

@@ -193,12 +193,12 @@ Based on Kaggle 5-Day AI Agent Intensive (11,000 teams):
 ## [4.1.0] - 2025-12-19
 
 ### Added
-- **Multi-Agent Architecture**: Refactored to ADK sub_agents pattern for code execution compatibility
+- **Multi-Agent Architecture**: Refactored to ADK sub_agents pattern
   - `interviewer_agent`: Question generation and answer evaluation (2 tools)
   - `resume_agent`: Resume parsing and job description analysis (2 tools)
-  - `coding_agent`: Python code execution with `BuiltInCodeExecutor` (sandboxed)
+  - `coding_agent`: Python code analysis and review
   - `root_agent`: Orchestrator coordinating all specialists
-- **Code Execution**: Verified working - agent can generate and execute Python code safely
+- **Code Analysis**: Agent can review and analyze Python code
 - **Smart Routing**: Automatically routes tasks to appropriate specialist sub-agent
 
 ### Changed
