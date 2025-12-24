@@ -45,6 +45,10 @@ app.add_middleware(
 ADK_BASE_URL = "http://localhost:8000"
 ADK_APP_NAME = "adk_interviewer"
 
+# Session storage for conversation persistence (v4.7.1)
+# Maps user_id -> session_id to maintain conversation across turns
+user_sessions: dict[str, str] = {}
+
 # A2A Agent Card (required by A2UI client)
 AGENT_CARD = {
     "name": "AI Technical Interviewer",
@@ -143,22 +147,31 @@ def extract_user_message(body: dict) -> str:
 
 
 async def forward_to_adk(message: str) -> str:
-    """Forward message to ADK backend and get response."""
+    """Forward message to ADK backend and get response.
+    
+    v4.7.1: Sessions are now persistent per user for conversation continuity.
+    """
     async with httpx.AsyncClient(timeout=120.0) as client:
-        session_id = str(uuid.uuid4())
         user_id = "a2ui_user"
         
-        # Step 1: Create session first
-        session_url = f"{ADK_BASE_URL}/apps/{ADK_APP_NAME}/users/{user_id}/sessions/{session_id}"
+        # Reuse existing session or create new one (v4.7.1 - conversation persistence)
+        is_new_session = user_id not in user_sessions
+        if is_new_session:
+            user_sessions[user_id] = str(uuid.uuid4())
+        session_id = user_sessions[user_id]
         
-        logger.info(f"Creating session at: {session_url}")
+        logger.info(f"Session: {session_id} ({'new' if is_new_session else 'existing'})")
         
-        try:
-            # Create empty session
-            session_response = await client.post(session_url, json={"state": {}})
-            logger.info(f"Session creation response: {session_response.status_code}")
-        except httpx.HTTPError as e:
-            logger.warning(f"Session creation failed (may not be required): {e}")
+        # Step 1: Create session on first message only
+        if is_new_session:
+            session_url = f"{ADK_BASE_URL}/apps/{ADK_APP_NAME}/users/{user_id}/sessions/{session_id}"
+            logger.info(f"Creating session at: {session_url}")
+            
+            try:
+                session_response = await client.post(session_url, json={"state": {}})
+                logger.info(f"Session creation response: {session_response.status_code}")
+            except httpx.HTTPError as e:
+                logger.warning(f"Session creation failed (may not be required): {e}")
         
         # Step 2: Send message via run_sse (streaming) endpoint
         run_url = f"{ADK_BASE_URL}/run_sse"
@@ -207,13 +220,22 @@ async def forward_to_adk(message: str) -> str:
                     if line.startswith('data:'):
                         try:
                             data = json.loads(line[5:].strip())
+                            # Check for error response (e.g., 429 quota exceeded)
+                            if "error" in data:
+                                error_info = data.get("error", "Unknown error")
+                                logger.warning(f"ADK returned error: {error_info}")
+                                return f"⚠️ API Error: The service is temporarily unavailable. Please try again in a moment. (Rate limit may have been exceeded)"
                             if "content" in data:
                                 parts = data["content"].get("parts", [])
                                 for part in parts:
                                     if "text" in part:
                                         full_text.append(part["text"])
                         except json.JSONDecodeError:
-                            pass
+                            # Handle non-JSON data lines (like error strings)
+                            data_content = line[5:].strip()
+                            if data_content.startswith('"error"') or 'error' in data_content.lower():
+                                logger.warning(f"SSE error line: {data_content[:200]}")
+                                return f"⚠️ Service temporarily unavailable. Please try again."
                 if full_text:
                     return ''.join(full_text)
             
