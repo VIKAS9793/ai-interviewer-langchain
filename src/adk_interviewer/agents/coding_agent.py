@@ -6,11 +6,21 @@ Provides code review, logic tracing, and technical feedback.
 
 v4.6.0: Added Sequential Safety pattern from Kaggle AI Agent competition.
         Safety checks handled by safety_agent.
+v4.7.0: Added A2UI integration for rich UI responses (experimental).
 """
 
 import logging
 import re
 from google.adk.agents import Agent
+
+# A2UI integration (v4.7)
+try:
+    from ..a2ui.components import get_a2ui_prompt
+    A2UI_ENABLED = True
+except ImportError:
+    A2UI_ENABLED = False
+    def get_a2ui_prompt() -> str:
+        return ""
 
 logger = logging.getLogger(__name__)
 
@@ -110,6 +120,7 @@ def create_coding_agent() -> Agent:
     Create the coding analysis sub-agent with safety checks.
     
     v4.6.0: Added Sequential Safety pattern per Kaggle AI Agent competition.
+    v4.7.0: Added A2UI integration for rich UI responses (experimental).
     
     NOTE: Code execution removed due to ADK sub-agent limitation - 
           "Tool use with function calling is unsupported" when used in sub-agents.
@@ -117,15 +128,21 @@ def create_coding_agent() -> Agent:
           Risk assessment function (assess_code_risk) available for future use.
     
     Returns:
-        Agent configured for code analysis (execution via LLM reasoning)
+        Agent configured for code analysis with optional A2UI responses
     """
+    # Build instruction with optional A2UI prompt
+    full_instruction = CODING_INSTRUCTION
+    if A2UI_ENABLED:
+        full_instruction += "\n\n" + get_a2ui_prompt()
+    
     return Agent(
         model="gemini-2.5-flash-lite",
         name="coding_agent",
         description=(
-            "Code analysis specialist with safety checks. Reviews and analyzes "
-            "Python code, traces logic, and identifies issues. Safety checks "
-            "handled by safety_agent (v4.6.0 Sequential Safety)."
+            "Code analysis specialist with safety checks and A2UI responses (v4.7). "
+            "Reviews and analyzes Python code, traces logic, and identifies issues. "
+            "Can provide rich UI components for code display."
         ),
-        instruction=CODING_INSTRUCTION
+        instruction=full_instruction
     )
+
