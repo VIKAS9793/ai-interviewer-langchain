@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.7.0] - 2025-12-24 (Experimental)
+
+### Added - A2UI Web Interface 🌐
+- **A2A-ADK Protocol Bridge** - FastAPI server translating A2A JSON-RPC to ADK REST
+- **A2UI Lit Renderer** - Google's component-based UI framework
+- **Interview Surface** - Text components rendering in beautiful gradient UI
+- **Custom Interviewer Config** - `a2ui-repo/samples/client/lit/shell/configs/interviewer.ts`
+
+### Architecture
+```
+A2UI Frontend (Lit) → A2A Bridge (:10002) → ADK Backend (:8000)
+```
+
+### New Files
+- `src/adk_interviewer/a2ui/bridge.py` - Protocol bridge server
+- `src/adk_interviewer/a2ui/components.py` - A2UI component schemas
+- `docs/A2UI_INTEGRATION_JOURNEY.md` - Complete integration journey
+
+### Challenges Overcome
+- Protocol mismatch (A2A JSON-RPC ↔ ADK REST)
+- SSE response parsing
+- A2UI component format (`component` key, `literalString` wrapper)
+- JSON-RPC 2.0 compliance (`id` field matching)
+
+### To Run
+```bash
+# 3 terminals required
+adk web ./src                           # ADK Backend
+python -m src.adk_interviewer.a2ui.bridge  # A2A Bridge
+cd a2ui-repo/samples/client/lit/shell && npm run dev  # Frontend
+```
+
+---
+
 ## [4.6.0] - 2025-12-22
 
 ### Added - Sequential Safety Pattern 🛡️

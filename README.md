@@ -24,7 +24,7 @@
 
 ---
 
-> **v4.6.0 - Advanced AI interviewer with Sequential Safety, guided learning, and multi-dimensional scoring.** Powered by Google's Agent Development Kit and Gemini, featuring 6 specialized sub-agents with automated risk assessment from Kaggle AI Agent competition patterns.
+> **v4.7.0 - A2UI Web Interface (Experimental)** Beautiful, component-based web UI via A2A-ADK bridge. Includes Sequential Safety, guided learning, and multi-dimensional scoring. Powered by Google's Agent Development Kit, Gemini, and [A2UI](https://github.com/google/A2UI). See [A2UI Integration Journey](docs/A2UI_INTEGRATION_JOURNEY.md).
 
 ---
 
@@ -41,6 +41,7 @@
 | 💻 **Code Analysis** | Review and analyze Python code logic |
 | 🛡️ **Safety Screening** | Content moderation & bias detection |
 | ⚡ **Sequential Safety** | Automated risk assessment blocks dangerous code (v4.6.0) |
+| 🌐 **A2UI Web Interface** | Beautiful Lit-based web UI with A2A-ADK bridge (v4.7.0 Experimental) |
 | 📎 **Resume Support** | Paste resume text for analysis (file upload limited by Gemini) |
 
 ### Technical
