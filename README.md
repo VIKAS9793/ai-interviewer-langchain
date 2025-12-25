@@ -11,6 +11,7 @@
 <p align="center">
   <a href="https://google.github.io/adk-docs/"><img src="https://img.shields.io/badge/Built%20with-Google%20ADK-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Google ADK"/></a>
   <a href="https://ai.google.dev/"><img src="https://img.shields.io/badge/Powered%20by-Gemini-8E75B2?style=for-the-badge&logo=google&logoColor=white" alt="Gemini"/></a>
+  <a href="https://github.com/google/A2UI"><img src="https://img.shields.io/badge/A2UI-v0.8-34A853?style=for-the-badge&logo=google&logoColor=white" alt="A2UI"/></a>
   <a href="https://cloud.google.com/run"><img src="https://img.shields.io/badge/Deploy%20on-Cloud%20Run-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white" alt="Cloud Run"/></a>
 </p>
 
@@ -83,6 +84,21 @@ adk web src
 ```
 
 Open [http://127.0.0.1:8000](http://127.0.0.1:8000) 🚀
+
+### A2UI Web Interface (Experimental)
+
+```bash
+# Terminal 1 - ADK Backend
+adk web ./src
+
+# Terminal 2 - A2A Bridge
+python -m src.adk_interviewer.a2ui.bridge
+
+# Terminal 3 - A2UI Frontend
+cd a2ui-repo/samples/client/lit/shell && npm run dev
+```
+
+Open [http://localhost:3000/?app=interviewer](http://localhost:3000/?app=interviewer) 🎨
 
 ---
 
@@ -206,6 +222,7 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for details.
 - [Deployment](docs/DEPLOYMENT.md)
 - [Changelog](docs/CHANGELOG.md)
 - [Security](docs/SECURITY.md)
+- [A2UI Integration Journey](docs/A2UI_INTEGRATION_JOURNEY.md) - Protocol bridge story
 
 ### Research & Planning
 - [A2UI Analysis](docs/research/A2UI_ANALYSIS.md) - Google's agent UI protocol
@@ -232,7 +249,9 @@ MIT License - see [LICENSE](LICENSE)
 ## 🙏 Acknowledgments
 
 - Google ADK Team for the amazing framework
+- Google A2UI Team for agent-to-user interface protocol
 - Gemini AI for powering intelligence
+- Built with Google Antigravity
 - Open source community for inspiration
 
 ---
