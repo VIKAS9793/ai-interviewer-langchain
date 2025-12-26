@@ -1,9 +1,9 @@
 # ADK Interviewer – Architecture & Best-Practices Audit Report
 
-**Repository:** `VIKAS9793/ai-interviewer-google-adk` (Google ADK migration, v4.5)
+**Repository:** `VIKAS9793/ai-interviewer-google-adk` (Google ADK migration, v4.7)
 
 **Audit date:** 2025-12-19  
-**Status update:** 2025-12-20 (v4.5 release)
+**Status update:** 2025-12-24 (v4.7 A2UI Integration)
 
 ---
 
@@ -11,11 +11,12 @@
 
 ✅ **AUDIT COMPLETE - ALL FINDINGS REMEDIATED**
 
-**Current Status (v4.5):**
+**Current Status (v4.7):**
 - Multi-agent architecture: ✅ 6 sub-agents
 - Best practices compliance: ✅ 100%
 - Critical findings: ✅ All resolved
 - Code analysis: ✅ Working (coding_agent)
+- A2UI frontend: ✅ Experimental (v4.7)
 - Documentation: ✅ Complete
 
 **Architecture Evolution:**
@@ -25,6 +26,8 @@
 - v4.3: Multi-Agent Scoring system
 - v4.4: Difficulty modes (Quick/Standard/Deep)
 - v4.5: Critic integration (6 agents total)
+- v4.6: Sequential Safety (Kaggle pattern)
+- v4.7: A2UI Web Interface (Experimental)
 
 ---
 
@@ -72,11 +75,22 @@
 
 ---
 
-## Current Architecture (v4.5)
+## Current Architecture (v4.7)
 
 ### Sub-Agents (6 total)
 
 ```
+┌─────────────────────────────────────────────────────────────────────┐
+│                  A2UI Frontend (v4.7 Experimental)                  │
+│  ┌─────────────────┐           ┌────────────────────────────────┐  │
+│  │   Lit Renderer  │──────────▶│  A2A-ADK Bridge (:10002)       │  │
+│  │   :3000         │   A2A     │  FastAPI · JSON-RPC Translator │  │
+│  └─────────────────┘           └────────────────────────────────┘  │
+└────────────────────────────────────────┬────────────────────────────┘
+                                         │
+                                         ▼
+                    ADK Backend (:8000) + Multi-Agent System
+
 root_agent (Orchestrator)
   ├── interviewer_agent     ✅ Questions & Evaluation
   ├── resume_agent          ✅ Resume & JD Analysis
@@ -112,6 +126,18 @@ Optional Scoring System:
 **v4.5 - Critic Integration:**
 - critic_agent for question validation
 - Answer critique and improvement suggestions
+
+**v4.6 - Sequential Safety (Kaggle Pattern):**
+- Risk assessment in coding_agent
+- 10 danger patterns detected (eval, exec, system, etc.)
+- Blocks malicious code before execution
+
+**v4.7 - A2UI Web Interface (Experimental):**
+- A2A-ADK protocol bridge (FastAPI)
+- A2UI Lit renderer frontend
+- Text component rendering working
+- Beautiful gradient UI
+- See [A2UI Integration Journey](docs/A2UI_INTEGRATION_JOURNEY.md)
 
 ---
 

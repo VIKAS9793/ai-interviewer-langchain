@@ -1,44 +1,102 @@
 # Architecture Documentation
 
-**AI Technical Interviewer - v4.6.0**
+**AI Technical Interviewer - v4.7.1**
 
 ---
 
 ## Overview
 
-Multi-agent architecture using Google ADK's sub_agents pattern. 6 specialized agents orchestrated by a root agent, with optional multi-dimensional scoring system.
+Multi-agent architecture using Google ADK's sub_agents pattern. 6 specialized agents orchestrated by a root agent, with optional multi-dimensional scoring system. v4.7 adds experimental A2UI web interface with protocol bridge.
 
 ---
 
 ## System Architecture
 
-### High-Level Design
+### High-Level Design (v4.7.1)
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      ADK Web Server                         │
-│  ┌─────────────┐  ┌──────────────────┐  ┌──────────────┐  │
-│  │   Web UI    │  │ Session Service  │  │  HTTP API    │  │
-│  └─────────────┘  └──────────────────┘  └──────────────┘  │
-└───────────────────────────┬─────────────────────────────────┘
-                            │
-                            ▼
-       ┌────────────────────────────────────────────┐
-       │      root_agent (Orchestrator)             │
-       │  Routes tasks to specialist sub-agents     │
-       └───────────────┬────────────────────────────┘
-                       │
-         ┌─────────────┴──────────────┐
-         │    Specialist Sub-Agents    │
-         ├────────────────────────────┤
-         │ • interviewer_agent         │ ─┐
-         │ • resume_agent              │  │
-         │ • coding_agent              │  ├─▶ Gemini 2.5 Flash-Lite
-         │ • safety_agent              │  │
-         │ • study_agent               │  │
-         │ • critic_agent              │ ─┘
-         └─────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                    USER INTERFACE LAYER                              │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│   Option A: ADK Dev UI          Option B: A2UI Frontend (v4.7)      │
+│   http://localhost:8000         http://localhost:3000               │
+│   (Built-in terminal UI)        (Beautiful web UI)                  │
+│                                                                     │
+└─────────────────────────────────┬───────────────────────────────────┘
+                                  │
+      ┌───────────────────────────┴───────────────────────────┐
+      │                                                       │
+      ▼                                                       ▼
+┌─────────────────┐                           ┌─────────────────────────┐
+│   ADK Backend   │◀──────────────────────────│   A2A-ADK Bridge       │
+│   :8000         │       REST + SSE          │   :10002               │
+│   (Direct)      │                           │   (Protocol Translator) │
+└────────┬────────┘                           └───────────────────────┬─┘
+         │                                                            │
+         │                                    ┌─────────────────────────┐
+         │                                    │   A2UI Lit Renderer    │
+         │                                    │   :3000                │
+         │                                    │   (JSON-RPC 2.0 / A2A) │
+         │                                    └─────────────────────────┘
+         ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                      ADK Web Server (:8000)                         │
+│  ┌─────────────┐  ┌──────────────────┐  ┌─────────────────────┐    │
+│  │   Web UI    │  │ Session Service  │  │  run_sse / HTTP API │    │
+│  └─────────────┘  └──────────────────┘  └──────────┬──────────┘    │
+└────────────────────────────────────────────────────┼────────────────┘
+                                                     │
+                                                     ▼
+                  ┌────────────────────────────────────────────┐
+                  │      root_agent (Orchestrator)             │
+                  │  Routes tasks to specialist sub-agents     │
+                  └───────────────┬────────────────────────────┘
+                                  │
+            ┌─────────────────────┴─────────────────────┐
+            │         6 Specialist Sub-Agents           │
+            ├───────────────────────────────────────────┤
+            │ • interviewer_agent (Questions/Eval)      │
+            │ • resume_agent     (Resume/JD Analysis)   │
+            │ • coding_agent     (Code Analysis v4.7.1) │──▶ Gemini 2.5 Flash-Lite
+            │ • safety_agent     (Content Moderation)   │
+            │ • study_agent      (Guided Learning)      │
+            │ • critic_agent     (Answer Critique)      │
+            └───────────────────────────────────────────┘
 ```
+
+### Multi-Agent Flow Visualization
+
+<p align="center">
+  <img src="../assets/multi_agent_flow.png" alt="Multi-Agent Orchestration Flow" width="600"/>
+</p>
+
+---
+
+
+## A2UI Integration (v4.7)
+
+### Three-Tier Architecture
+
+| Tier | Component | Port | Protocol |
+|------|-----------|------|----------|
+| **Frontend** | A2UI Lit Renderer | 3000 | A2A (JSON-RPC 2.0) |
+| **Bridge** | A2A-ADK FastAPI Server | 10002 | Bidirectional translation |
+| **Backend** | ADK Web Server | 8000 | REST + SSE |
+
+### Protocol Translation
+
+The A2A-ADK Bridge handles:
+
+1. **Agent Discovery** - Exposes `/.well-known/agent-card.json`
+2. **Request Translation** - A2A JSON-RPC → ADK REST
+3. **Session Management** - Creates and maintains ADK sessions
+4. **Response Parsing** - SSE text → A2UI components
+5. **Error Handling** - Graceful fallbacks for edge cases
+
+### Why a Bridge?
+
+A2UI uses A2A Protocol (JSON-RPC 2.0), while ADK uses REST endpoints. Direct connection is impossible, so the bridge translates between them.
 
 ---
 
@@ -92,31 +150,28 @@ Multi-agent architecture using Google ADK's sub_agents pattern. 6 specialized ag
 - `parse_resume(resume_text, tool_context)` - **Supports file upload via artifacts**
 - `analyze_job_description(jd_text, tool_context)`
 
-**File Upload Flow:**
-1. User uploads PDF/DOCX via ADK Web UI
-2. File saved as artifact automatically
-3. Tool accesses `tool_context.artifacts`
-4. Extracts text based on MIME type
-5. Parses structured data
-
 ---
 
-### 4. coding_agent (v4.6.0)
-**Type:** Code Analysis  
-**Tools:** Risk Assessment + Safety Validation
+### 4. coding_agent (v4.7.1)
+**Type:** Code Analysis (Manual Tracing Only)  
+**Tools:** None (pure LLM reasoning)
+
+> **IMPORTANT (v4.7.1):** This agent does NOT execute code. It analyzes code by reading and reasoning about it manually.
 
 **Capabilities:**
-- Analyze Python code logic and trace execution
-- **Risk assessment for dangerous patterns (v4.6.0)**
-- **Blocks 10 dangerous patterns** (eval, exec, system calls, file ops, network)
-- Review algorithmic solutions
-- Identify bugs and issues
+- Trace code logic step by step mentally
+- Identify potential issues or bugs
+- Assess time/space complexity
+- Explain what code does
 - Suggest improvements
 
-**Sequential Safety Pattern:**
-- Detects risky code patterns
-- Logs blocked operations for security audit
-- Provides safe alternatives when code blocked
+**Limitations:**
+- Cannot execute code (ADK sub-agent tool limitation)
+- Cannot run test cases (traces manually instead)
+- Safety checks delegated to safety_agent
+
+**Why No Code Execution?**
+ADK sub-agents have a known limitation: "Tool use with function calling is unsupported" when used in sub-agents. This caused the `execute_python_code` tool hallucination bug in v4.7.0, fixed in v4.7.1 by explicitly stating in the instruction that no tools are available.
 
 ---
 
@@ -132,7 +187,7 @@ Multi-agent architecture using Google ADK's sub_agents pattern. 6 specialized ag
 
 ---
 
-### 6. study_agent (v4.2 → v4.5.2)
+### 6. study_agent
 **Type:** Educational Tutor  
 **Tools:** 2 custom tools
 
@@ -158,7 +213,7 @@ Multi-agent architecture using Google ADK's sub_agents pattern. 6 specialized ag
 
 ---
 
-### 7. critic_agent (v4.5)
+### 7. critic_agent
 **Type:** Quality Assurance  
 **Tools:** LLM reasoning
 
@@ -170,7 +225,7 @@ Multi-agent architecture using Google ADK's sub_agents pattern. 6 specialized ag
 
 ---
 
-## Optional: Multi-Agent Scoring System (v4.3)
+## Optional: Multi-Agent Scoring System
 
 ### scoring_coordinator
 **Type:** Evaluation Orchestrator  
@@ -184,50 +239,6 @@ scoring_coordinator
   └── problem_solving_scorer (30% weight)
 ```
 
-**Weighted Aggregation:**
-- Technical: Code correctness, quality, efficiency
-- Communication: Clarity, structure, professionalism
-- Problem-Solving: Approach, analytical thinking, creativity
-
-**Output:** JSON-structured comprehensive assessment
-
----
-
-## Difficulty Modes (v4.4)
-
-### Quick Screen (15 min)
-- 3-5 questions
-- 70% easy, 30% medium
-- Surface-level evaluation
-- Binary pass/fail
-
-### Standard Interview (45 min)
-- 8-12 questions
-- 25% easy, 50% medium, 25% hard
-- Comprehensive assessment
-- Multi-agent scoring
-
-### Deep Technical (90 min)
-- 15-20 questions
-- 10% easy, 30% medium, 40% hard, 20% expert
-- In-depth evaluation
-- Full multi-dimensional analysis
-
----
-
-## Data Flow
-
-```
-1. User Input → ADK Web UI
-2. Web UI → Session Service (state management)
-3. Session → root_agent
-4. root_agent → Specialist Sub-Agent(s)
-5. Sub-Agent → Gemini API (if needed)
-6. Sub-Agent → root_agent (response)
-7. root_agent → Session Service
-8. Session → Web UI → User
-```
-
 ---
 
 ## Technology Stack
@@ -239,62 +250,47 @@ scoring_coordinator
 | Language | Python | 3.11+ |
 | Web Server | ADK Web | Built-in |
 | State | ADK SessionService | Built-in |
-| Deployment | Cloud Run | Latest |
+| A2UI Frontend | Lit + Vite | v7.3+ |
+| Bridge | FastAPI + httpx | v0.115+ |
 
 ---
 
-## Design Patterns
+## Known Limitations
 
-### 1. Multi-Agent Orchestration
-Follows ADK sub_agents pattern for specialized task routing.
+### ADK Sub-Agent Tool Limitation
+Sub-agents in ADK have restricted tool calling capabilities. Tools that work in root agents may fail in sub-agents with:
+```
+Tool use with function calling is unsupported
+```
 
-### 2. Separation of Concerns
-Each agent has single responsibility (SOLID principles).
+**Workaround:** Use pure LLM reasoning for sub-agents, or move tool-dependent logic to root agent.
 
-### 3. Safety Integration
-coding_agent works with safety_agent for content moderation.
-
-### 4. Nested Multi-Agent
-scoring_coordinator has 3 sub-agents for parallel evaluation.
-
-### 5. Mode-Based Behavior
-Difficulty modes adjust question complexity dynamically.
-
----
-
-## Security Considerations
-
-1. **Code Safety Checks** - coding_agent + safety_agent detect risky operations
-2. **Content Moderation** - safety_agent monitors all interactions
-3. **No Hardcoded Secrets** - Environment variable configuration
-4. **PII Detection** - Automated screening in safety_agent
-5. **Input Validation** - All tools validate inputs
-
----
-
-## Performance
-
-- **Response Time:** <2s average (Gemini 2.5 Flash-Lite)
-- **Concurrency:** Managed by ADK session service
-- **Scaling:** Horizontal via Cloud Run
-- **State:** Persistent across session
+### Windows Compatibility
+The A2UI `wireit` build system uses Linux-style shell commands. On Windows:
+- Use `npx vite dev` directly instead of `npm run dev`
+- Manually copy schema files if needed
 
 ---
 
 ## Version History
 
-- **v4.5** - Critic agent integration
-- **v4.4** - Difficulty modes (Quick/Standard/Deep)
-- **v4.3** - Multi-agent scoring system
-- **v4.2** - Guided learning mode
-- **v4.1** - Multi-agent architecture base
-- **v4.0** - Initial ADK migration
+| Version | Date | Changes |
+|---------|------|---------|
+| v4.7.1 | Dec 2025 | Fixed coding_agent tool hallucination, bridge error handling |
+| v4.7.0 | Dec 2025 | A2UI integration (experimental) |
+| v4.6.0 | Dec 2025 | Sequential Safety pattern |
+| v4.5.2 | Dec 2025 | Study agent ANY-topic support |
+| v4.5.0 | Dec 2025 | Root agent orchestration |
+| v4.4.0 | Dec 2025 | Difficulty modes |
+| v4.3.0 | Dec 2025 | Multi-agent scoring |
 
 ---
 
 ## Future Enhancements
 
-- File Search / Resume RAG (Vertex AI)
+- Rich A2UI components (code blocks, buttons, cards)
+- Streaming responses in A2UI
+- Code execution sandbox (secure container)
 - Voice Interview (Gemini Live)
 - Visual System Design (Diagrams)
 - Multi-language Support

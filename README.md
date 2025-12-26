@@ -1,6 +1,7 @@
 <p align="center">
-  <img src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg" alt="Gemini Logo" width="80"/>
+  <img src="assets/hero_banner.png" alt="AI Technical Interviewer Banner" width="100%"/>
 </p>
+
 
 <h1 align="center">🎯 AI Technical Interviewer</h1>
 
@@ -11,6 +12,7 @@
 <p align="center">
   <a href="https://google.github.io/adk-docs/"><img src="https://img.shields.io/badge/Built%20with-Google%20ADK-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Google ADK"/></a>
   <a href="https://ai.google.dev/"><img src="https://img.shields.io/badge/Powered%20by-Gemini-8E75B2?style=for-the-badge&logo=google&logoColor=white" alt="Gemini"/></a>
+  <a href="https://github.com/google/A2UI"><img src="https://img.shields.io/badge/A2UI-v0.8-34A853?style=for-the-badge&logo=google&logoColor=white" alt="A2UI"/></a>
   <a href="https://cloud.google.com/run"><img src="https://img.shields.io/badge/Deploy%20on-Cloud%20Run-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white" alt="Cloud Run"/></a>
 </p>
 
@@ -24,7 +26,7 @@
 
 ---
 
-> **v4.6.0 - Advanced AI interviewer with Sequential Safety, guided learning, and multi-dimensional scoring.** Powered by Google's Agent Development Kit and Gemini, featuring 6 specialized sub-agents with automated risk assessment from Kaggle AI Agent competition patterns.
+> **v4.7.1 - A2UI Web Interface (Validated)** Beautiful, component-based web UI via A2A-ADK bridge. Includes Sequential Safety, guided learning, and multi-dimensional scoring. Powered by Google's Agent Development Kit, Gemini, and [A2UI](https://github.com/google/A2UI). See [A2UI Integration Journey](docs/A2UI_INTEGRATION_JOURNEY.md).
 
 ---
 
@@ -41,6 +43,7 @@
 | 💻 **Code Analysis** | Review and analyze Python code logic |
 | 🛡️ **Safety Screening** | Content moderation & bias detection |
 | ⚡ **Sequential Safety** | Automated risk assessment blocks dangerous code (v4.6.0) |
+| 🌐 **A2UI Web Interface** | Beautiful Lit-based web UI with A2A-ADK bridge (v4.7.1) |
 | 📎 **Resume Support** | Paste resume text for analysis (file upload limited by Gemini) |
 
 ### Technical
@@ -58,6 +61,7 @@
 
 ### Prerequisites
 - Python 3.11+
+- Node.js 18+ (for A2UI frontend)
 - [Google AI Studio API Key](https://aistudio.google.com/app/apikey) (Free)
 
 ### Installation
@@ -78,49 +82,85 @@ cp .env.example .env
 # Add your GOOGLE_API_KEY to .env
 
 # Run
-adk web src
+python -m google.adk.cli web ./src
 ```
 
 Open [http://127.0.0.1:8000](http://127.0.0.1:8000) 🚀
 
+### A2UI Web Interface (v4.7.1)
+
+Run **3 terminals** simultaneously:
+
+```bash
+# Terminal 1 - ADK Backend
+python -m google.adk.cli web ./src
+
+# Terminal 2 - A2A Bridge  
+python -m src.adk_interviewer.a2ui.bridge
+
+# Terminal 3 - A2UI Frontend (Windows-compatible)
+cd a2ui-repo/samples/client/lit/shell
+npx vite dev --port 3000 --open "/?app=interviewer"
+```
+
+> ⚠️ **Windows Users:** Use `npx vite dev` directly, NOT `npm run dev` (wireit incompatibility). See [Troubleshooting](docs/SETUP.md#troubleshooting).
+
+Open [http://localhost:3000/?app=interviewer](http://localhost:3000/?app=interviewer) 🎨
+
 ---
+
+
 
 ## 🏗️ Architecture
 
-### v4.6.0 Multi-Agent System (6 Specialists)
+### Three-Tier Bridge Architecture
+
+![AI Interviewer Architecture](assets/architecture_diagram.png)
+
+### System Components
 
 ```
-root_agent (Orchestrator)
-  ├── interviewer_agent     (Questions & Evaluation)
-  ├── resume_agent          (Resume & JD Analysis)
-  ├── coding_agent          (Code Analysis + Safety v4.6.0)
-  ├── safety_agent          (Content Moderation)
-  ├── study_agent           (Guided Learning)
-  └── critic_agent          (Answer Critique)
+┌─────────────────────────────────────────────────────────────────────┐
+│                    A2UI Frontend (v4.7.1)                           │
+│  ┌─────────────────┐           ┌────────────────────────────────┐  │
+│  │   Lit Renderer  │──────────▶│  A2A-ADK Bridge (:10002)       │  │
+│  │   :3000         │   A2A     │  FastAPI · JSON-RPC Translator │  │
+│  └─────────────────┘           └────────────────────────────────┘  │
+└──────────────────────────────────────────┬──────────────────────────┘
 
-Optional:
-  └── scoring_coordinator   (Multi-dimensional Scoring)
-      ├── technical_scorer
-      ├── communication_scorer
-      └── problem_solving_scorer
+                                           │
+                                           ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                      ADK Backend (:8000)                            │
+│  ┌─────────────┐  ┌──────────────────┐  ┌─────────────────────┐    │
+│  │   Web UI    │  │ Session Service  │  │  run_sse Endpoint   │    │
+│  └─────────────┘  └──────────────────┘  └─────────────────────┘    │
+└──────────────────────────────────────────┬──────────────────────────┘
+                                           │
+                                           ▼
+                  ┌────────────────────────────────────────────┐
+                  │      root_agent (Orchestrator)             │
+                  │  Routes tasks to specialist sub-agents     │
+                  └───────────────┬────────────────────────────┘
+                                  │
+            ┌─────────────────────┴─────────────────────┐
+            │           6 Specialist Sub-Agents         │
+            ├───────────────────────────────────────────┤
+            │ • interviewer_agent (Questions/Eval)      │
+            │ • resume_agent     (Resume/JD Analysis)   │
+            │ • coding_agent     (Code + Safety v4.6)   │──▶ Gemini 2.5
+            │ • safety_agent     (Content Moderation)   │
+            │ • study_agent      (Guided Learning)      │
+            │ • critic_agent     (Answer Critique)      │
+            └───────────────────────────────────────────┘
 ```
-
-**How It Works:**
-1. **Root Agent** orchestrates 6 specialist sub-agents
-2. **Interviewer** generates adaptive questions & evaluates answers
-3. **Resume** parses resumes and analyzes job descriptions
-4. **Coding** analyzes Python code logic and reviews solutions
-5. **Safety** monitors content, blocks malicious code (v4.6.0)
-6. **Study** provides guided learning with explanations & hints
-7. **Critic** validates questions and critiques answers
-8. **Scoring Coordinator** (optional) provides multi-dimensional assessment
-
-All powered by **Gemini 2.5 Flash-Lite**.
 
 ### Tech Stack
 
 | Layer | Technology |
 |-------|------------|
+| **Frontend (v4.7)** | [A2UI Lit Renderer](https://github.com/google/A2UI) |
+| **Bridge (v4.7)** | FastAPI + httpx |
 | **Framework** | [Google Agent Development Kit](https://google.github.io/adk-docs/) |
 | **LLM** | [Gemini 2.5 Flash-Lite](https://ai.google.dev/) |
 | **Web UI** | ADK Web (`adk web`) |
@@ -192,6 +232,7 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for details.
 - [Deployment](docs/DEPLOYMENT.md)
 - [Changelog](docs/CHANGELOG.md)
 - [Security](docs/SECURITY.md)
+- [A2UI Integration Journey](docs/A2UI_INTEGRATION_JOURNEY.md) - Protocol bridge story
 
 ### Research & Planning
 - [A2UI Analysis](docs/research/A2UI_ANALYSIS.md) - Google's agent UI protocol
@@ -218,7 +259,9 @@ MIT License - see [LICENSE](LICENSE)
 ## 🙏 Acknowledgments
 
 - Google ADK Team for the amazing framework
+- Google A2UI Team for agent-to-user interface protocol
 - Gemini AI for powering intelligence
+- Built with Google Antigravity
 - Open source community for inspiration
 
 ---
