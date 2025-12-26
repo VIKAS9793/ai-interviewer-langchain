@@ -4,7 +4,8 @@ A2A Protocol Bridge for ADK
 This module bridges the A2A (Agent-to-Agent) protocol used by A2UI
 with the ADK (Agent Development Kit) protocol.
 
-v4.7: Enables A2UI frontend to communicate with ADK backend.
+v4.7.0: Initial A2UI integration.
+v4.7.1: Fixed function call handling, empty response handling.
 
 Architecture:
   A2UI Frontend (localhost:3000)
@@ -15,6 +16,7 @@ Architecture:
        v (ADK protocol)
   ADK Backend (localhost:8000)
 """
+
 
 import asyncio
 import json
@@ -216,6 +218,7 @@ async def forward_to_adk(message: str) -> str:
                 
                 # Extract JSON data from SSE format
                 full_text = []
+                has_function_call = False
                 for line in text.split('\n'):
                     if line.startswith('data:'):
                         try:
@@ -230,6 +233,12 @@ async def forward_to_adk(message: str) -> str:
                                 for part in parts:
                                     if "text" in part:
                                         full_text.append(part["text"])
+                                    elif "functionCall" in part:
+                                        # ADK internal function call (e.g., transfer_to_agent)
+                                        # This is an internal operation, wait for next response
+                                        func_name = part["functionCall"].get("name", "unknown")
+                                        logger.info(f"ADK function call: {func_name}")
+                                        has_function_call = True
                         except json.JSONDecodeError:
                             # Handle non-JSON data lines (like error strings)
                             data_content = line[5:].strip()
@@ -238,8 +247,16 @@ async def forward_to_adk(message: str) -> str:
                                 return f"⚠️ Service temporarily unavailable. Please try again."
                 if full_text:
                     return ''.join(full_text)
-            
-            data = response.json()
+                elif has_function_call:
+                    # Only function call, no text - return processing message
+                    return "Processing your request... (internal routing)"
+                else:
+                    # Empty response from ADK (no text, no function call)
+                    logger.warning("ADK returned empty content response")
+                    return "I'm processing your input. Please continue with your next question."
+
+            # Only reach here if NOT text/event-stream
+
             logger.info(f"ADK raw response: {json.dumps(data)[:1000] if isinstance(data, (dict, list)) else str(data)[:1000]}")
             
             # Extract response text from ADK format

@@ -1,10 +1,14 @@
 # A2UI Integration Journey: From Simple ADK to Beautiful Web UI
 
-**Version:** 4.7.0 (Experimental)  
-**Date:** December 24, 2025  
+**Version:** 4.7.1 (Validated)  
+**Date:** December 26, 2025  
 **Branch:** dev/a2ui-integration
 
 ---
+
+<p align="center">
+  <img src="../assets/architecture_diagram.png" alt="Three-Tier Bridge Architecture" width="100%"/>
+</p>
 
 ## Executive Summary
 
@@ -13,6 +17,7 @@ This document chronicles our journey integrating Google's A2UI (Agent-to-User In
 > **Result:** Successfully bridged two incompatible protocols to render AI Interviewer responses in a rich, component-based web interface.
 
 ---
+
 
 ## The Vision
 
@@ -271,15 +276,65 @@ http://localhost:3000/?app=interviewer
 3. **Logs are essential** - Bridge logging revealed every issue
 4. **Iterate quickly** - Multiple hot-fixes, instant feedback
 5. **Don't give up** - "Do hard engineering" mindset prevailed
+6. **Explicit instructions prevent hallucination** - LLMs will try to call non-existent tools if instructions imply they exist
+
+---
+
+## Bugs Fixed in v4.7.1
+
+### Bug 1: `execute_python_code` Tool Hallucination
+**Symptom:** `ValueError: Tool 'execute_python_code' not found. Available tools: transfer_to_agent`
+
+**Root Cause:** `coding_agent` instruction said "Execute and show results" but the agent has no tools. LLM hallucinated the function name.
+
+**Fix:** Updated `coding_agent.py` with explicit instruction:
+```python
+## CRITICAL: NO CODE EXECUTION
+You do NOT have any tools to execute code. Do NOT call any functions.
+You can only analyze code by reading and reasoning about it.
+```
+
+### Bug 2: Bridge 500 Error on `transfer_to_agent`
+**Symptom:** `ERROR:__main__:Error processing request: Expecting value: line 1 column 1 (char 0)`
+
+**Root Cause:** ADK returns `functionCall` responses for internal routing. Bridge wasn't handling these.
+
+**Fix:** Added `functionCall` handling in `bridge.py`:
+```python
+elif "functionCall" in part:
+    func_name = part["functionCall"].get("name", "unknown")
+    logger.info(f"ADK function call: {func_name}")
+    has_function_call = True
+```
+
+### Bug 3: Empty Content Responses
+**Symptom:** Bridge crashed when ADK returned `{"content":{"role":"model"}}` with no parts.
+
+**Root Cause:** Some agents return empty responses (no text, no function call).
+
+**Fix:** Added fallback in `bridge.py`:
+```python
+else:
+    # Empty response from ADK
+    return "I'm processing your input. Please continue with your next question."
+```
+
+### Bug 4: Windows `npm run dev` Failure
+**Symptom:** `wireit: spawn sh ENOENT`
+
+**Root Cause:** `wireit` uses Linux shell commands incompatible with Windows.
+
+**Fix:** Use `npx vite dev --port 3000` directly instead of `npm run dev`.
 
 ---
 
 ## Next Steps
 
-- [ ] Add TextField for user input
-- [ ] Maintain session across turns
-- [ ] Render code with syntax highlighting
+- [x] Add TextField for user input ✅
+- [x] Maintain session across turns ✅
+- [ ] Render code with syntax highlighting (A2UI components)
 - [ ] Add Button components for actions
+- [ ] Streaming responses
 - [ ] Production deployment consolidation
 
 ---
@@ -287,5 +342,7 @@ http://localhost:3000/?app=interviewer
 ## Conclusion
 
 What started as "A2UI uses different protocol than ADK" became a successful integration through careful engineering. The bridge pattern proved effective, and the foundation is now in place for rich, interactive AI-powered interviews.
+
+**v4.7.1 Status:** Fully validated and tested. Core interview flow working end-to-end.
 
 **From terminal to beautiful web UI - mission accomplished.** 🎉

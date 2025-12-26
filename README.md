@@ -1,6 +1,7 @@
 <p align="center">
-  <img src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg" alt="Gemini Logo" width="80"/>
+  <img src="assets/hero_banner.png" alt="AI Technical Interviewer Banner" width="100%"/>
 </p>
+
 
 <h1 align="center">🎯 AI Technical Interviewer</h1>
 
@@ -25,7 +26,7 @@
 
 ---
 
-> **v4.7.0 - A2UI Web Interface (Experimental)** Beautiful, component-based web UI via A2A-ADK bridge. Includes Sequential Safety, guided learning, and multi-dimensional scoring. Powered by Google's Agent Development Kit, Gemini, and [A2UI](https://github.com/google/A2UI). See [A2UI Integration Journey](docs/A2UI_INTEGRATION_JOURNEY.md).
+> **v4.7.1 - A2UI Web Interface (Validated)** Beautiful, component-based web UI via A2A-ADK bridge. Includes Sequential Safety, guided learning, and multi-dimensional scoring. Powered by Google's Agent Development Kit, Gemini, and [A2UI](https://github.com/google/A2UI). See [A2UI Integration Journey](docs/A2UI_INTEGRATION_JOURNEY.md).
 
 ---
 
@@ -42,7 +43,7 @@
 | 💻 **Code Analysis** | Review and analyze Python code logic |
 | 🛡️ **Safety Screening** | Content moderation & bias detection |
 | ⚡ **Sequential Safety** | Automated risk assessment blocks dangerous code (v4.6.0) |
-| 🌐 **A2UI Web Interface** | Beautiful Lit-based web UI with A2A-ADK bridge (v4.7.0 Experimental) |
+| 🌐 **A2UI Web Interface** | Beautiful Lit-based web UI with A2A-ADK bridge (v4.7.1) |
 | 📎 **Resume Support** | Paste resume text for analysis (file upload limited by Gemini) |
 
 ### Technical
@@ -60,6 +61,7 @@
 
 ### Prerequisites
 - Python 3.11+
+- Node.js 18+ (for A2UI frontend)
 - [Google AI Studio API Key](https://aistudio.google.com/app/apikey) (Free)
 
 ### Installation
@@ -80,44 +82,52 @@ cp .env.example .env
 # Add your GOOGLE_API_KEY to .env
 
 # Run
-adk web src
+python -m google.adk.cli web ./src
 ```
 
 Open [http://127.0.0.1:8000](http://127.0.0.1:8000) 🚀
 
-### A2UI Web Interface (Experimental)
+### A2UI Web Interface (v4.7.1)
+
+Run **3 terminals** simultaneously:
 
 ```bash
 # Terminal 1 - ADK Backend
-adk web ./src
+python -m google.adk.cli web ./src
 
-# Terminal 2 - A2A Bridge
+# Terminal 2 - A2A Bridge  
 python -m src.adk_interviewer.a2ui.bridge
 
-# Terminal 3 - A2UI Frontend
-cd a2ui-repo/samples/client/lit/shell && npm run dev
+# Terminal 3 - A2UI Frontend (Windows-compatible)
+cd a2ui-repo/samples/client/lit/shell
+npx vite dev --port 3000 --open "/?app=interviewer"
 ```
+
+> ⚠️ **Windows Users:** Use `npx vite dev` directly, NOT `npm run dev` (wireit incompatibility). See [Troubleshooting](docs/SETUP.md#troubleshooting).
 
 Open [http://localhost:3000/?app=interviewer](http://localhost:3000/?app=interviewer) 🎨
 
 ---
 
+
+
 ## 🏗️ Architecture
 
-### A2UI Integration Journey
+### Three-Tier Bridge Architecture
 
-![A2UI Integration Journey](docs/a2ui_integration_journey.png)
+![AI Interviewer Architecture](assets/architecture_diagram.png)
 
-### System Architecture
+### System Components
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                    A2UI Frontend (Experimental)                     │
+│                    A2UI Frontend (v4.7.1)                           │
 │  ┌─────────────────┐           ┌────────────────────────────────┐  │
 │  │   Lit Renderer  │──────────▶│  A2A-ADK Bridge (:10002)       │  │
 │  │   :3000         │   A2A     │  FastAPI · JSON-RPC Translator │  │
 │  └─────────────────┘           └────────────────────────────────┘  │
 └──────────────────────────────────────────┬──────────────────────────┘
+
                                            │
                                            ▼
 ┌─────────────────────────────────────────────────────────────────────┐

@@ -7,7 +7,10 @@ Provides code review, logic tracing, and technical feedback.
 v4.6.0: Added Sequential Safety pattern from Kaggle AI Agent competition.
         Safety checks handled by safety_agent.
 v4.7.0: Added A2UI integration for rich UI responses (experimental).
+v4.7.1: Fixed tool hallucination bug - instruction now explicitly states
+        NO code execution capability to prevent LLM from calling non-existent tools.
 """
+
 
 import logging
 import re
@@ -67,52 +70,52 @@ def assess_code_risk(code: str) -> tuple[float, list[str]]:
 CODING_INSTRUCTION = """
 You are a Code Analysis Specialist for technical interviews.
 
+## CRITICAL: NO CODE EXECUTION
+You do NOT have any tools to execute code. Do NOT call any functions.
+You can only analyze code by reading and reasoning about it.
+
 ## Your Responsibilities
 
-### 1. Analyze Code
+### 1. Analyze Code (PRIMARY)
 When given code to review:
-- Trace through the logic step by step
+- Trace through the logic step by step mentally
 - Identify potential issues or bugs
 - Explain what the code does
-- Track complexity and efficiency
+- Assess time/space complexity
 
-### 2. Verify Solutions
+### 2. Verify Solutions (MANUAL ONLY)
 When asked to verify a solution:
-- Test with the provided inputs
-- Check edge cases when appropriate
-- Assess correctness of output
-- Report any failures clearly
+- Trace through with the provided inputs BY HAND
+- Walk through each step showing values
+- Check edge cases by reasoning
+- Explain expected output
 
-### 3. Code Generation
-When asked to demonstrate:
+### 3. Code Suggestions
+When asked to help:
 - Write clean, well-commented code
 - Follow Python best practices
-- Include example test cases
-- Execute and show results
+- Explain the logic clearly
+- Show example trace-throughs
 
 ### 4. Debugging Support
 When helping debug:
-- Identify error sources
+- Read and analyze the code
+- Identify error sources through reasoning
 - Suggest corrections
-- Verify fixes work
 - Explain the issue clearly
 
 ## Output Guidelines
-- Show code and results clearly
-- Format output readably
-- Explain what was executed
-- Note any performance observations
+- Show your analysis step by step
+- Format output readably using markdown
+- Trace through code manually showing variable states
+- Note complexity observations (Big O)
 
-## Safety Rules (v4.6.0)
-- Only execute Python code
-- Automatic risk assessment before execution
-- No file system access
-- No network requests
-- No system commands
-- Blocked operations logged for security audit
-
-If code is blocked, explain why and suggest safe alternatives.
+## What You CANNOT Do
+- Execute code (no tools available)
+- Run test cases (trace manually instead)
+- Call any functions (you have no tools)
 """
+
 
 
 def create_coding_agent() -> Agent:

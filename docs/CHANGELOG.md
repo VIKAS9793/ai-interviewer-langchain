@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.7.1] - 2025-12-26
+
+### Fixed - Critical Bugs 🐛
+
+- **Tool Hallucination Fix** - `coding_agent` no longer tries to call non-existent `execute_python_code` tool
+  - Root cause: Instruction implied execution capability but agent has no tools
+  - Solution: Added explicit "NO CODE EXECUTION" instruction
+  - File: `src/adk_interviewer/agents/coding_agent.py`
+
+- **Bridge Error Handling** - Fixed 500 errors on `transfer_to_agent` responses
+  - Added `functionCall` response handling in SSE parser
+  - Added fallback for empty content responses
+  - File: `src/adk_interviewer/a2ui/bridge.py`
+
+- **Windows Compatibility** - Documented `wireit` workaround
+  - Use `npx vite dev --port 3000` instead of `npm run dev`
+  - Added auto-open config for `?app=interviewer`
+  - File: `a2ui-repo/samples/client/lit/shell/vite.config.ts`
+
+### Documentation
+
+- Updated `SETUP.md` with comprehensive 3-terminal setup guide
+- Updated `ARCHITECTURE.md` with v4.7.1 changes and known limitations
+- Updated `A2UI_INTEGRATION_JOURNEY.md` with bugs fixed section
+- All troubleshooting scenarios documented
+
+### Testing
+
+- ✅ End-to-end interview flow validated
+- ✅ Question generation working
+- ✅ Answer evaluation working (8.5/10 score example)
+- ✅ Session persistence across turns
+- ✅ No more 500 errors
+
+---
+
 ## [4.7.0] - 2025-12-24 (Experimental)
 
 ### Added - A2UI Web Interface 🌐
@@ -34,12 +70,13 @@ A2UI Frontend (Lit) → A2A Bridge (:10002) → ADK Backend (:8000)
 ### To Run
 ```bash
 # 3 terminals required
-adk web ./src                           # ADK Backend
+python -m google.adk.cli web ./src     # ADK Backend
 python -m src.adk_interviewer.a2ui.bridge  # A2A Bridge
-cd a2ui-repo/samples/client/lit/shell && npm run dev  # Frontend
+npx vite dev --port 3000 --open "/?app=interviewer"  # Frontend (Windows)
 ```
 
 ---
+
 
 ## [4.6.0] - 2025-12-22
 
