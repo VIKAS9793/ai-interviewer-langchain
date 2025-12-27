@@ -1,0 +1,62 @@
+# AI Interviewer - Docker Compose
+# Full stack: ADK Backend + A2A Bridge + A2UI Frontend
+#
+# Usage:
+#   docker-compose up          # Start all services
+#   docker-compose up adk      # Start only ADK backend
+#   docker-compose up --build  # Rebuild images
+
+services:
+  # ADK Backend - Multi-agent interviewer
+  adk:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai-interviewer-adk
+    ports:
+      - "${ADK_PORT:-8000}:8000"
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT:-}
+    env_file:
+      - .env
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # A2A-ADK Bridge - Protocol translator
+  bridge:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai-interviewer-bridge
+    command: python src/adk_interviewer/a2ui/bridge.py
+    ports:
+      - "${BRIDGE_PORT:-10002}:10002"
+    environment:
+      - ADK_BASE_URL=http://adk:8000
+    depends_on:
+      - adk
+    restart: unless-stopped
+
+  # A2UI Frontend (development)
+  frontend:
+    image: node:20-alpine
+    container_name: ai-interviewer-frontend
+    working_dir: /app
+    volumes:
+      - ./a2ui-repo/samples/client/lit/shell:/app
+    command: sh -c "npm install && npx vite dev --host 0.0.0.0 --port 3000"
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      - bridge
+    restart: unless-stopped
+
+# Network for inter-service communication
+networks:
+  default:
+    name: ai-interviewer-network
