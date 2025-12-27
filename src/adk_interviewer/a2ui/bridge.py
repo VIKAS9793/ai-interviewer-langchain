@@ -6,6 +6,7 @@ with the ADK (Agent Development Kit) protocol.
 
 v4.7.0: Initial A2UI integration.
 v4.7.1: Fixed function call handling, empty response handling.
+v5.0.0: Rich A2UI components (Card layout, markdown support).
 
 Architecture:
   A2UI Frontend (localhost:3000)
@@ -336,12 +337,54 @@ def format_a2a_response(
         })
     
     # Generate A2UI messages for rendering
-    # If no A2UI messages from agent, create Text component for the response
+    # Enhanced v5.0: Use Card components with proper styling
     if not a2ui_messages and clean_text:
-        # Create A2UI messages per spec:
-        # 1. beginRendering has surfaceId INSIDE it
-        # 2. Components use "component" key (not componentProperties)
-        # 3. Text values need "literalString" wrapper
+        # Detect if response contains code blocks for special handling
+        has_code = "```" in clean_text
+        
+        # Build rich A2UI component tree
+        components = [
+            {
+                "id": "root-container",
+                "componentProperties": {
+                    "Column": {
+                        "children": {
+                            "explicitList": ["response-card"]
+                        }
+                    }
+                }
+            },
+            {
+                "id": "response-card",
+                "componentProperties": {
+                    "Card": {
+                        "child": "card-content"
+                    }
+                }
+            },
+            {
+                "id": "card-content",
+                "componentProperties": {
+                    "Column": {
+                        "children": {
+                            "explicitList": ["text-response"]
+                        }
+                    }
+                }
+            },
+            {
+                "id": "text-response",
+                "componentProperties": {
+                    "Text": {
+                        "text": {
+                            "literalString": clean_text
+                        },
+                        "usageHint": "body"
+                    }
+                }
+            }
+        ]
+        
         a2ui_messages = [
             {
                 "beginRendering": {
@@ -352,28 +395,7 @@ def format_a2a_response(
             {
                 "surfaceUpdate": {
                     "surfaceId": surface_id,
-                    "components": [
-                        {
-                            "id": "root-container",
-                            "component": {
-                                "Column": {
-                                    "children": {
-                                        "explicitList": ["text-response"]
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            "id": "text-response",
-                            "component": {
-                                "Text": {
-                                    "text": {
-                                        "literalString": clean_text
-                                    }
-                                }
-                            }
-                        }
-                    ]
+                    "components": components
                 }
             }
         ]
