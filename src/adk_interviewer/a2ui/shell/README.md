@@ -1,6 +1,9 @@
 # A2UI Shell - AI Interviewer Customizations
 
-These files are preserved copies of the A2UI shell with our customizations.
+These files are **backup copies** of the A2UI shell with our customizations.
+
+> ⚠️ **Note:** TypeScript errors in these files are expected. They are reference copies 
+> that require the A2UI npm environment (`@a2ui/lit`, `lit`, etc.) to compile.
 
 ## Files Included
 
@@ -11,19 +14,19 @@ These files are preserved copies of the A2UI shell with our customizations.
 
 ## How to Use
 
-These files should be copied to the A2UI shell directory:
+Copy these files to the A2UI shell directory to apply customizations:
 
 ```bash
-# Copy to a2ui-repo (after cloning google/a2ui)
+# After cloning google/a2ui repo
 cp -r src/adk_interviewer/a2ui/shell/* a2ui-repo/samples/client/lit/shell/
 ```
 
 ## Dependencies
 
-Requires A2UI shell with npm packages:
-- `@a2ui/lit`
-- `lit`
-- `vite`
+These files require running from within A2UI project:
+- `@a2ui/lit` - A2UI component library
+- `lit` - Lit web components
+- `vite` - Build tool
 
 ## Customizations Applied
 
